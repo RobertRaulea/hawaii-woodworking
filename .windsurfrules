@@ -1,0 +1,39 @@
+1. Use TypeScript strict mode for all new code
+2. Follow React functional component patterns with arrow functions
+3. Use Tailwind CSS with mobile-first approach (default → md: → lg: breakpoints)
+4. File naming conventions:
+   - Components: PascalCase.tsx
+   - Types: camelCase.types.ts
+   - Utils: camelCase.utils.ts
+   - Hooks: useCase.ts
+5. Component structure:
+   - Imports grouped: React/external first, then internal
+   - Types/interfaces at the top
+   - Props interface with 'Props' suffix
+6. Commit messages follow conventional commits:
+   - feat: for features
+   - fix: for bug fixes
+   - style: for styling changes
+   - refactor: for code improvements
+7. Always implement responsive design for:
+   - Mobile (default)
+   - Tablet (md:)
+   - Desktop (lg:)
+8. Use semantic HTML elements for better accessibility
+9. Keep bundle size optimized - lazy load heavy components
+10. Don't modify:
+    - public/investim-logo.svg
+    - package.json versions
+11. Required testing:
+    - Components: React Testing Library
+    - User interactions
+    - Responsive behavior
+12. Performance guidelines:
+    - Memoize expensive computations
+    - Optimize images
+    - Minimize re-renders
+13. Use React Router for navigation
+14. Use HeroIcons for icons
+15. Use React Hook Form for form handling
+16. Use Vite for development
+17. Use ESLint and Prettier for code formatting

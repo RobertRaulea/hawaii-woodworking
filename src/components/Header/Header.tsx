@@ -1,0 +1,62 @@
+import { ShoppingCart, Menu, X } from 'lucide-react';
+import { useState } from 'react';
+
+interface HeaderProps {
+  logoSrc: string;
+}
+
+export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-10 font-bold">
+      <nav className="relative z-20">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-12 sm:h-14 md:h-16">
+            {/* Hamburger Menu Button */}
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 hover:bg-stone-100 rounded-full transition-all duration-300"
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6 text-stone-900 transform rotate-0 transition-transform duration-300" />
+              ) : (
+                <Menu className="h-6 w-6 text-stone-900 transform rotate-0 transition-transform duration-300" />
+              )}
+            </button>
+
+            {/* Left menu items - Desktop */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#" className="text-stone-900 hover:text-amber-500 transition-colors text-base">Produse</a>
+              <a href="#" className="text-stone-900 hover:text-amber-500 transition-colors text-base">Comenzi Personalizate</a>
+            </div>
+
+            {/* Logo */}
+            <div className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2">
+              <div className="p-1">
+                <img src={logoSrc} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto brightness-0 invert-0" style={{filter: 'brightness(0)'}} />
+              </div>
+            </div>
+
+            {/* Cart Icon */}
+            <div className="flex items-center">
+              <button className="p-2 hover:bg-stone-100 rounded-full relative">
+                <ShoppingCart className="h-6 w-6 text-stone-900" />
+                <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-sm transform transition-all duration-300 ease-in-out ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+          <div className="px-4 py-3 space-y-2">
+            <a href="#" className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2">Produse</a>
+            <a href="#" className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2">Comenzi Personalizate</a>
+            <a href="#" className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2">Contact</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+  );
+}
