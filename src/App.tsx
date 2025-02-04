@@ -10,8 +10,8 @@ function App() {
       {/* Header */}
       <header className="sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-10 font-bold">
         <nav className="relative z-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20 md:h-16">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-12 sm:h-14 md:h-16">
               {/* Hamburger Menu Button */}
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -32,7 +32,9 @@ function App() {
 
               {/* Logo */}
               <div className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2">
-                <img src={hawaiiLogo} alt="Hawaii Tâmplărie Logo" className="h-28 md:h-32 w-auto brightness-0 invert-0" style={{filter: 'brightness(0)'}} />
+                <div className="p-1">
+                  <img src={hawaiiLogo} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto brightness-0 invert-0" style={{filter: 'brightness(0)'}} />
+                </div>
               </div>
 
               {/* Cart Icon */}
