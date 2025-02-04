@@ -1,9 +1,27 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 * {
   font-family: 'Roboto', sans-serif;
 }
+
+/* Mobile styles */
+@media (max-width: 767px) {
+  header {
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  header {
+    padding: 20px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
