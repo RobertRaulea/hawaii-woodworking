@@ -1,10 +1,10 @@
 import React from 'react';
-import test from '../../../assets/test.jpg';
-import test1 from '../../../assets/test (1).jpg';
-import test2 from '../../../assets/test (2).jpg';
-import test3 from '../../../assets/test (3).jpg';
-import test4 from '../../../assets/test (4).jpg';
-import test5 from '../../../assets/test (5).jpg';
+import test from '../../../assets/CatalogAssets/test.jpg';
+import test1 from '../../../assets/CatalogAssets/test (1).jpg';
+import test2 from '../../../assets/CatalogAssets/test (2).jpg';
+import test3 from '../../../assets/CatalogAssets/test (3).jpg';
+import test4 from '../../../assets/CatalogAssets/test (4).jpg';
+import test5 from '../../../assets/CatalogAssets/test (5).jpg';
 
 export const Catalog: React.FC = () => {
   // Array of imported test images
