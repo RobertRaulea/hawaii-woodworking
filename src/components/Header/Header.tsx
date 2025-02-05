@@ -1,6 +1,7 @@
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 interface HeaderProps {
   logoSrc: string;
@@ -9,6 +10,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { totalItems } = useCart();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -72,9 +75,17 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
             {/* Cart Icon */}
             <div className="flex items-center">
-              <button className="p-2 hover:bg-stone-100 rounded-full relative">
+              <button 
+                onClick={() => navigate('/cart')}
+                className="relative z-50 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Shopping cart"
+              >
                 <ShoppingCart className="h-6 w-6 text-stone-900" />
-                <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
               </button>
             </div>
           </div>

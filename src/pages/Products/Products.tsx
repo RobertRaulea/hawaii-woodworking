@@ -1,20 +1,26 @@
 import { useState } from 'react';
+import { useCart } from '../../context/CartContext';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   price: string;
   image: string;
   category: string;
-  description: string;
+  description?: string;
 }
 
 export const Products: React.FC = () => {
+  const { addItem } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const parsePrice = (priceString: string): number => {
+    return parseFloat(priceString.replace(' RON', '').replace('.', ''));
+  };
 
   const products: Product[] = [
     {
-      id: 1,
+      id: '1',
       name: "Masă din Lemn Masiv",
       price: "2.999 RON",
       image: "https://images.unsplash.com/photo-1578685666972-015e0f32e477?auto=format&fit=crop&q=80",
@@ -22,7 +28,7 @@ export const Products: React.FC = () => {
       description: "Masă elegantă din lemn masiv, perfectă pentru dining."
     },
     {
-      id: 2,
+      id: '2',
       name: "Dulap Personalizat",
       price: "4.899 RON",
       image: "https://images.unsplash.com/photo-1609587312208-cea54be969e7?auto=format&fit=crop&q=80",
@@ -30,7 +36,7 @@ export const Products: React.FC = () => {
       description: "Dulap spațios cu design personalizat pentru nevoile tale."
     },
     {
-      id: 3,
+      id: '3',
       name: "Ramă Foto Artizanală",
       price: "799 RON",
       image: "https://images.unsplash.com/photo-1533377379833-82591c6e4e78?auto=format&fit=crop&q=80",
@@ -89,7 +95,15 @@ export const Products: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
                   <p className="text-gray-600 mb-4">{product.description}</p>
                   <p className="text-amber-700 font-medium text-lg">{product.price}</p>
-                  <button className="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors">
+                  <button
+                    onClick={() => addItem({
+                      id: product.id,
+                      name: product.name,
+                      price: parsePrice(product.price),
+                      image: product.image
+                    })}
+                    className="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors"
+                  >
                     Adaugă în Coș
                   </button>
                 </div>
