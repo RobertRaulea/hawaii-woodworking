@@ -20,7 +20,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             {/* Hamburger Menu Button */}
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 hover:bg-stone-100 rounded-full transition-all duration-300"
+              className="md:hidden p-2 hover:bg-stone-100 rounded-full transition-all duration-300 relative z-30"
             >
               {isMenuOpen ? (
                 <X className="h-6 w-6 text-stone-900 transform rotate-0 transition-transform duration-300" />
@@ -31,6 +31,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
             {/* Left menu items - Desktop */}
             <div className="hidden md:flex items-center space-x-8">
+              <Link 
+                to="/" 
+                className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/') ? 'text-amber-500' : ''}`}
+              >
+                Acasă
+              </Link>
               <Link 
                 to="/products" 
                 className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/products') ? 'text-amber-500' : ''}`}
@@ -46,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             </div>
 
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2">
+            <Link to="/" className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2 z-20">
               <div className="p-1">
                 <img src={logoSrc} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto brightness-0 invert-0" style={{filter: 'brightness(0)'}} />
               </div>
@@ -63,8 +69,15 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
         </div>
 
         {/* Mobile Menu */}
-        <div className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-sm transform transition-all duration-300 ease-in-out ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+        <div className={`md:hidden fixed top-[48px] sm:top-[56px] md:top-[64px] left-0 w-full bg-white/95 backdrop-blur-sm transform transition-all duration-300 ease-in-out shadow-lg ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
           <div className="px-4 py-3 space-y-2">
+            <Link 
+              to="/" 
+              className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/') ? 'text-amber-500' : ''}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Acasă
+            </Link>
             <Link 
               to="/products" 
               className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/products') ? 'text-amber-500' : ''}`}
