@@ -56,7 +56,7 @@ export const Products: React.FC = () => {
       id: '1',
       name: "Platou Rustic din Lemn de Fag",
       price: "89.99 RON",
-      image: "/assets/ProductsAssets/Screenshot_1.png",
+      image: "../../assets/ProductsAssets/Screenshot_1.png",
       category: "platouri",
       description: "Platou elegant din lemn masiv de fag, perfect pentru servire."
     },
@@ -64,7 +64,7 @@ export const Products: React.FC = () => {
       id: '2',
       name: "Platou Rotund din Lemn de Nuc",
       price: "94.99 RON",
-      image: "/assets/ProductsAssets/Screenshot_2.png",
+      image: "../../assets/ProductsAssets/Screenshot_2.png",
       category: "platouri",
       description: "Platou rotund din lemn de nuc, ideal pentru aperitive."
     },
@@ -72,7 +72,7 @@ export const Products: React.FC = () => {
       id: '3',
       name: "Platou Decorativ din Lemn Natural",
       price: "84.99 RON",
-      image: "/assets/ProductsAssets/Screenshot_3.png",
+      image: "../../assets/ProductsAssets/Screenshot_3.png",
       category: "platouri",
       description: "Platou decorativ handmade din lemn natural."
     },
@@ -80,7 +80,7 @@ export const Products: React.FC = () => {
       id: '4',
       name: "Platou Oval din Lemn Masiv",
       price: "99.99 RON",
-      image: "/assets/ProductsAssets/Screenshot_4.png",
+      image: "../../assets/ProductsAssets/Screenshot_4.png",
       category: "platouri",
       description: "Platou oval din lemn masiv pentru servire elegantă."
     },
@@ -88,7 +88,7 @@ export const Products: React.FC = () => {
       id: '5',
       name: "Platou Inima din Lemn",
       price: "92.99 RON",
-      image: "/assets/ProductsAssets/Screenshot_5.png",
+      image: "../../assets/ProductsAssets/Screenshot_5.png",
       category: "platouri",
       description: "Platou Inima din lemn pentru Valentines Day."
     }
