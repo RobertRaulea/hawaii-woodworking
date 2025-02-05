@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useCart } from '../../context/CartContext';
+import screenshot1 from '@assets/ProductsAssets/Screenshot_1.png';
+import screenshot2 from '@assets/ProductsAssets/Screenshot_2.png';
+import screenshot3 from '@assets/ProductsAssets/Screenshot_3.png';
+import screenshot4 from '@assets/ProductsAssets/Screenshot_4.png';
+import screenshot5 from '@assets/ProductsAssets/Screenshot_5.png';
 
 interface Product {
   id: string;
   name: string;
   price: string;
-  image: string;
+  image: any;
   category: string;
   description?: string;
 }
@@ -56,7 +61,7 @@ export const Products: React.FC = () => {
       id: '1',
       name: "Platou Rustic din Lemn de Fag",
       price: "89.99 RON",
-      image: "../../../assets/ProductsAssets/Screenshot_1.png",
+      image: screenshot1,
       category: "platouri",
       description: "Platou elegant din lemn masiv de fag, perfect pentru servire."
     },
@@ -64,7 +69,7 @@ export const Products: React.FC = () => {
       id: '2',
       name: "Platou Rotund din Lemn de Nuc",
       price: "94.99 RON",
-      image: "../../../assets/ProductsAssets/Screenshot_2.png",
+      image: screenshot2,
       category: "platouri",
       description: "Platou rotund din lemn de nuc, ideal pentru aperitive."
     },
@@ -72,7 +77,7 @@ export const Products: React.FC = () => {
       id: '3',
       name: "Platou Decorativ din Lemn Natural",
       price: "84.99 RON",
-      image: "../../../assets/ProductsAssets/Screenshot_3.png",
+      image: screenshot3,
       category: "platouri",
       description: "Platou decorativ handmade din lemn natural."
     },
@@ -80,7 +85,7 @@ export const Products: React.FC = () => {
       id: '4',
       name: "Platou Oval din Lemn Masiv",
       price: "99.99 RON",
-      image: "../../../assets/ProductsAssets/Screenshot_4.png",
+      image: screenshot4,
       category: "platouri",
       description: "Platou oval din lemn masiv pentru servire elegantă."
     },
@@ -88,7 +93,7 @@ export const Products: React.FC = () => {
       id: '5',
       name: "Platou Inima din Lemn",
       price: "92.99 RON",
-      image: "../../../assets/ProductsAssets/Screenshot_5.png",
+      image: screenshot5,
       category: "platouri",
       description: "Platou Inima din lemn pentru Valentines Day."
     }
