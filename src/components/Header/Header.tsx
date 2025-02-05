@@ -44,6 +44,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 Produse
               </Link>
               <Link 
+                to="/catalog" 
+                className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/catalog') ? 'text-amber-500' : ''}`}
+              >
+                Catalog
+              </Link>
+              <Link 
                 to="#" 
                 className="text-stone-900 hover:text-amber-500 transition-colors text-base"
               >
@@ -83,6 +89,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/products') ? 'text-amber-500' : ''}`}
             >
               Produse
+            </Link>
+            <Link 
+              to="/catalog" 
+              className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/catalog') ? 'text-amber-500' : ''}`}
+            >
+              Catalog
             </Link>
             <Link 
               to="#" 
