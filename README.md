@@ -44,6 +44,8 @@ project/
 │   │   │   └── Services.tsx    # Service offerings display
 │   │   ├── Products/
 │   │   │   └── FeaturedProducts.tsx  # Product showcase
+│   │   ├── Layout/
+│   │   │   └── Layout.tsx      # Layout wrapper for Header and Footer
 │   │   └── Footer/
 │   │       └── Footer.tsx      # Site footer with newsletter
 │   ├── assets/
@@ -85,6 +87,14 @@ project/
 - Newsletter subscription form
 - Quick links and company information
 - Social media integration ready
+
+### Layout Component
+- Wraps Header and Footer for consistent layout
+- Uses React Router's Outlet for nested routing
+
+### Products Page
+- Displays a list of products with filtering options
+- Responsive design with product details
 
 ## 📝 Coding Standards
 

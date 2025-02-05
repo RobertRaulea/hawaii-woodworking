@@ -1,5 +1,6 @@
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface HeaderProps {
   logoSrc: string;
@@ -7,6 +8,9 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <header className="sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-10 font-bold">
@@ -27,16 +31,26 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
             {/* Left menu items - Desktop */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-stone-900 hover:text-amber-500 transition-colors text-base">Produse</a>
-              <a href="#" className="text-stone-900 hover:text-amber-500 transition-colors text-base">Comenzi Personalizate</a>
+              <Link 
+                to="/products" 
+                className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/products') ? 'text-amber-500' : ''}`}
+              >
+                Produse
+              </Link>
+              <Link 
+                to="#" 
+                className="text-stone-900 hover:text-amber-500 transition-colors text-base"
+              >
+                Comenzi Personalizate
+              </Link>
             </div>
 
             {/* Logo */}
-            <div className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2">
+            <Link to="/" className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2">
               <div className="p-1">
                 <img src={logoSrc} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto brightness-0 invert-0" style={{filter: 'brightness(0)'}} />
               </div>
-            </div>
+            </Link>
 
             {/* Cart Icon */}
             <div className="flex items-center">
@@ -51,12 +65,27 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
         {/* Mobile Menu */}
         <div className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-sm transform transition-all duration-300 ease-in-out ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
           <div className="px-4 py-3 space-y-2">
-            <a href="#" className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2">Produse</a>
-            <a href="#" className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2">Comenzi Personalizate</a>
-            <a href="#" className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2">Contact</a>
+            <Link 
+              to="/products" 
+              className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/products') ? 'text-amber-500' : ''}`}
+            >
+              Produse
+            </Link>
+            <Link 
+              to="#" 
+              className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2"
+            >
+              Comenzi Personalizate
+            </Link>
+            <Link 
+              to="#" 
+              className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2"
+            >
+              Contact
+            </Link>
           </div>
         </div>
       </nav>
     </header>
   );
-}
+};

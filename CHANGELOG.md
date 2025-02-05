@@ -12,10 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Responsive header component with mobile-first design
 - Tailwind CSS integration for styling
 - React Router for navigation
-- HeroIcons integration
+- Lucide React Icons for icons
 - React Hook Form for form handling
 - ESLint and Prettier configuration
 - Vite development environment
+- New **Products** page with routing at `/products`
+- New **Layout** component to wrap Header and Footer
 
 ### Changed
 - Implemented strict TypeScript configuration
