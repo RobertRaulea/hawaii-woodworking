@@ -31,27 +31,33 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
             {/* Left menu items - Desktop */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link 
-                to="/" 
-                className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/') ? 'text-amber-500' : ''}`}
-              >
-                Acasă
-              </Link>
-              <Link 
-                to="/products" 
-                className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/products') ? 'text-amber-500' : ''}`}
-              >
-                Produse
-              </Link>
-              <Link 
-                to="/catalog" 
-                className={`text-stone-900 hover:text-amber-500 transition-colors text-base ${isActive('/catalog') ? 'text-amber-500' : ''}`}
-              >
-                Catalog
-              </Link>
+              {!isActive('/') && (
+                <Link 
+                  to="/" 
+                  className={`text-stone-900 transition-colors text-base ${isActive('/') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                >
+                  Acasă
+                </Link>
+              )}
+              {!isActive('/products') && (
+                <Link 
+                  to="/products" 
+                  className={`text-stone-900 transition-colors text-base ${isActive('/products') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                >
+                  Produse
+                </Link>
+              )}
+              {!isActive('/catalog') && (
+                <Link 
+                  to="/catalog" 
+                  className={`text-stone-900 transition-colors text-base ${isActive('/catalog') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                >
+                  Catalog
+                </Link>
+              )}
               <Link 
                 to="#" 
-                className="text-stone-900 hover:text-amber-500 transition-colors text-base"
+                className={`text-stone-900 transition-colors text-base ${isActive('/#') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
               >
                 Comenzi Personalizate
               </Link>
@@ -77,34 +83,44 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
         {/* Mobile Menu */}
         <div className={`md:hidden fixed top-[48px] sm:top-[56px] md:top-[64px] left-0 w-full bg-white/95 backdrop-blur-sm transform transition-all duration-300 ease-in-out shadow-lg ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
           <div className="px-4 py-3 space-y-2">
-            <Link 
-              to="/" 
-              className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/') ? 'text-amber-500' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Acasă
-            </Link>
-            <Link 
-              to="/products" 
-              className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/products') ? 'text-amber-500' : ''}`}
-            >
-              Produse
-            </Link>
-            <Link 
-              to="/catalog" 
-              className={`block text-stone-900 hover:text-amber-500 transition-colors text-base py-2 ${isActive('/catalog') ? 'text-amber-500' : ''}`}
-            >
-              Catalog
-            </Link>
+            {!isActive('/') && (
+              <Link 
+                to="/" 
+                className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Acasă
+              </Link>
+            )}
+            {!isActive('/products') && (
+              <Link 
+                to="/products" 
+                className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/products') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Produse
+              </Link>
+            )}
+            {!isActive('/catalog') && (
+              <Link 
+                to="/catalog" 
+                className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/catalog') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Catalog
+              </Link>
+            )}
             <Link 
               to="#" 
-              className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2"
+              className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/#') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+              onClick={() => setIsMenuOpen(false)}
             >
               Comenzi Personalizate
             </Link>
             <Link 
               to="#" 
-              className="block text-stone-900 hover:text-amber-500 transition-colors text-base py-2"
+              className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/#') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+              onClick={() => setIsMenuOpen(false)}
             >
               Contact
             </Link>
