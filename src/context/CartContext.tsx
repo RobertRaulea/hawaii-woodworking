@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useState } from 'react';
+import React, { createContext, useContext, useReducer, useState, useEffect } from 'react';
 import { Toast } from '../components/Toast/Toast';
 
 interface CartItem {
@@ -67,11 +67,20 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [state, dispatch] = useReducer(cartReducer, { items: [] }, () => {
+    // Initialize state from localStorage
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : { items: [] };
+  });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   const totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
+
+  // Save to localStorage whenever cart state changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(state));
+  }, [state]);
 
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
     dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
