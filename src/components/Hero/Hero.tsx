@@ -18,42 +18,18 @@ export const Hero: React.FC<HeroProps> = ({ backgroundImage }) => {
         <div className="absolute inset-0 bg-black/50"></div>
       </div>
 
-      {/* Hero Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32">
-        <div className="max-w-3xl">
-          <h1 className="text-5xl font-bold text-white mb-6">Atelier frezare CNC din Sibiu</h1>
-          <p className="text-xl text-gray-300 mb-8">
-          Atelier de frezare CNC în lemn, folosim tehnologie avansată pentru prelucrări precise în mobilier, decorațiuni și panouri personalizate.          </p>
-          <div className="flex gap-4">
-            <button 
-              onClick={() => navigate('/catalog')}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded text-sm font-medium transition-colors"
-            >
-              Vezi Catalog
-            </button>
-            {/* <button className="border border-white hover:bg-white/10 text-white px-8 py-3 rounded text-sm font-medium transition-colors">
-              Comandă Personalizată
-            </button> */}
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-32">
-        <div className="grid grid-cols-3 gap-8 text-center text-white">
-          <div>
-            <div className="text-4xl font-bold text-amber-500">1+</div>
-            <div className="mt-2 text-gray-300">Ani Experiență</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-amber-500">10+</div>
-            <div className="mt-2 text-gray-300">Proiecte Finalizate</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-amber-500">100+</div>
-            <div className="mt-2 text-gray-300">Clienți Mulțumiți</div>
-          </div>
-        </div>
+      {/* Centred Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center w-full px-4 sm:px-6 lg:px-8 min-h-[70vh] gap-8">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white">Bun venit la Hawaii Woodworking</h1>
+        <p className="max-w-3xl text-lg md:text-xl text-gray-200 leading-relaxed">
+          La Hawaii Woodworking îmbinăm tradiția prelucrării lemnului cu tehnologia CNC de ultimă generație pentru a crea piese unice, durabile și personalizate. Echipa noastră te poate ajuta de la concept la produs finit, fie că ai nevoie de mobilier, decorațiuni sau prototipuri speciale.
+        </p>
+        <button
+          onClick={() => navigate('/catalog')}
+          className="bg-amber-600 hover:bg-amber-700 text-white px-10 py-4 rounded text-base font-medium transition-colors"
+        >
+          Vezi Catalog
+        </button>
       </div>
     </div>
   );
