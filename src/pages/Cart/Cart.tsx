@@ -1,5 +1,5 @@
 import { ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '@context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { storageUrl } from '../../utils/supabaseClient';
 
@@ -22,13 +22,13 @@ export const Cart: React.FC<CartProps> = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
           <ShoppingCart className="w-16 h-16 text-gray-400 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">Add some items to your cart to get started!</p>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Coșul tău este gol</h2>
+          <p className="text-gray-600 mb-6">Adaugă produse în coș pentru a începe!</p>
           <button
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
             onClick={() => window.history.back()}
           >
-            Continue Shopping
+            Continuă cumpărăturile
           </button>
         </div>
       </div>
@@ -37,7 +37,7 @@ export const Cart: React.FC<CartProps> = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-8">Shopping Cart</h1>
+      <h1 className="text-2xl font-bold mb-8">Coș de cumpărături</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-grow">
           {state.items.map((item) => (
@@ -80,7 +80,7 @@ export const Cart: React.FC<CartProps> = () => {
         </div>
         <div className="lg:w-1/3">
           <div className="bg-gray-50 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            <h2 className="text-xl font-semibold mb-4">Sumar comandă</h2>
             <div className="flex justify-between mb-4">
               <span>Subtotal</span>
               <span>{formatPrice(calculateTotal())}</span>
@@ -89,7 +89,7 @@ export const Cart: React.FC<CartProps> = () => {
               className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
               onClick={() => navigate('/checkout')}
             >
-              Proceed to Checkout
+              Finalizează comanda
             </button>
           </div>
         </div>
