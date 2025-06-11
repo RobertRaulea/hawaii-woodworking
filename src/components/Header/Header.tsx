@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-10 font-bold">
+    <header className="sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-50 font-bold">
       <nav className="relative z-20">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12 sm:h-14 md:h-16">

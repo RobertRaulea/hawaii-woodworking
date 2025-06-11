@@ -51,8 +51,14 @@ export const Checkout: React.FC = () => {
     }
 
     const { url } = await res.json();
-    // TODO: integrate Stripe redirect; for now simulate success route
-    window.location.href = '/thank-you';
+    if (!url) {
+      alert('URL sesiune Stripe indisponibilă');
+      setLoading(false);
+      return;
+    }
+
+    // Redirecționează către pagina de plată Stripe
+    window.location.href = url;
   };
 
   return (
