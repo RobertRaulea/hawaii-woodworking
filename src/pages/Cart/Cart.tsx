@@ -1,10 +1,13 @@
 import { ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useNavigate } from 'react-router-dom';
+import { storageUrl } from '../../utils/supabaseClient';
 
 interface CartProps {}
 
 export const Cart: React.FC<CartProps> = () => {
   const { state, removeItem, updateQuantity } = useCart();
+  const navigate = useNavigate();
 
   const calculateTotal = () => {
     return state.items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -39,7 +42,11 @@ export const Cart: React.FC<CartProps> = () => {
         <div className="flex-grow">
           {state.items.map((item) => (
             <div key={item.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 border-b border-gray-200 py-4">
-              <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded" />
+              <img
+                src={item.image ? `${storageUrl}/${item.image}` : ''}
+                alt={item.name}
+                className="w-24 h-24 object-cover rounded"
+              />
               <div className="flex-grow">
                 <h3 className="font-semibold text-lg">{item.name}</h3>
                 <p className="text-gray-600">{formatPrice(item.price)}</p>
@@ -78,7 +85,10 @@ export const Cart: React.FC<CartProps> = () => {
               <span>Subtotal</span>
               <span>{formatPrice(calculateTotal())}</span>
             </div>
-            <button className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
+            <button
+              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+              onClick={() => navigate('/checkout')}
+            >
               Proceed to Checkout
             </button>
           </div>

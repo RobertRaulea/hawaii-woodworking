@@ -5,6 +5,7 @@ import { Products } from './pages/Products/Products';
 import { Catalog } from './pages/Catalog/Catalog';
 import { Cart } from './pages/Cart/Cart';
 import { CartProvider } from './context/CartContext';
+import { Checkout } from './pages/Checkout/Checkout';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
               <Route path="products" element={<Products />} />
               <Route path="catalog" element={<Catalog />} />
               <Route path="cart" element={<Cart />} />
+              <Route path="checkout" element={<Checkout />} />
             </Route>
           </Routes>
         </MaintenanceGuard>
