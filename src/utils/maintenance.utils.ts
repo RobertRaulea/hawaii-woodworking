@@ -6,7 +6,7 @@ interface MaintenanceConfig {
 
 export const maintenanceConfig: MaintenanceConfig = {
   // Set this to true to activate the under construction page
-  isUnderConstruction: true,
+  isUnderConstruction: false,
   
   // Set the expected completion date that will be shown to users
   expectedCompletionDate: '2025-03-01',
