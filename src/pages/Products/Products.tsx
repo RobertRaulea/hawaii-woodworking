@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '@context/CartContext';
 import { useProducts, Product as P } from '../../hooks/useProducts';
 import { storageUrl } from '../../utils/supabaseClient';
 
