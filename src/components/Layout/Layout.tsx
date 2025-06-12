@@ -10,7 +10,7 @@ export const Layout: React.FC = () => {
       <main className="flex-grow">
         <Outlet />
       </main>
-      <Footer logoSrc={hawaiiLogo} />
+      <Footer />
     </div>
   );
 };
