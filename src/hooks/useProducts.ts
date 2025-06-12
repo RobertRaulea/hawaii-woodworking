@@ -5,7 +5,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  image: string | null;
+  images: string[] | null; // Array of image paths
   category: string | null;
   description: string | null;
 }
