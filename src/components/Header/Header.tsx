@@ -1,7 +1,7 @@
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useCart } from '@context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 interface HeaderProps {
   logoSrc: string;
@@ -63,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2 z-20">
               <div className="p-1">
-                <img src={logoSrc} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto brightness-0 invert-0" style={{filter: 'brightness(0)'}} />
+                <img src={logoSrc} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto" />
               </div>
             </Link>
 
