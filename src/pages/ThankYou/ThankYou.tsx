@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useCart } from '@context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 export const ThankYou: React.FC = () => {
   const { clearCart } = useCart();

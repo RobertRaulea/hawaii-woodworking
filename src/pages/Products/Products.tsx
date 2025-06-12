@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useCart } from '@context/CartContext';
+import { Link } from 'react-router-dom';
 import { useProducts, Product as P } from '../../hooks/useProducts';
 import { storageUrl } from '../../utils/supabaseClient';
 
@@ -15,27 +15,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ name, price, image, id }) => 
   const { addItem } = useCart();
 
   return (
-    <div className="group">
-      <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <Link to={`/product/${id}`} className="block relative group-hover:opacity-90 transition-opacity">
-          <div className="relative">
-            <img
-            src={image ? `${storageUrl}/${image}` : ''}
+    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <Link to={`/product/${id}`} className="block">
+        <div className="relative">
+          <img
+            src={image ? `${storageUrl}/${image}` : 'https://placehold.co/600x400?text=Product+Image'}
             alt={name}
             className="w-full h-64 object-cover"
           />
-          </div>
-        </Link>
-        <div className="p-6">
-          <h3 className="text-xl font-semibold mb-2">{name}</h3>
-          <p className="text-amber-700 font-medium text-lg">{price.toFixed(2)} RON</p>
-          <button
-            onClick={() => addItem({ id, name, price, image })}
-            className="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors"
-          >
-            Adaugă în Coș
-          </button>
         </div>
+        <div className="p-6">
+          <h3 className="text-xl font-semibold mb-2 truncate" title={name}>{name}</h3>
+          <p className="text-amber-700 font-medium text-lg">{price.toFixed(2)} RON</p>
+        </div>
+      </Link>
+      <div className="p-6 pt-0">
+        <button
+          onClick={() => addItem({ id, name, price, image: image || 'https://placehold.co/100x100?text=No+Image' })}
+          className="w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors"
+        >
+          Adaugă în Coș
+        </button>
       </div>
     </div>
   );
