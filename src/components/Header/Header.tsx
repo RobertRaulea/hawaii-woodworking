@@ -1,5 +1,5 @@
 import { ShoppingCart, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 
@@ -9,14 +9,23 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { totalItems } = useCart();
 
   const isActive = (path: string) => location.pathname === path;
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-50 font-bold">
+    <header className={`sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-50 font-bold transition-all duration-300 ${scrolled ? 'py-0' : 'py-2'}`}>
       <nav className="relative z-20">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12 sm:h-14 md:h-16">
@@ -62,8 +71,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 flex justify-center absolute left-1/2 transform -translate-x-1/2 z-20">
-              <div className="p-1">
-                <img src={logoSrc} alt="Hawaii Tâmplărie Logo" className="h-16 sm:h-20 md:h-24 lg:h-36 w-auto" />
+              <div className={`p-1 transition-all duration-300 ${scrolled ? 'py-0' : 'py-1'}`}>
+                <img 
+                  src={logoSrc} 
+                  alt="Hawaii Tâmplărie Logo" 
+                  className={`w-auto transition-all duration-300 ${scrolled ? 'h-14 sm:h-16 md:h-20' : 'h-16 sm:h-20 md:h-24 lg:h-28'}`} 
+                />
               </div>
             </Link>
 
