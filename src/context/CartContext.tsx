@@ -16,13 +16,15 @@ interface CartState {
 type CartAction =
   | { type: 'ADD_ITEM'; payload: CartItem }
   | { type: 'REMOVE_ITEM'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } };
+  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'CLEAR_CART' };
 
 interface CartContextType {
   state: CartState;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  clearCart: () => void;
   totalItems: number;
 }
 
@@ -61,6 +63,11 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
             : item
         ),
       };
+    case 'CLEAR_CART':
+      return {
+        ...state,
+        items: [],
+      };
     default:
       return state;
   }
@@ -98,8 +105,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const clearCart = () => {
+    dispatch({ type: 'CLEAR_CART' });
+    localStorage.removeItem('cart');
+  };
+
   return (
-    <CartContext.Provider value={{ state, addItem, removeItem, updateQuantity, totalItems }}>
+    <CartContext.Provider value={{ state, addItem, removeItem, updateQuantity, clearCart, totalItems }}>
       {children}
       {showToast && (
         <Toast

@@ -1,6 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useCart } from '@context/CartContext';
 
 export const ThankYou: React.FC = () => {
+  const { clearCart } = useCart();
+
+  useEffect(() => {
+    clearCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="container mx-auto px-4 py-20 text-center">
       <h1 className="text-3xl font-bold mb-4">Îți mulțumim pentru comandă!</h1>
