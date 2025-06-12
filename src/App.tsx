@@ -7,6 +7,7 @@ import { Cart } from './pages/Cart/Cart';
 import { CartProvider } from './context/CartContext';
 import { Checkout } from './pages/Checkout/Checkout';
 import { ThankYou } from './pages/ThankYou/ThankYou';
+import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
               <Route path="cart" element={<Cart />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="thank-you" element={<ThankYou />} />
+              <Route path="product/:productId" element={<ProductDetailPage />} />
             </Route>
           </Routes>
         </MaintenanceGuard>

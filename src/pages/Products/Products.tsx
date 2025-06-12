@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart } from '@context/CartContext';
 import { useProducts, Product as P } from '../../hooks/useProducts';
 import { storageUrl } from '../../utils/supabaseClient';
@@ -16,13 +17,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ name, price, image, id }) => 
   return (
     <div className="group">
       <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-        <div className="relative">
-          <img
+        <Link to={`/product/${id}`} className="block relative group-hover:opacity-90 transition-opacity">
+          <div className="relative">
+            <img
             src={image ? `${storageUrl}/${image}` : ''}
             alt={name}
             className="w-full h-64 object-cover"
           />
-        </div>
+          </div>
+        </Link>
         <div className="p-6">
           <h3 className="text-xl font-semibold mb-2">{name}</h3>
           <p className="text-amber-700 font-medium text-lg">{price.toFixed(2)} RON</p>
