@@ -13,6 +13,8 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productImages, id }) => {
   const { addItem } = useCart();
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(() => {
     if (!productImages || productImages.length === 0) return 0;
     const mainImageIdx = productImages.findIndex(img => 
@@ -41,11 +43,49 @@ const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productI
     }
   };
 
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(0);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      if (productImages && productImages.length > 0) {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % productImages.length);
+      }
+    } else if (isRightSwipe) {
+      if (productImages && productImages.length > 0) {
+        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + productImages.length) % productImages.length);
+      }
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
       <Link to={`/product/${id}`} className="block">
         {/* Image Carousel Area */}
-        <div className="relative group/carousel"> 
+        <div
+          className="relative group/carousel"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        > 
           <img
             src={productImages && productImages.length > 0 ? `${storageUrl}/${productImages[currentImageIndex]}` : 'https://placehold.co/600x400?text=Product+Image'}
             alt={`${name} - image ${currentImageIndex + 1}`}
