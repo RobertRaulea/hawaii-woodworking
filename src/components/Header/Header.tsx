@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
         </div>
 
         {/* Mobile Menu */}
-        <div className={`md:hidden fixed top-[48px] sm:top-[56px] md:top-[64px] left-0 w-full bg-white/95 backdrop-blur-sm transform transition-all duration-300 ease-in-out shadow-lg ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+        <div className={`md:hidden fixed top-[48px] sm:top-[56px] md:top-[64px] left-0 w-full bg-white/70 backdrop-blur-sm transform transition-all duration-300 ease-in-out shadow-lg ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
           <div className="px-4 py-3 space-y-2">
             {!isActive('/') && (
               <Link 
@@ -128,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 Catalog
               </Link>
             )}
-
           </div>
         </div>
       </nav>
