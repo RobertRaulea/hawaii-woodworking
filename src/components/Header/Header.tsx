@@ -128,13 +128,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 Catalog
               </Link>
             )}
-            <Link 
-              to="#" 
-              className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/#') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
-            </Link>
+
           </div>
         </div>
       </nav>
