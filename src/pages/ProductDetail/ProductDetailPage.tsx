@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useProducts, Product as P } from '../../hooks/useProducts'; // Assuming useProducts can fetch a single product or we adapt it
 import { storageUrl } from '../../utils/supabaseClient';
+import { SEO } from '../../components/SEO/SEO';
 
 // Define a type for the product, can be expanded
 interface Product extends P {
@@ -59,6 +60,41 @@ export const ProductDetailPage: React.FC = () => {
 
   const productImages = getDisplayImages(product?.images);
 
+  // SEO Meta Tags and Schema
+  const pageTitle = product ? `${product.name} - Hawaii Woodworking` : 'Detalii Produs - Hawaii Woodworking';
+  const pageDescription = product?.description ? product.description.substring(0, 160) : `Descoperă ${product?.name || 'acest produs unic'}, un articol din lemn lucrat manual, perfect pentru cadouri sau decorațiuni. Calitate și design românesc de la Hawaii Woodworking.`;
+  const pageKeywords = product ? [
+    product.name,
+    product.category || 'produs lemn',
+    'cadouri lemn personalizate',
+    'artizanat românesc',
+    'handmade România',
+    'Hawaii Woodworking',
+    'platouase',
+    'hawaii sibiu'
+  ] : ['produs lemn', 'Hawaii Woodworking'];
+  
+  const productSchema = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description || pageDescription,
+    image: productImages[0], // Use the first image (ideally main image) for schema
+    sku: product.id,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'RON',
+      price: product.price.toFixed(2),
+      availability: 'https://schema.org/InStock', // Assuming product is in stock
+      url: window.location.href
+    },
+    brand: {
+      '@type': 'Brand',
+      name: 'Hawaii Woodworking'
+    }
+    // Potentially add reviews, aggregateRating, etc. later
+  } : {};
+
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % productImages.length);
   };
@@ -68,7 +104,16 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <>
+      <SEO 
+        title={pageTitle}
+        description={pageDescription}
+        keywords={pageKeywords}
+        image={productImages[0]} // OpenGraph image
+        type="product"
+        schema={productSchema}
+      />
+      <div className="container mx-auto px-4 py-12">
       <div className="bg-white shadow-xl rounded-lg overflow-hidden md:flex">
         <div className="md:w-1/2 relative">
           <img 
@@ -119,5 +164,6 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /thank-you
+
+# Sitemap
+Sitemap: https://www.hawaiiproducts.ro/sitemap.xml

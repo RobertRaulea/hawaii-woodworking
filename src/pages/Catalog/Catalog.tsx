@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SEO } from '../../components/SEO/SEO';
 import test from "../../../assets/CatalogAssets/test.jpeg";
 import test1 from "../../../assets/CatalogAssets/test (1).jpeg";
 import test2 from "../../../assets/CatalogAssets/test (2).jpeg";
@@ -34,8 +35,26 @@ export const Catalog: React.FC = () => {
     });
   };
 
+  const pageTitle = "Catalog Lucrări din Lemn - Hawaii Woodworking";
+  const pageDescription = "Vizualizați portofoliul nostru de lucrări din lemn: icoane, platouri, tăvi și alte obiecte personalizate create prin prelucrare CNC și artizanat. Inspirați-vă pentru proiectul dumneavoastră.";
+  const pageKeywords = [
+    'catalog lemn',
+    'portofoliu tâmplărie',
+    'icoane lemn românia',
+    'platouri lemn servire',
+    'tăvi lemn personalizate',
+    'lucrări cnc lemn',
+    'proiecte lemn masiv'
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
+      <SEO 
+        title={pageTitle}
+        description={pageDescription}
+        keywords={pageKeywords}
+      />
+      <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-stone-900 mb-8">Our Catalog</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {images.map((image, index) => (
@@ -99,5 +118,6 @@ export const Catalog: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
