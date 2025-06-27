@@ -12,18 +12,26 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase URL or Anon Key is not defined in the environment variables.');
+    console.warn('Supabase credentials are not defined – generating sitemap without product pages.');
 }
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Initialize Supabase client only if credentials are present
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 const SITE_URL = 'https://www.hawaiiproducts.ro';
 async function generateSitemap() {
     console.log('Generating sitemap...');
-    // Fetch all product IDs from Supabase
-    const { data: products, error } = await supabase.from('products').select('id');
-    if (error) {
-        console.error('Error fetching products for sitemap:', error);
-        return;
+    let products = [];
+    if (supabase) {
+        try {
+            const { data, error } = await supabase.from('products').select('id');
+            if (error) {
+                console.error('Error fetching products for sitemap:', error);
+            } else {
+                products = data;
+            }
+        } catch (err) {
+            console.error('Unexpected error fetching products:', err);
+        }
     }
     // Define static pages
     const staticPages = [
@@ -53,7 +61,10 @@ ${allPages
   </url>`)
         .join('\n')}
 </urlset>`;
-    const sitemapPath = path.resolve(__dirname, '../public/sitemap.xml');
+    // Resolve to root-level public directory (two levels up from dist-scripts/scripts)
+    const sitemapPath = path.resolve(__dirname, '../../public/sitemap.xml');
+    // Ensure directory exists (Vercel may not have it yet)
+    fs.mkdirSync(path.dirname(sitemapPath), { recursive: true });
     fs.writeFileSync(sitemapPath, sitemapXml);
     console.log(`Sitemap generated successfully with ${allPages.length} URLs at ${sitemapPath}`);
 }
@@ -62,7 +73,6 @@ ${allPages
         await generateSitemap();
     }
     catch (e) {
-        console.error(e);
-        process.exit(1);
+        console.error('Sitemap generation encountered an error but will not fail the build:', e);
     }
 })();
