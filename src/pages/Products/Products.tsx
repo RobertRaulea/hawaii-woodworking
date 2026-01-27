@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useCart } from '@context/CartContext';
+import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
 import { useProducts, Product as P } from '../../hooks/useProducts';
-import { storageUrl } from '../../utils/supabaseClient';
+import { storageUrl } from '../../utils/storageUrl.utils';
 import { SEO } from '../../components/SEO/SEO';
 
 interface ProductCardProps {

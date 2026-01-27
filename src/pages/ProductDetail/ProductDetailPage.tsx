@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useProducts, Product as P } from '../../hooks/useProducts'; // Assuming useProducts can fetch a single product or we adapt it
-import { storageUrl } from '../../utils/supabaseClient';
+import { storageUrl } from '../../utils/storageUrl.utils';
 import { SEO } from '../../components/SEO/SEO';
 
 // Define a type for the product, can be expanded

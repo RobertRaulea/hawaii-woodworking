@@ -22,7 +22,6 @@
 8. Use semantic HTML elements for better accessibility
 9. Keep bundle size optimized - lazy load heavy components
 10. Don't modify:
-    - public/investim-logo.svg
     - package.json versions
 11. Required testing:
     - Components: React Testing Library

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { useMemo } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 
 export interface Product {
   id: string;
@@ -8,26 +9,31 @@ export interface Product {
   images: string[] | null; // Array of image paths
   category: string | null;
   description: string | null;
+  stripeProductId?: string | null;
+  stripePriceId?: string | null;
 }
 
 export const useProducts = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const data = useQuery(api.products.getAll);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data, error } = await supabase.from('products').select('*');
-      if (error) {
-        setError(error.message);
-      } else {
-        setProducts(data as Product[]);
-      }
-      setLoading(false);
-    };
+  const products = useMemo<Product[]>(() => {
+    if (!data) {
+      return [];
+    }
 
-    fetchData();
-  }, []);
+    return data.map((product) => ({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      images: product.images ?? null,
+      category: product.category ?? null,
+      description: product.description ?? null,
+      stripeProductId: product.stripe_product_id ?? null,
+      stripePriceId: product.stripe_price_id ?? null,
+    }));
+  }, [data]);
 
-  return { products, loading, error };
+  const loading = data === undefined;
+
+  return { products, loading, error: null };
 };

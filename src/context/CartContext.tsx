@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useState, useEffect } from 'react';
 import { Toast } from '../components/Toast/Toast';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   price: number;

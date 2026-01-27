@@ -4,18 +4,54 @@ A modern, responsive web application for a woodworking business, built with Reac
 
 ## 🚀 Quick Start
 
+### 1. Install Dependencies
 ```bash
-# Install dependencies
 npm install
+```
 
-# Start development server
+### 2. Configure Environment Variables
+
+Create a `.env` file in the project root (copy from `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Then fill in your credentials:
+
+**Convex Setup:**
+1. Run `npx convex dev`
+2. Copy your deployment URL
+3. Update `VITE_CONVEX_URL` in `.env`
+
+**Storage (Optional):**
+If product images are stored outside Convex, set `VITE_PRODUCTS_STORAGE_URL` in `.env`
+to your storage base URL (e.g. your existing Supabase storage bucket URL).
+
+**Stripe Setup:**
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
+2. Copy your **Secret Key** (use test key `sk_test_...` for development)
+3. Update `STRIPE_SECRET_KEY` in `.env`
+4. ⚠️ **Never commit your live Stripe keys to Git**
+
+### 3. Seed Stripe Products (Optional)
+
+If you want to sync your Convex products with Stripe:
+
+```bash
+npm run stripe:seed
+```
+
+This creates Stripe products and prices for all items in your `products` table.
+
+### 4. Start Development Server
+```bash
 npm run dev
+```
 
-# Build for production
+### 5. Build for Production
+```bash
 npm run build
-
-# Run tests
-npm test
 ```
 
 ## 🛠 Tech Stack
@@ -23,11 +59,12 @@ npm test
 - **Frontend Framework:** React with TypeScript
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
-- **State Management:** React Context API / Zustand
+- **Backend:** Convex (Database + Functions)
+- **Storage:** External (optional via `VITE_PRODUCTS_STORAGE_URL`)
+- **Payments:** Stripe
+- **State Management:** React Context API
 - **Routing:** React Router
-- **Forms:** React Hook Form
 - **Icons:** Lucide React Icons
-- **Testing:** React Testing Library
 - **Code Quality:** ESLint, Prettier
 
 ## 📁 Project Structure

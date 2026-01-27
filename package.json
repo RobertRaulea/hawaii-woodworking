@@ -5,16 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "tsc -p tsconfig.node.json && node ./dist-scripts/scripts/generate-sitemap.js",
+    "prebuild": "node ./dist-scripts/scripts/generate-sitemap.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "echo 'Remember to create a .env file with Supabase credentials'",
-    "stripe:seed": "ts-node --compiler-options \"{\"module\":\"CommonJS\"}\" scripts/seedStripe.ts"
+    "postinstall": "echo 'Remember to create a .env file with Convex credentials'",
+    "stripe:seed": "ts-node --esm scripts/seedStripe.ts",
+    "convex:seed": "ts-node --esm scripts/seedConvex.ts",
+    "convex:migrate": "ts-node --esm scripts/migrateSupabaseToConvex.ts"
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.3.1",
-    "@supabase/supabase-js": "^2.43.5",
+    "convex": "^1.31.6",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -28,8 +30,8 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "dotenv": "^16.4.5",
     "autoprefixer": "^10.4.18",
+    "dotenv": "^16.4.5",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",

@@ -1,5 +1,6 @@
 console.log('--- Sitemap script started ---');
-import { createClient } from '@supabase/supabase-js';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../convex/_generated/api.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -9,30 +10,15 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from .env file
 import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase credentials are not defined – generating sitemap without product pages.');
+const convexUrl = process.env.VITE_CONVEX_URL;
+if (!convexUrl) {
+    throw new Error('VITE_CONVEX_URL is not defined – cannot generate sitemap product pages.');
 }
-
-// Initialize Supabase client only if credentials are present
-const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const convex = new ConvexHttpClient(convexUrl);
 const SITE_URL = 'https://www.hawaiiproducts.ro';
 async function generateSitemap() {
     console.log('Generating sitemap...');
-    let products = [];
-    if (supabase) {
-        try {
-            const { data, error } = await supabase.from('products').select('id');
-            if (error) {
-                console.error('Error fetching products for sitemap:', error);
-            } else {
-                products = data;
-            }
-        } catch (err) {
-            console.error('Unexpected error fetching products:', err);
-        }
-    }
+    const products = await convex.query(api.products.getAll, {});
     // Define static pages
     const staticPages = [
         { url: '/', changefreq: 'weekly', priority: 1.0 },
@@ -45,7 +31,7 @@ async function generateSitemap() {
     ];
     // Generate dynamic product pages
     const productPages = products.map(product => ({
-        url: `/product/${product.id}`,
+        url: `/product/${product._id}`,
         changefreq: 'monthly',
         priority: 0.7,
     }));

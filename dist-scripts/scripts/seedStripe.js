@@ -1,25 +1,25 @@
 import 'dotenv/config';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../convex/_generated/api.js';
 // Ensure env vars exist
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const CONVEX_URL = process.env.VITE_CONVEX_URL;
 if (!STRIPE_SECRET_KEY) {
     console.error('Missing STRIPE_SECRET_KEY in environment');
+    process.exit(1);
+}
+if (!CONVEX_URL) {
+    console.error('Missing VITE_CONVEX_URL in environment');
     process.exit(1);
 }
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: '2023-10-16',
 });
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const convex = new ConvexHttpClient(CONVEX_URL);
 (async () => {
-    const { data, error } = await supabase.from('products').select('*');
-    if (error)
-        throw error;
-    if (!data)
-        return;
-    for (const p of data) {
+    const products = await convex.query(api.products.getAll, {});
+    for (const p of products) {
         // Create Stripe product
         const stripeProduct = await stripe.products.create({
             name: p.name,
@@ -31,11 +31,12 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             unit_amount: Math.round(p.price * 100),
             currency: 'ron',
         });
-        // Persist IDs back to Supabase (assumes columns exist)
-        await supabase
-            .from('products')
-            .update({ stripe_product_id: stripeProduct.id, stripe_price_id: stripePrice.id })
-            .eq('id', p.id);
+        // Persist IDs back to Convex
+        await convex.mutation(api.products.setStripeIds, {
+            id: p._id,
+            stripeProductId: stripeProduct.id,
+            stripePriceId: stripePrice.id,
+        });
         console.log(`Synced ${p.name} -> ${stripePrice.id}`);
     }
     console.log('All products synced to Stripe.');

@@ -1,7 +1,8 @@
 import { ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
-import { useCart } from '@context/CartContext';
 import { useNavigate } from 'react-router-dom';
-import { storageUrl } from '../../utils/supabaseClient';
+import type { CartItem } from '../../context/CartContext';
+import { useCart } from '../../context/CartContext';
+import { storageUrl } from '../../utils/storageUrl.utils';
 
 interface CartProps {}
 
@@ -10,7 +11,10 @@ export const Cart: React.FC<CartProps> = () => {
   const navigate = useNavigate();
 
   const calculateTotal = () => {
-    return state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    return state.items.reduce(
+      (total: number, item: CartItem) => total + item.price * item.quantity,
+      0
+    );
   };
 
   const formatPrice = (price: number): string => {
@@ -40,7 +44,7 @@ export const Cart: React.FC<CartProps> = () => {
       <h1 className="text-2xl font-bold mb-8">Coș de cumpărături</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-grow">
-          {state.items.map((item) => (
+          {state.items.map((item: CartItem) => (
             <div key={item.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 border-b border-gray-200 py-4">
               <img
                 src={item.image ? `${storageUrl}/${item.image}` : ''}
