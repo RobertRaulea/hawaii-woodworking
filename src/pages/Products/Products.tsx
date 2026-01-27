@@ -10,35 +10,52 @@ interface ProductCardProps {
   name: string;
   price: number;
   images: string[] | null;
+  imageUrls?: string[] | null;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productImages, id }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productImages, imageUrls, id }) => {
   const { addItem } = useCart();
+
+  const displayImages = useMemo(() => {
+    if (imageUrls && imageUrls.length > 0) {
+      return imageUrls;
+    }
+
+    if (productImages && productImages.length > 0) {
+      return productImages.map((img) => `${storageUrl}/${img}`);
+    }
+
+    return [];
+  }, [imageUrls, productImages]);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(() => {
-    if (!productImages || productImages.length === 0) return 0;
-    const mainImageIdx = productImages.findIndex(img => 
-      img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
+    if (displayImages.length === 0) return 0;
+    const mainImageIdx = displayImages.findIndex(
+      (img) => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
     );
     return mainImageIdx !== -1 ? mainImageIdx : 0;
   });
 
-  const coverImagePathOnly = productImages && productImages.length > 0 
-    ? (productImages.find(img => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')) || productImages[0]) 
-    : null;
+  const coverImage =
+    displayImages.length > 0
+      ? (displayImages.find(
+          (img) => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
+        ) ?? displayImages[0])
+      : null;
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.preventDefault(); 
     e.stopPropagation();
-    if (productImages && productImages.length > 0) {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % productImages.length);
+    if (displayImages.length > 0) {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % displayImages.length);
     }
   };
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.preventDefault(); 
     e.stopPropagation();
-    if (productImages && productImages.length > 0) {
-      setCurrentImageIndex((prevIndex) => (prevIndex - 1 + productImages.length) % productImages.length);
+    if (displayImages.length > 0) {
+      setCurrentImageIndex((prevIndex) => (prevIndex - 1 + displayImages.length) % displayImages.length);
     }
   };
 
@@ -47,11 +64,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productI
       <Link to={`/product/${id}`} className="block">
         <div className="relative group/carousel"> 
           <img
-            src={productImages && productImages.length > 0 ? `${storageUrl}/${productImages[currentImageIndex]}` : 'https://placehold.co/600x400?text=Product+Image'}
+            src={displayImages.length > 0 ? displayImages[currentImageIndex] : 'https://placehold.co/600x400?text=Product+Image'}
             alt={`${name} - image ${currentImageIndex + 1}`}
             className="w-full h-64 object-cover transition-all duration-300 ease-in-out"
           />
-          {productImages && productImages.length > 1 && (
+          {displayImages.length > 1 && (
             <>
               <button
                 onClick={handlePrevImage}
@@ -81,7 +98,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productI
       </Link>
       <div className="p-6 pt-0">
         <button
-          onClick={() => addItem({ id, name, price, image: coverImagePathOnly || 'https://placehold.co/100x100?text=No+Image' })}
+          onClick={() =>
+            addItem({
+              id,
+              name,
+              price,
+              image: coverImage || 'https://placehold.co/100x100?text=No+Image',
+            })
+          }
           className="w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors"
         >
           Adaugă în Coș
@@ -202,6 +226,7 @@ export const Products: React.FC = () => {
               name={product.name}
               price={product.price}
               images={product.images ?? null}
+              imageUrls={product.imageUrls ?? null}
             />
           ))}
         </div>

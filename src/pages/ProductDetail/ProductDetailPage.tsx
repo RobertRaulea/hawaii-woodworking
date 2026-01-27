@@ -42,7 +42,11 @@ export const ProductDetailPage: React.FC = () => {
   const shortDescription = product.description || `Details for ${product.name}. Discover the quality and craftsmanship of our handmade ${product.category || 'item'}.`;
 
   // Image gallery state and handlers
-  const getDisplayImages = (imageArray: string[] | null): string[] => {
+  const getDisplayImages = (imageArray: string[] | null, urls: string[] | null | undefined): string[] => {
+    if (urls && urls.length > 0) {
+      return urls;
+    }
+
     if (!imageArray || imageArray.length === 0) {
       return ['https://placehold.co/600x400?text=Product+Image'];
     }
@@ -58,7 +62,7 @@ export const ProductDetailPage: React.FC = () => {
     return sortedImages.map(img => `${storageUrl}/${img}`);
   };
 
-  const productImages = getDisplayImages(product?.images);
+  const productImages = getDisplayImages(product?.images, product?.imageUrls ?? null);
 
   // SEO Meta Tags and Schema
   const pageTitle = product ? `${product.name} - Hawaii Woodworking` : 'Detalii Produs - Hawaii Woodworking';
@@ -154,8 +158,23 @@ export const ProductDetailPage: React.FC = () => {
           </div>
           <button
             onClick={() => {
-              const mainImageFromGallery = product?.images?.find(img => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')) || product?.images?.[0];
-              addItem({ ...product, id: product.id, name: product.name, price: product.price, image: mainImageFromGallery || 'https://placehold.co/100x100?text=No+Image' });
+              const mainImageFromUrls = product?.imageUrls?.[0];
+              const mainImageFromLegacy =
+                product?.images?.find(
+                  (img) =>
+                    img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
+                ) || product?.images?.[0];
+              const image =
+                mainImageFromUrls ??
+                (mainImageFromLegacy ? `${storageUrl}/${mainImageFromLegacy}` : null);
+
+              addItem({
+                ...product,
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: image || 'https://placehold.co/100x100?text=No+Image',
+              });
             }}
             className="w-full bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg transition-colors duration-300 text-lg font-medium"
           >

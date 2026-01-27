@@ -7,6 +7,7 @@ export default defineSchema({
     name: v.string(),
     price: v.number(),
     images: v.optional(v.array(v.string())),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
     category: v.optional(v.string()),
     description: v.optional(v.string()),
     stripe_product_id: v.optional(v.string()),

@@ -6,7 +6,46 @@ export const getAll = query({
   args: {},
   handler: async (ctx) => {
     const products = await ctx.db.query("products").collect();
-    return products;
+
+    return await Promise.all(
+      products.map(async (product) => {
+        const imageUrls = product.imageStorageIds
+          ? (await Promise.all(product.imageStorageIds.map((id) => ctx.storage.getUrl(id)))).filter(
+              (url): url is string => typeof url === "string" && url.length > 0
+            )
+          : [];
+
+        return {
+          ...product,
+          imageUrls,
+        };
+      })
+    );
+  },
+});
+
+export const generateProductImageUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const addProductImage = mutation({
+  args: {
+    productId: v.id("products"),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, { productId, storageId }) => {
+    const product = await ctx.db.get(productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const next = [...(product.imageStorageIds ?? []), storageId];
+    await ctx.db.patch(productId, { imageStorageIds: next });
+
+    return { imageStorageIds: next };
   },
 });
 
@@ -18,6 +57,7 @@ export const seedProducts = mutation({
         name: v.string(),
         price: v.number(),
         images: v.optional(v.array(v.string())),
+        imageStorageIds: v.optional(v.array(v.id("_storage"))),
         category: v.optional(v.string()),
         description: v.optional(v.string()),
         stripe_product_id: v.optional(v.string()),
@@ -46,6 +86,7 @@ export const seedProducts = mutation({
           name: p.name,
           price: p.price,
           images: p.images,
+          imageStorageIds: p.imageStorageIds,
           category: p.category,
           description: p.description,
           stripe_product_id: p.stripe_product_id,

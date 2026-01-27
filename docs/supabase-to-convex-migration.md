@@ -283,6 +283,31 @@ Create migration script: `scripts/migrateSupabaseToConvex.ts`
 - Requires frontend changes (upload UI)
 - Larger migration effort
 
+**Implementation notes (Convex File Storage)**:
+- Store image file IDs on products: `imageStorageIds: Id<"_storage">[]`
+- Client upload flow:
+  1. Generate upload URL via Convex mutation (calls `ctx.storage.generateUploadUrl()`)
+  2. `POST` the image bytes to the URL and receive `{ storageId }`
+  3. Persist `storageId` to the product via a Convex mutation
+- Serving images:
+  - Query resolves `storageId` → URL via `ctx.storage.getUrl(storageId)` and returns `imageUrls`
+
+**Testing (Storage)**:
+- [ ] Add at least one image to a product (storageId persisted)
+- [ ] `api.products.getAll` returns `imageUrls` for that product
+- [ ] `/products` renders the Convex-hosted image
+- [ ] `/product/:id` image gallery renders Convex-hosted images
+
+**Dev upload workflow (recommended for now)**:
+- Start Convex: `npx convex dev`
+- Start app: `npm run dev`
+- Open: `/dev/product-images`
+- Pick a product, pick an image file, click **Upload & Attach**
+- This will:
+  - Upload file to Convex Storage (server-generated upload URL)
+  - Persist the returned `storageId` onto `products.imageStorageIds`
+  - `api.products.getAll` will resolve `imageStorageIds` into `imageUrls`
+
 **Decision**: Defer to Phase 3b (post-launch) unless Supabase Storage is actively used
 
 ---
