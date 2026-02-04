@@ -2,73 +2,85 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.hawaiiproducts.ro/</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1</priority>
   </url>
   <url>
     <loc>https://www.hawaiiproducts.ro/products</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.hawaiiproducts.ro/catalog</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.hawaiiproducts.ro/terms-and-conditions</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.hawaiiproducts.ro/privacy-policy</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.hawaiiproducts.ro/return-policy</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.hawaiiproducts.ro/legal-information</loc>
-    <lastmod>2025-06-13</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hawaiiproducts.ro/product/00000000-0000-0000-0000-000000000002</loc>
-    <lastmod>2025-06-13</lastmod>
+    <loc>https://www.hawaiiproducts.ro/product/j57crf847q6tj56p1p7vmn4q3980gf6m</loc>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.hawaiiproducts.ro/product/00000000-0000-0000-0000-000000000003</loc>
-    <lastmod>2025-06-13</lastmod>
+    <loc>https://www.hawaiiproducts.ro/product/j57a8wb5bhtbhwvtajzhb2559180ggx4</loc>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.hawaiiproducts.ro/product/00000000-0000-0000-0000-000000000005</loc>
-    <lastmod>2025-06-13</lastmod>
+    <loc>https://www.hawaiiproducts.ro/product/j572p9rhzkt9fbv65qh152xw2n80hczw</loc>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.hawaiiproducts.ro/product/00000000-0000-0000-0000-000000000001</loc>
-    <lastmod>2025-06-13</lastmod>
+    <loc>https://www.hawaiiproducts.ro/product/j57e1wamn431wd43vnrkpckemx80hc4h</loc>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.hawaiiproducts.ro/product/00000000-0000-0000-0000-000000000004</loc>
-    <lastmod>2025-06-13</lastmod>
+    <loc>https://www.hawaiiproducts.ro/product/j57cd9dj0cmmhz6536yw4pnk8h80gwmr</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.hawaiiproducts.ro/product/j577b6yd1tvgmh9y1fnxdbv9cs80hc25</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.hawaiiproducts.ro/product/j57390a9bk95kz3wm95dy75qwd80hde1</loc>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

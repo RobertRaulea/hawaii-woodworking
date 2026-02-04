@@ -184,6 +184,103 @@ Build the application for production:
 npm run build
 ```
 
+## 🔎 Production: Products not showing (Convex) — Investigation Log
+
+This section documents the exact steps and findings from our investigation into why products do not appear on the live/prod site.
+
+### What we checked (step-by-step)
+
+- **Frontend Convex configuration**
+  - Located `src/main.tsx`.
+  - Found Convex client initialization:
+    - `new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)`
+  - Conclusion:
+    - The live site will only show products if **production** has the correct `VITE_CONVEX_URL` set at build/runtime.
+
+- **Product query path (client)**
+  - Located `src/hooks/useProducts.ts`.
+  - Found that product listing uses:
+    - `useQuery(api.products.getAll)`
+  - Conclusion:
+    - If `api.products.getAll` returns an empty array in production, the UI will show no products.
+
+- **Product query path (server / Convex)**
+  - Located `convex/products.ts`.
+  - Found `getAll` implementation:
+    - `ctx.db.query("products").collect()`
+    - Optionally resolves `imageUrls` from `imageStorageIds` using `ctx.storage.getUrl`.
+  - Conclusion:
+    - There is no filtering or auth gate in `getAll`. If prod is empty, it strongly indicates the **prod `products` table has no rows** or the live site points at the wrong deployment.
+
+- **Schema verification**
+  - Located `convex/schema.ts`.
+  - Found `products` table fields:
+    - `name`, `price`, optional `images`, optional `imageStorageIds`, optional `category`, optional `description`, optional Stripe IDs.
+
+- **Seeding path**
+  - Located `scripts/seedConvex.ts`.
+  - Found it reads `process.env.VITE_CONVEX_URL` and if missing/placeholder, falls back to:
+    - `http://127.0.0.1:3210`
+  - Conclusion:
+    - If you run `npm run convex:seed` without a valid `VITE_CONVEX_URL`, you may be seeding **local/dev**, not production.
+
+- **Vercel configuration**
+  - Located `vercel.json`.
+  - Found only a SPA rewrite to `/index.html`.
+  - Conclusion:
+    - Vercel is not configuring env vars here; production env vars must be set in Vercel project settings.
+
+- **Attempted to inspect `.env`**
+  - The repo contains `.env` and `.env.example`.
+  - `.env` is **gitignored**, and tooling access to `.env` is blocked in this environment.
+  - Conclusion:
+    - We could not directly verify your `VITE_CONVEX_URL` value from the `.env` file through automated inspection.
+
+- **Attempted to inspect Convex deployments programmatically**
+  - Convex tooling reported:
+    - `No CONVEX_DEPLOYMENT set, run \`npx convex dev\` to configure a Convex project`
+  - We did not find `convex.json` or a `.convex/` directory in the repo during this pass.
+  - Conclusion:
+    - Your local environment likely hasn’t been configured for Convex in this workspace context (or the config directory is absent), so we couldn’t automatically compare dev vs prod deployments/tables.
+
+### Most likely root causes
+
+- **Production `VITE_CONVEX_URL` is missing or incorrect** on Vercel.
+- **Your production Convex deployment has no seeded/migrated `products` data**, even if dev does.
+- **Seeding/migration ran against local/dev** due to `VITE_CONVEX_URL` being unset/placeholder at the time.
+
+### What to do next (do these in order)
+
+- **1) Confirm your production build uses the correct Convex URL**
+  - In Vercel:
+    - Go to **Project Settings → Environment Variables**.
+    - Ensure **Production** has `VITE_CONVEX_URL` set to your **prod** deployment URL (from the Convex dashboard).
+  - Redeploy after setting/changing env vars.
+
+- **2) Confirm the prod database actually has products**
+  - Open your Convex dashboard for the **production** deployment.
+  - Check the `products` table row count.
+  - If it’s empty, you need to seed or migrate data into prod.
+
+- **3) Seed products into prod intentionally**
+  - Set `VITE_CONVEX_URL` to the **prod** Convex URL in your terminal environment (or in a temporary `.env` locally).
+  - Run:
+    - `npm run convex:seed`
+  - Note:
+    - Use `--force` only if you explicitly want to delete existing products and reinsert.
+
+- **4) (If applicable) Run migration to prod intentionally**
+  - If you migrated from Supabase, ensure the migration script targets the **prod** Convex URL and is run explicitly for prod.
+
+- **5) Make local Convex tooling aware of your project**
+  - Run `npx convex dev` once to configure the project locally.
+  - This should create the local Convex config needed to target the correct deployment(s).
+
+### Info needed to finish verification
+
+- Paste (or confirm) the **production** value of `VITE_CONVEX_URL` (the URL itself is usually safe to share).
+- Confirm whether you seeded/migrated products into production, or only into dev.
+
 ## 🤝 Contributing
 
 1. Follow conventional commits
