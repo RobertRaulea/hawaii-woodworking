@@ -1,5 +1,5 @@
-import { ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ShoppingCart, Minus, Plus, Trash2, XCircle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { CartItem } from '../../context/CartContext';
 import { useCart } from '../../context/CartContext';
 import { storageUrl } from '../../utils/storageUrl.utils';
@@ -9,6 +9,13 @@ interface CartProps {}
 export const Cart: React.FC<CartProps> = () => {
   const { state, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isCanceled = searchParams.get('canceled') === 'true';
+
+  const dismissCanceled = () => {
+    searchParams.delete('canceled');
+    setSearchParams(searchParams, { replace: true });
+  };
 
   const calculateTotal = () => {
     return state.items.reduce(
@@ -41,6 +48,14 @@ export const Cart: React.FC<CartProps> = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {isCanceled && (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-300 text-amber-800 rounded-lg px-4 py-3 mb-6">
+          <span>Plata a fost anulată. Produsele tale sunt încă în coș.</span>
+          <button onClick={dismissCanceled} aria-label="Închide">
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+      )}
       <h1 className="text-2xl font-bold mb-8">Coș de cumpărături</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-grow">

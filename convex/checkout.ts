@@ -63,8 +63,8 @@ export const createCheckoutSession = action({
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
-      success_url: `${origin}/checkout?success=true`,
-      cancel_url: `${origin}/checkout?canceled=true`,
+      success_url: `${origin}/thank-you`,
+      cancel_url: `${origin}/cart?canceled=true`,
     });
 
     return { url: session.url ?? null };
