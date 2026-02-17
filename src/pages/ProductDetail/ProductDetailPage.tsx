@@ -2,12 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useProducts, Product as P } from '../../hooks/useProducts'; // Assuming useProducts can fetch a single product or we adapt it
-import { storageUrl } from '../../utils/storageUrl.utils';
 import { SEO } from '../../components/SEO/SEO';
 
-// Define a type for the product, can be expanded
-interface Product extends P {
-}
+type Product = P;
 
 export const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -42,27 +39,15 @@ export const ProductDetailPage: React.FC = () => {
   const shortDescription = product.description || `Details for ${product.name}. Discover the quality and craftsmanship of our handmade ${product.category || 'item'}.`;
 
   // Image gallery state and handlers
-  const getDisplayImages = (imageArray: string[] | null, urls: string[] | null | undefined): string[] => {
+  const getDisplayImages = (urls: string[] | null | undefined): string[] => {
     if (urls && urls.length > 0) {
       return urls;
     }
 
-    if (!imageArray || imageArray.length === 0) {
-      return ['https://placehold.co/600x400?text=Product+Image'];
-    }
-    // Ensure the main image is first if it exists, then others
-    const mainImageIndex = imageArray.findIndex(img => 
-      img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
-    );
-    let sortedImages = [...imageArray];
-    if (mainImageIndex > 0) { // if main image exists and is not already first
-      const mainImg = sortedImages.splice(mainImageIndex, 1)[0];
-      sortedImages.unshift(mainImg);
-    }
-    return sortedImages.map(img => `${storageUrl}/${img}`);
+    return ['https://placehold.co/600x400?text=Product+Image'];
   };
 
-  const productImages = getDisplayImages(product?.images, product?.imageUrls ?? null);
+  const productImages = getDisplayImages(product?.imageUrls ?? null);
 
   // SEO Meta Tags and Schema
   const pageTitle = product ? `${product.name} - Hawaii Woodworking` : 'Detalii Produs - Hawaii Woodworking';
@@ -158,15 +143,7 @@ export const ProductDetailPage: React.FC = () => {
           </div>
           <button
             onClick={() => {
-              const mainImageFromUrls = product?.imageUrls?.[0];
-              const mainImageFromLegacy =
-                product?.images?.find(
-                  (img) =>
-                    img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
-                ) || product?.images?.[0];
-              const image =
-                mainImageFromUrls ??
-                (mainImageFromLegacy ? `${storageUrl}/${mainImageFromLegacy}` : null);
+              const image = product?.imageUrls?.[0] ?? null;
 
               addItem({
                 ...product,

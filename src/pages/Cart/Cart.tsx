@@ -2,15 +2,13 @@ import { ShoppingCart, Minus, Plus, Trash2, XCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { CartItem } from '../../context/CartContext';
 import { useCart } from '../../context/CartContext';
-import { storageUrl } from '../../utils/storageUrl.utils';
 
-interface CartProps {}
-
-export const Cart: React.FC<CartProps> = () => {
+export const Cart: React.FC = () => {
   const { state, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isCanceled = searchParams.get('canceled') === 'true';
+  const cartImageFallback = 'https://placehold.co/100x100?text=No+Image';
 
   const dismissCanceled = () => {
     searchParams.delete('canceled');
@@ -30,7 +28,7 @@ export const Cart: React.FC<CartProps> = () => {
 
   const getCartImageSrc = (image: string): string => {
     if (!image) {
-      return '';
+      return cartImageFallback;
     }
 
     if (
@@ -42,7 +40,7 @@ export const Cart: React.FC<CartProps> = () => {
       return image;
     }
 
-    return storageUrl ? `${storageUrl}/${image}` : image;
+    return cartImageFallback;
   };
 
   if (state.items.length === 0) {

@@ -10,6 +10,7 @@
 
 import type * as checkout from "../checkout.js";
 import type * as products from "../products.js";
+import type * as siteAssets from "../siteAssets.js";
 
 import type {
   ApiFromModules,
@@ -20,6 +21,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   checkout: typeof checkout;
   products: typeof products;
+  siteAssets: typeof siteAssets;
 }>;
 
 /**

@@ -49,6 +49,23 @@ export const addProductImage = mutation({
   },
 });
 
+export const setProductImageStorageIds = mutation({
+  args: {
+    productId: v.id("products"),
+    imageStorageIds: v.array(v.id("_storage")),
+  },
+  handler: async (ctx, { productId, imageStorageIds }) => {
+    const product = await ctx.db.get(productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    await ctx.db.patch(productId, { imageStorageIds });
+
+    return { imageStorageIds };
+  },
+});
+
 export const seedProducts = mutation({
   args: {
     force: v.optional(v.boolean()),

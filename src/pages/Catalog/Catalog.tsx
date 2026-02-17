@@ -1,38 +1,66 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SEO } from '../../components/SEO/SEO';
-import test from "../../../assets/CatalogAssets/test.jpeg";
-import test1 from "../../../assets/CatalogAssets/test (1).jpeg";
-import test2 from "../../../assets/CatalogAssets/test (2).jpeg";
-import test3 from "../../../assets/CatalogAssets/test (3).jpeg";
-import test4 from "../../../assets/CatalogAssets/test (4).jpeg";
-import test5 from "../../../assets/CatalogAssets/test (5).jpeg";
+import { useSiteAssets } from '../../hooks/useSiteAssets';
 
 interface CatalogImage {
+  name: string;
   src: string;
   alt: string;
   title: string;
 }
 
+const metadataByFileName: Record<string, { alt: string; title: string }> = {
+  'test.jpeg': { alt: 'Woodwork Item 1', title: 'Platou 5 locasuri' },
+  'test (1).jpeg': { alt: 'Woodwork Item 2', title: 'Tava lemn' },
+  'test (2).jpeg': { alt: 'Woodwork Item 3', title: 'Tava 4 locasuri' },
+  'test (3).jpeg': { alt: 'Woodwork Item 4', title: 'Icoana' },
+  'test (4).jpeg': { alt: 'Woodwork Item 5', title: 'Icoana pe CNC' },
+  'test (5).jpeg': { alt: 'Woodwork Item 6', title: 'Icoana Iisus' },
+};
+
+const displayOrder = [
+  'test.jpeg',
+  'test (1).jpeg',
+  'test (2).jpeg',
+  'test (3).jpeg',
+  'test (4).jpeg',
+  'test (5).jpeg',
+];
+
 export const Catalog: React.FC = () => {
+  const { assets: catalogAssets, loading: catalogLoading } = useSiteAssets('catalog');
   const [selectedImage, setSelectedImage] = useState<CatalogImage | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean[]>(new Array(6).fill(true));
 
-  // Array of imported test images with metadata
-  const images: CatalogImage[] = [
-    { src: test, alt: "Woodwork Item 1", title: "Platou 5 locasuri" },
-    { src: test1, alt: "Woodwork Item 2", title: "Tava lemn" },
-    { src: test2, alt: "Woodwork Item 3", title: "Tava 4 locasuri" },
-    { src: test3, alt: "Woodwork Item 4", title: "Icoana" },
-    { src: test4, alt: "Woodwork Item 5", title: "Icoana pe CNC" },
-    { src: test5, alt: "Woodwork Item 6", title: "Icoana Iisus" },
-  ];
+  const [loadedImageNames, setLoadedImageNames] = useState<Record<string, boolean>>({});
 
-  const handleImageLoad = (index: number) => {
-    setIsLoading(prev => {
-      const newState = [...prev];
-      newState[index] = false;
-      return newState;
-    });
+  const images = useMemo<CatalogImage[]>(() => {
+    return displayOrder
+      .map((name) => {
+        const asset = catalogAssets.find((item) => item.name === name);
+        if (!asset) {
+          return null;
+        }
+
+        const metadata = metadataByFileName[name] ?? {
+          alt: 'Woodwork catalog item',
+          title: name,
+        };
+
+        return {
+          name,
+          src: asset.url,
+          alt: metadata.alt,
+          title: metadata.title,
+        };
+      })
+      .filter((image): image is CatalogImage => image !== null);
+  }, [catalogAssets]);
+
+  const handleImageLoad = (name: string) => {
+    setLoadedImageNames((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
   };
 
   const pageTitle = "Catalog Lucrări din Lemn - Hawaii Woodworking";
@@ -56,15 +84,19 @@ export const Catalog: React.FC = () => {
       />
       <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-stone-900 mb-8">Our Catalog</h1>
+      {catalogLoading && <p className="mb-6 text-gray-600">Loading catalog images...</p>}
+      {!catalogLoading && images.length === 0 && (
+        <p className="mb-6 text-gray-600">Catalog images are not available yet.</p>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {images.map((image, index) => (
+        {images.map((image) => (
           <div 
-            key={index} 
+            key={image.name}
             className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
             onClick={() => setSelectedImage(image)}
           >
             {/* Loading skeleton */}
-            {isLoading[index] && (
+            {!loadedImageNames[image.name] && (
               <div className="absolute inset-0 bg-gray-200 animate-pulse" />
             )}
             
@@ -72,9 +104,9 @@ export const Catalog: React.FC = () => {
               <img
                 src={image.src}
                 alt={image.alt}
-                onLoad={() => handleImageLoad(index)}
+                onLoad={() => handleImageLoad(image.name)}
                 className={`w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110 ${
-                  isLoading[index] ? 'opacity-0' : 'opacity-100'
+                  !loadedImageNames[image.name] ? 'opacity-0' : 'opacity-100'
                 }`}
                 loading="lazy"
               />

@@ -1,9 +1,16 @@
 import { Hero } from '../../components/Hero';
 import { Products } from '../Products/Products';
 import { SEO } from '../../components/SEO/SEO';
-import WoodPhoto from '../../../assets/HeroAssets/WoodPhoto.jpg';
+import { useSiteAssets } from '../../hooks/useSiteAssets';
 
 export const Home: React.FC = () => {
+  const { assets: heroAssets } = useSiteAssets('hero');
+
+  const heroBackgroundImage =
+    heroAssets.find((asset) => asset.name === 'WoodPhoto.jpg')?.url ??
+    heroAssets[0]?.url ??
+    'https://placehold.co/1600x900?text=Hawaii+Woodworking';
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -31,7 +38,7 @@ export const Home: React.FC = () => {
         ]}
         schema={schema}
       />
-      <Hero backgroundImage={WoodPhoto} />
+      <Hero backgroundImage={heroBackgroundImage} />
       {/* Product listing directly on homepage */}
       <Products />
     </>

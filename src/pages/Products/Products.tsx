@@ -2,31 +2,21 @@ import { useState, useMemo } from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
 import { useProducts, Product as P } from '../../hooks/useProducts';
-import { storageUrl } from '../../utils/storageUrl.utils';
 import { SEO } from '../../components/SEO/SEO';
 
 interface ProductCardProps {
   id: string;
   name: string;
   price: number;
-  images: string[] | null;
   imageUrls?: string[] | null;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ name, price, images: productImages, imageUrls, id }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls, id }) => {
   const { addItem } = useCart();
 
   const displayImages = useMemo(() => {
-    if (imageUrls && imageUrls.length > 0) {
-      return imageUrls;
-    }
-
-    if (productImages && productImages.length > 0) {
-      return productImages.map((img) => `${storageUrl}/${img}`);
-    }
-
-    return [];
-  }, [imageUrls, productImages]);
+    return imageUrls ?? [];
+  }, [imageUrls]);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(() => {
     if (displayImages.length === 0) return 0;
@@ -137,10 +127,7 @@ export const Products: React.FC = () => {
   const dynamicSchema = useMemo(() => {
     const itemListElements = (!loading && products && products.length > 0)
       ? products.map((product: P, index: number) => {
-          const mainImage = product.images && product.images.length > 0
-            ? (product.images.find(img => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')) || product.images[0])
-            : null;
-          const imageUrl = mainImage ? `${storageUrl}/${mainImage}` : `${SITE_URL}/images/placeholder-product.jpg`; 
+          const imageUrl = product.imageUrls?.[0] ?? `${SITE_URL}/images/placeholder-product.jpg`;
 
           return {
             '@type': 'ListItem',
@@ -225,7 +212,6 @@ export const Products: React.FC = () => {
               id={product.id}
               name={product.name}
               price={product.price}
-              images={product.images ?? null}
               imageUrls={product.imageUrls ?? null}
             />
           ))}
