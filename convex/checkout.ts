@@ -11,6 +11,13 @@ type CheckoutItem = {
   quantity: number;
 };
 
+type CheckoutProduct = {
+  _id: Id<'products'>;
+  name: string;
+  price: number;
+  imageUrls?: string[];
+};
+
 type CheckoutResponse = {
   url: string | null;
 };
@@ -40,21 +47,33 @@ export const createCheckoutSession = action({
 
     const stripe = new Stripe(stripeSecretKey);
 
-    const priceEntries = await ctx.runQuery(api.products.getStripePriceIds, {
-      ids: items.map((item) => item.productId),
-    });
-    const priceMap = new Map<Id<'products'>, string | null>(
-      priceEntries.map((entry) => [entry.id, entry.stripePriceId])
+    const products = (await ctx.runQuery(api.products.getAll, {})) as CheckoutProduct[];
+    const requestedIds = new Set(items.map((item) => item.productId));
+    const productMap = new Map<Id<'products'>, CheckoutProduct>(
+      products
+        .filter((product) => requestedIds.has(product._id))
+        .map((product) => [product._id, product])
     );
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
       (item) => {
-        const priceId = priceMap.get(item.productId);
-        if (!priceId) {
-          throw new Error(`Missing Stripe price ID for product ${item.productId}`);
+        const product = productMap.get(item.productId);
+        if (!product) {
+          throw new Error(`Product not found for checkout: ${item.productId}`);
         }
+
+        const unitAmount = Math.round(product.price * 100);
+        const image = product.imageUrls?.[0];
+
         return {
-          price: priceId,
+          price_data: {
+            currency: 'ron',
+            unit_amount: unitAmount,
+            product_data: {
+              name: product.name,
+              ...(image ? { images: [image] } : {}),
+            },
+          },
           quantity: item.quantity,
         };
       }

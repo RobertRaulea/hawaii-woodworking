@@ -28,6 +28,23 @@ export const Cart: React.FC<CartProps> = () => {
     return `${price.toFixed(2)} RON`;
   };
 
+  const getCartImageSrc = (image: string): string => {
+    if (!image) {
+      return '';
+    }
+
+    if (
+      image.startsWith('http://') ||
+      image.startsWith('https://') ||
+      image.startsWith('data:') ||
+      image.startsWith('blob:')
+    ) {
+      return image;
+    }
+
+    return storageUrl ? `${storageUrl}/${image}` : image;
+  };
+
   if (state.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -62,7 +79,7 @@ export const Cart: React.FC<CartProps> = () => {
           {state.items.map((item: CartItem) => (
             <div key={item.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 border-b border-gray-200 py-4">
               <img
-                src={item.image ? `${storageUrl}/${item.image}` : ''}
+                src={getCartImageSrc(item.image)}
                 alt={item.name}
                 className="w-24 h-24 object-cover rounded"
               />
