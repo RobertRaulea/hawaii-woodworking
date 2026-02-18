@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 // Fetch all products
 export const getAll = query({
@@ -27,6 +28,7 @@ export const getAll = query({
 export const generateProductImageUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -37,6 +39,7 @@ export const addProductImage = mutation({
     storageId: v.id("_storage"),
   },
   handler: async (ctx, { productId, storageId }) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(productId);
     if (!product) {
       throw new Error("Product not found");
@@ -55,6 +58,7 @@ export const setProductImageStorageIds = mutation({
     imageStorageIds: v.array(v.id("_storage")),
   },
   handler: async (ctx, { productId, imageStorageIds }) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(productId);
     if (!product) {
       throw new Error("Product not found");
@@ -83,6 +87,7 @@ export const seedProducts = mutation({
     ),
   },
   handler: async (ctx, { force, products }) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db.query("products").collect();
 
     if (!force && existing.length > 0) {
@@ -140,9 +145,90 @@ export const setStripeIds = mutation({
     stripePriceId: v.string(),
   },
   handler: async (ctx, { id, stripeProductId, stripePriceId }) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(id, {
       stripe_product_id: stripeProductId,
       stripe_price_id: stripePriceId,
     });
+  },
+});
+
+export const getById = query({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    const product = await ctx.db.get(id);
+    if (!product) {
+      return null;
+    }
+
+    const imageUrls = product.imageStorageIds
+      ? (await Promise.all(product.imageStorageIds.map((sid) => ctx.storage.getUrl(sid)))).filter(
+          (url): url is string => typeof url === "string" && url.length > 0
+        )
+      : [];
+
+    return { ...product, imageUrls };
+  },
+});
+
+export const createProduct = mutation({
+  args: {
+    name: v.string(),
+    price: v.number(),
+    category: v.optional(v.string()),
+    description: v.optional(v.string()),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const id = await ctx.db.insert("products", {
+      name: args.name,
+      price: args.price,
+      category: args.category,
+      description: args.description,
+      imageStorageIds: args.imageStorageIds,
+    });
+    return id;
+  },
+});
+
+export const updateProduct = mutation({
+  args: {
+    id: v.id("products"),
+    name: v.optional(v.string()),
+    price: v.optional(v.number()),
+    category: v.optional(v.string()),
+    description: v.optional(v.string()),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
+  },
+  handler: async (ctx, { id, ...fields }) => {
+    await requireAdmin(ctx);
+    const product = await ctx.db.get(id);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const update: Record<string, unknown> = {};
+    if (fields.name !== undefined) update.name = fields.name;
+    if (fields.price !== undefined) update.price = fields.price;
+    if (fields.category !== undefined) update.category = fields.category;
+    if (fields.description !== undefined) update.description = fields.description;
+    if (fields.imageStorageIds !== undefined) update.imageStorageIds = fields.imageStorageIds;
+
+    await ctx.db.patch(id, update);
+    return id;
+  },
+});
+
+export const deleteProduct = mutation({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
+    const product = await ctx.db.get(id);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+    await ctx.db.delete(id);
+    return { deleted: true };
   },
 });

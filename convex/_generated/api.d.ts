@@ -9,6 +9,7 @@
  */
 
 import type * as checkout from "../checkout.js";
+import type * as lib_auth from "../lib/auth.js";
 import type * as products from "../products.js";
 import type * as siteAssets from "../siteAssets.js";
 
@@ -20,6 +21,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   checkout: typeof checkout;
+  "lib/auth": typeof lib_auth;
   products: typeof products;
   siteAssets: typeof siteAssets;
 }>;

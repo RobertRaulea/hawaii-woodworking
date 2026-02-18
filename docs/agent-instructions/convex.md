@@ -27,11 +27,14 @@ This project uses Convex for backend data and server-side logic.
 - Validate inputs using `v` validators.
 - Throw descriptive errors for invalid inputs or missing resources.
 
-## Auth (when enabled)
+## Auth (Clerk)
 
-- Prefer provider-supported integration.
-- Gate sensitive operations in Convex functions.
-- Use `useConvexAuth()` on the client to protect routes.
+- **Provider**: Clerk (`@clerk/clerk-react` + `convex/react-clerk`).
+- **Client**: `ClerkProvider` wraps `ConvexProviderWithClerk` in `main.tsx`.
+- **JWT config**: `convex/auth.config.ts` reads `CLERK_JWT_ISSUER_DOMAIN` env var.
+- **Admin gating**: Use `requireAdmin(ctx)` from `convex/lib/auth.ts` in any mutation/action that should be admin-only.
+- **Role claim**: The admin role is set via Clerk `publicMetadata.role = "admin"` and exposed as a `role` claim in the Convex JWT template.
+- **Frontend guard**: `<AdminRoute />` component checks `Authenticated` + `isAdmin` hook; redirects to `/admin/login` otherwise.
 
 ## Node Scripts
 
@@ -41,4 +44,6 @@ When writing build/maintenance scripts that need data:
 ## Environment Variables
 
 - `VITE_CONVEX_URL` must be set.
-- `STRIPE_SECRET_KEY` is required for Stripe actions.
+- `VITE_CLERK_PUBLISHABLE_KEY` must be set (Clerk publishable key).
+- `STRIPE_SECRET_KEY` is required for Stripe actions (Convex dashboard).
+- `CLERK_JWT_ISSUER_DOMAIN` must be set in the Convex dashboard.

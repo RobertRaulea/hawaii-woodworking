@@ -9,9 +9,13 @@ import { CartProvider } from './context/CartContext';
 import { Checkout } from './pages/Checkout/Checkout';
 import { ThankYou } from './pages/ThankYou/ThankYou';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
-import { DevProductImages } from './pages/DevProductImages/DevProductImages';
 import { TermsAndConditions, PrivacyPolicy, ReturnPolicy, LegalInformation } from './pages/Legal';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
+import { AdminRoute } from './components/AdminRoute';
+import { AdminLogin } from './pages/Admin/AdminLogin';
+import { AdminLayout } from './pages/Admin/AdminLayout';
+import { AdminProducts } from './pages/Admin/Products/AdminProducts';
+import { ProductForm } from './pages/Admin/Products/ProductForm';
 
 function App() {
   return (
@@ -28,11 +32,21 @@ function App() {
               <Route path="checkout" element={<Checkout />} />
               <Route path="thank-you" element={<ThankYou />} />
               <Route path="product/:productId" element={<ProductDetailPage />} />
-              <Route path="dev/product-images" element={<DevProductImages />} />
               <Route path="terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="privacy-policy" element={<PrivacyPolicy />} />
               <Route path="return-policy" element={<ReturnPolicy />} />
               <Route path="legal-information" element={<LegalInformation />} />
+            </Route>
+
+            {/* Admin routes */}
+            <Route path="admin/login" element={<AdminLogin />} />
+            <Route path="admin" element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route index element={<AdminProducts />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="products/new" element={<ProductForm />} />
+                <Route path="products/:id" element={<ProductForm />} />
+              </Route>
             </Route>
             </Routes>
           </MaintenanceGuard>

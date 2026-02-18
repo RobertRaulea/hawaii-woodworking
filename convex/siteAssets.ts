@@ -1,9 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const generateAssetUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -15,6 +17,7 @@ export const saveSiteAsset = mutation({
     storageId: v.id("_storage"),
   },
   handler: async (ctx, { name, category, storageId }) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("siteAssets")
       .withIndex("by_category_name", (q) => q.eq("category", category).eq("name", name))
