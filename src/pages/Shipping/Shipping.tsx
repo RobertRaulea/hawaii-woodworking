@@ -1,11 +1,13 @@
 import type React from 'react';
 import { useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useShipping } from '../../context/ShippingContext';
 import type { ShippingFormData } from '../../types/shipping.types';
 import { useCart } from '../../context/CartContext';
 import { useCustomerProfile } from '../../hooks/useCustomerProfile';
+import { SearchableSelect } from '../../components/SearchableSelect/SearchableSelect';
+import { JUDETE, LOCALITATI_BY_JUDET } from '../../constants/romania.constants';
 
 const COUNTRIES = [
   'România',
@@ -144,6 +146,9 @@ export const Shipping: React.FC = () => {
     handleSubmit,
     watch,
     reset,
+    control,
+    setValue,
+    clearErrors,
     formState: { errors },
   } = useForm<ShippingFormData>({
     defaultValues: shippingData ?? EMPTY_DEFAULTS,
@@ -168,6 +173,27 @@ export const Shipping: React.FC = () => {
   }, [customer, shippingData, reset]);
 
   const sameAsShipping = watch('sameAsShipping');
+  const shippingCounty = watch('shippingAddress.county');
+  const billingCounty = watch('billingAddress.county');
+  const shippingCountry = watch('shippingAddress.country');
+  const billingCountry = watch('billingAddress.country');
+
+  const isRomaniaShipping = shippingCountry === 'România';
+  const isRomaniaBilling = billingCountry === 'România';
+
+  const shippingLocalities = isRomaniaShipping
+    ? LOCALITATI_BY_JUDET[shippingCounty] ?? []
+    : [];
+  const billingLocalities = isRomaniaBilling
+    ? LOCALITATI_BY_JUDET[billingCounty] ?? []
+    : [];
+
+  // Fix: clear billing errors & reset billing fields when sameAsShipping is toggled on
+  useEffect(() => {
+    if (sameAsShipping) {
+      clearErrors('billingAddress');
+    }
+  }, [sameAsShipping, clearErrors]);
 
   if (cartState.items.length === 0) {
     return (
@@ -262,6 +288,19 @@ export const Shipping: React.FC = () => {
             Adresă de livrare
           </h2>
           <div className="space-y-4">
+            <SelectField
+              label="Țară"
+              id="shippingCountry"
+              options={COUNTRIES}
+              error={errors.shippingAddress?.country?.message}
+              registration={register('shippingAddress.country', {
+                required: 'Țara este obligatorie',
+                onChange: () => {
+                  setValue('shippingAddress.county', '');
+                  setValue('shippingAddress.city', '');
+                },
+              })}
+            />
             <InputField
               label="Stradă"
               id="shippingStreet"
@@ -272,24 +311,67 @@ export const Shipping: React.FC = () => {
               })}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                label="Oraș"
-                id="shippingCity"
-                placeholder="City"
-                error={errors.shippingAddress?.city?.message}
-                registration={register('shippingAddress.city', {
-                  required: 'Orașul este obligatoriu',
-                })}
-              />
-              <InputField
-                label="Județ / Sector"
-                id="shippingCounty"
-                placeholder="County / State"
-                error={errors.shippingAddress?.county?.message}
-                registration={register('shippingAddress.county', {
-                  required: 'Județul este obligatoriu',
-                })}
-              />
+              {isRomaniaShipping ? (
+                <Controller
+                  name="shippingAddress.county"
+                  control={control}
+                  rules={{ required: 'Județul este obligatoriu' }}
+                  render={({ field }) => (
+                    <SearchableSelect
+                      label="Județ / Sector"
+                      id="shippingCounty"
+                      options={JUDETE}
+                      value={field.value}
+                      onChange={(val) => {
+                        field.onChange(val);
+                        setValue('shippingAddress.city', '');
+                      }}
+                      onBlur={field.onBlur}
+                      error={errors.shippingAddress?.county?.message}
+                      placeholder="Caută județ..."
+                    />
+                  )}
+                />
+              ) : (
+                <InputField
+                  label="Județ / Sector"
+                  id="shippingCounty"
+                  placeholder="County / State"
+                  error={errors.shippingAddress?.county?.message}
+                  registration={register('shippingAddress.county', {
+                    required: 'Județul este obligatoriu',
+                  })}
+                />
+              )}
+              {isRomaniaShipping && shippingCounty ? (
+                <Controller
+                  name="shippingAddress.city"
+                  control={control}
+                  rules={{ required: 'Orașul este obligatoriu' }}
+                  render={({ field }) => (
+                    <SearchableSelect
+                      label="Oraș / Localitate"
+                      id="shippingCity"
+                      options={shippingLocalities}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      error={errors.shippingAddress?.city?.message}
+                      placeholder="Caută localitate..."
+                    />
+                  )}
+                />
+              ) : (
+                <InputField
+                  label="Oraș"
+                  id="shippingCity"
+                  placeholder="City"
+                  error={errors.shippingAddress?.city?.message}
+                  registration={register('shippingAddress.city', {
+                    required: 'Orașul este obligatoriu',
+                  })}
+                />
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
@@ -299,15 +381,14 @@ export const Shipping: React.FC = () => {
                 error={errors.shippingAddress?.postalCode?.message}
                 registration={register('shippingAddress.postalCode', {
                   required: 'Codul poștal este obligatoriu',
-                })}
-              />
-              <SelectField
-                label="Țară"
-                id="shippingCountry"
-                options={COUNTRIES}
-                error={errors.shippingAddress?.country?.message}
-                registration={register('shippingAddress.country', {
-                  required: 'Țara este obligatorie',
+                  ...(isRomaniaShipping
+                    ? {
+                        pattern: {
+                          value: /^\d{6}$/,
+                          message: 'Codul poștal trebuie să aibă 6 cifre',
+                        },
+                      }
+                    : {}),
                 })}
               />
             </div>
@@ -332,34 +413,90 @@ export const Shipping: React.FC = () => {
 
           {!sameAsShipping && (
             <div className="space-y-4">
+              <SelectField
+                label="Țară"
+                id="billingCountry"
+                options={COUNTRIES}
+                error={errors.billingAddress?.country?.message}
+                registration={register('billingAddress.country', {
+                  required: 'Țara este obligatorie',
+                  onChange: () => {
+                    setValue('billingAddress.county', '');
+                    setValue('billingAddress.city', '');
+                  },
+                })}
+              />
               <InputField
                 label="Stradă"
                 id="billingStreet"
                 placeholder="Street address"
                 error={errors.billingAddress?.street?.message}
                 registration={register('billingAddress.street', {
-                  required: !sameAsShipping ? 'Strada este obligatorie' : false,
+                  required: 'Strada este obligatorie',
                 })}
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Oraș"
-                  id="billingCity"
-                  placeholder="City"
-                  error={errors.billingAddress?.city?.message}
-                  registration={register('billingAddress.city', {
-                    required: !sameAsShipping ? 'Orașul este obligatoriu' : false,
-                  })}
-                />
-                <InputField
-                  label="Județ / Sector"
-                  id="billingCounty"
-                  placeholder="County / State"
-                  error={errors.billingAddress?.county?.message}
-                  registration={register('billingAddress.county', {
-                    required: !sameAsShipping ? 'Județul este obligatoriu' : false,
-                  })}
-                />
+                {isRomaniaBilling ? (
+                  <Controller
+                    name="billingAddress.county"
+                    control={control}
+                    rules={{ required: 'Județul este obligatoriu' }}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        label="Județ / Sector"
+                        id="billingCounty"
+                        options={JUDETE}
+                        value={field.value}
+                        onChange={(val) => {
+                          field.onChange(val);
+                          setValue('billingAddress.city', '');
+                        }}
+                        onBlur={field.onBlur}
+                        error={errors.billingAddress?.county?.message}
+                        placeholder="Caută județ..."
+                      />
+                    )}
+                  />
+                ) : (
+                  <InputField
+                    label="Județ / Sector"
+                    id="billingCounty"
+                    placeholder="County / State"
+                    error={errors.billingAddress?.county?.message}
+                    registration={register('billingAddress.county', {
+                      required: 'Județul este obligatoriu',
+                    })}
+                  />
+                )}
+                {isRomaniaBilling && billingCounty ? (
+                  <Controller
+                    name="billingAddress.city"
+                    control={control}
+                    rules={{ required: 'Orașul este obligatoriu' }}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        label="Oraș / Localitate"
+                        id="billingCity"
+                        options={billingLocalities}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        error={errors.billingAddress?.city?.message}
+                        placeholder="Caută localitate..."
+                      />
+                    )}
+                  />
+                ) : (
+                  <InputField
+                    label="Oraș"
+                    id="billingCity"
+                    placeholder="City"
+                    error={errors.billingAddress?.city?.message}
+                    registration={register('billingAddress.city', {
+                      required: 'Orașul este obligatoriu',
+                    })}
+                  />
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
@@ -368,16 +505,15 @@ export const Shipping: React.FC = () => {
                   placeholder="Postal code"
                   error={errors.billingAddress?.postalCode?.message}
                   registration={register('billingAddress.postalCode', {
-                    required: !sameAsShipping ? 'Codul poștal este obligatoriu' : false,
-                  })}
-                />
-                <SelectField
-                  label="Țară"
-                  id="billingCountry"
-                  options={COUNTRIES}
-                  error={errors.billingAddress?.country?.message}
-                  registration={register('billingAddress.country', {
-                    required: !sameAsShipping ? 'Țara este obligatorie' : false,
+                    required: 'Codul poștal este obligatoriu',
+                    ...(isRomaniaBilling
+                      ? {
+                          pattern: {
+                            value: /^\d{6}$/,
+                            message: 'Codul poștal trebuie să aibă 6 cifre',
+                          },
+                        }
+                      : {}),
                   })}
                 />
               </div>
