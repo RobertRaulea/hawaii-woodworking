@@ -16,7 +16,10 @@ export const requireAdmin = async (ctx: AuthCtx) => {
     throw new Error("Unauthorized: not authenticated");
   }
 
-  const role = (identity as Record<string, unknown>).role as string | undefined;
+  const id = identity as Record<string, unknown>;
+  const role =
+    (id.role as string | undefined) ??
+    ((id.publicMetadata as Record<string, unknown> | undefined)?.role as string | undefined);
 
   if (role !== "admin") {
     throw new Error("Forbidden: admin access required");
