@@ -9,10 +9,15 @@
  */
 
 import type * as checkout from "../checkout.js";
+import type * as customers from "../customers.js";
+import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_storage from "../lib/storage.js";
+import type * as orders from "../orders.js";
 import type * as products from "../products.js";
 import type * as siteAssets from "../siteAssets.js";
+import type * as stripeVerify from "../stripeVerify.js";
+import type * as stripeWebhook from "../stripeWebhook.js";
 
 import type {
   ApiFromModules,
@@ -22,10 +27,15 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   checkout: typeof checkout;
+  customers: typeof customers;
+  http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/storage": typeof lib_storage;
+  orders: typeof orders;
   products: typeof products;
   siteAssets: typeof siteAssets;
+  stripeVerify: typeof stripeVerify;
+  stripeWebhook: typeof stripeWebhook;
 }>;
 
 /**

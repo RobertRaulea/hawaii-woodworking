@@ -3,7 +3,7 @@
 import Stripe from 'stripe';
 import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
-import { api } from './_generated/api';
+import { api, internal } from './_generated/api';
 import { action } from './_generated/server';
 
 type CheckoutItem = {
@@ -22,6 +22,14 @@ type CheckoutResponse = {
   url: string | null;
 };
 
+const addressValidator = v.object({
+  street: v.string(),
+  city: v.string(),
+  county: v.string(),
+  postalCode: v.string(),
+  country: v.string(),
+});
+
 export const createCheckoutSession = action({
   args: {
     origin: v.string(),
@@ -31,10 +39,31 @@ export const createCheckoutSession = action({
         quantity: v.number(),
       })
     ),
+    customer: v.object({
+      clerkUserId: v.optional(v.string()),
+      email: v.string(),
+      firstName: v.string(),
+      lastName: v.string(),
+      shippingAddress: addressValidator,
+      billingAddress: addressValidator,
+      newsletter: v.boolean(),
+    }),
   },
   handler: async (
     ctx,
-    { origin, items }: { origin: string; items: CheckoutItem[] }
+    { origin, items, customer }: {
+      origin: string;
+      items: CheckoutItem[];
+      customer: {
+        clerkUserId?: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        shippingAddress: { street: string; city: string; county: string; postalCode: string; country: string };
+        billingAddress: { street: string; city: string; county: string; postalCode: string; country: string };
+        newsletter: boolean;
+      };
+    }
   ): Promise<CheckoutResponse> => {
     if (items.length === 0) {
       throw new Error('No items provided for checkout.');
@@ -47,6 +76,21 @@ export const createCheckoutSession = action({
 
     const stripe = new Stripe(stripeSecretKey);
 
+    // 1. Upsert customer
+    const customerId: Id<'customers'> = await ctx.runMutation(
+      internal.customers.upsertCustomer,
+      {
+        clerkUserId: customer.clerkUserId,
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        shippingAddress: customer.shippingAddress,
+        billingAddress: customer.billingAddress,
+        newsletter: customer.newsletter,
+      }
+    );
+
+    // 2. Resolve products
     const products = (await ctx.runQuery(api.products.getAll, {})) as CheckoutProduct[];
     const requestedIds = new Set(items.map((item) => item.productId));
     const productMap = new Map<Id<'products'>, CheckoutProduct>(
@@ -55,22 +99,37 @@ export const createCheckoutSession = action({
         .map((product) => [product._id, product])
     );
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
+    // 3. Build order items with product snapshots
+    const orderItems = items.map((item) => {
+      const product = productMap.get(item.productId);
+      if (!product) {
+        throw new Error(`Product not found for checkout: ${item.productId}`);
+      }
+      return {
+        productId: item.productId,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+      };
+    });
+
+    const total = orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    // 4. Build Stripe line items
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems.map(
       (item) => {
         const product = productMap.get(item.productId);
-        if (!product) {
-          throw new Error(`Product not found for checkout: ${item.productId}`);
-        }
-
-        const unitAmount = Math.round(product.price * 100);
-        const image = product.imageUrls?.[0];
+        const image = product?.imageUrls?.[0];
 
         return {
           price_data: {
             currency: 'ron',
-            unit_amount: unitAmount,
+            unit_amount: Math.round(item.price * 100),
             product_data: {
-              name: product.name,
+              name: item.name,
               ...(image ? { images: [image] } : {}),
             },
           },
@@ -79,11 +138,24 @@ export const createCheckoutSession = action({
       }
     );
 
+    // 5. Create Stripe session
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
+      customer_email: customer.email,
       success_url: `${origin}/thank-you`,
       cancel_url: `${origin}/cart?canceled=true`,
+      metadata: {
+        convexCustomerId: customerId,
+      },
+    });
+
+    // 6. Create pending order with the Stripe session ID
+    await ctx.runMutation(internal.orders.createPendingOrder, {
+      customerId,
+      items: orderItems,
+      total,
+      stripeSessionId: session.id,
     });
 
     return { url: session.url ?? null };

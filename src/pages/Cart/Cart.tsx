@@ -122,7 +122,7 @@ export const Cart: React.FC = () => {
             </div>
             <button
               className="w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition-colors"
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate('/shipping')}
             >
               Finalizează comanda
             </button>

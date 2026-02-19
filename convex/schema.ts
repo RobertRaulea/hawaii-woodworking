@@ -13,6 +13,58 @@ export default defineSchema({
     stripe_product_id: v.optional(v.string()),
     stripe_price_id: v.optional(v.string()),
   }),
+  customers: defineTable({
+    clerkUserId: v.optional(v.string()),
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    shippingAddress: v.object({
+      street: v.string(),
+      city: v.string(),
+      county: v.string(),
+      postalCode: v.string(),
+      country: v.string(),
+    }),
+    billingAddress: v.object({
+      street: v.string(),
+      city: v.string(),
+      county: v.string(),
+      postalCode: v.string(),
+      country: v.string(),
+    }),
+    newsletter: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_clerkUserId", ["clerkUserId"]),
+
+  orders: defineTable({
+    customerId: v.id("customers"),
+    items: v.array(
+      v.object({
+        productId: v.id("products"),
+        name: v.string(),
+        price: v.number(),
+        quantity: v.number(),
+      })
+    ),
+    total: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("paid"),
+      v.literal("shipped"),
+      v.literal("delivered"),
+      v.literal("cancelled")
+    ),
+    stripeSessionId: v.string(),
+    stripePaymentIntentId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_customerId", ["customerId"])
+    .index("by_status", ["status"])
+    .index("by_createdAt", ["createdAt"])
+    .index("by_stripeSessionId", ["stripeSessionId"]),
+
   siteAssets: defineTable({
     name: v.string(),
     category: v.string(),

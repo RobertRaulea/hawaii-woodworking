@@ -7,6 +7,7 @@ import { Home } from './pages/Home/Home';
 import { Products } from './pages/Products/Products';
 import { Cart } from './pages/Cart/Cart';
 import { CartProvider } from './context/CartContext';
+import { ShippingProvider } from './context/ShippingContext';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
 import { AdminRoute } from './components/AdminRoute';
 
@@ -19,10 +20,14 @@ const TermsAndConditions = lazy(() => import('./pages/Legal/TermsAndConditions')
 const PrivacyPolicy = lazy(() => import('./pages/Legal/PrivacyPolicy'));
 const ReturnPolicy = lazy(() => import('./pages/Legal/ReturnPolicy'));
 const LegalInformation = lazy(() => import('./pages/Legal/LegalInformation'));
+const Shipping = lazy(() => import('./pages/Shipping/Shipping').then((m) => ({ default: m.Shipping })));
+const Login = lazy(() => import('./pages/Login/Login').then((m) => ({ default: m.Login })));
 const AdminLogin = lazy(() => import('./pages/Admin/AdminLogin').then((m) => ({ default: m.AdminLogin })));
 const AdminLayout = lazy(() => import('./pages/Admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
 const AdminProducts = lazy(() => import('./pages/Admin/Products/AdminProducts').then((m) => ({ default: m.AdminProducts })));
 const ProductForm = lazy(() => import('./pages/Admin/Products/ProductForm').then((m) => ({ default: m.ProductForm })));
+const AdminOrders = lazy(() => import('./pages/Admin/Orders/AdminOrders').then((m) => ({ default: m.AdminOrders })));
+const OrderDetail = lazy(() => import('./pages/Admin/Orders/OrderDetail').then((m) => ({ default: m.OrderDetail })));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -34,6 +39,7 @@ function App() {
   return (
     <HelmetProvider>
       <CartProvider>
+        <ShippingProvider>
         <Router>
           <MaintenanceGuard>
             <Suspense fallback={<PageLoader />}>
@@ -43,6 +49,8 @@ function App() {
                   <Route path="products" element={<Products />} />
                   <Route path="catalog" element={<Catalog />} />
                   <Route path="cart" element={<Cart />} />
+                  <Route path="shipping" element={<Shipping />} />
+                  <Route path="login" element={<Login />} />
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="thank-you" element={<ThankYou />} />
                   <Route path="product/:productId" element={<ProductDetailPage />} />
@@ -60,12 +68,15 @@ function App() {
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="products/new" element={<ProductForm />} />
                     <Route path="products/:id" element={<ProductForm />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="orders/:id" element={<OrderDetail />} />
                   </Route>
                 </Route>
               </Routes>
             </Suspense>
           </MaintenanceGuard>
         </Router>
+        </ShippingProvider>
       </CartProvider>
     </HelmetProvider>
   );
