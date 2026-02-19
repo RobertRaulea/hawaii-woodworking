@@ -163,3 +163,55 @@ export const getByCustomerId = query({
       .collect();
   },
 });
+
+export const getMyOrders = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const clerkUserId = identity.subject;
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+      .first();
+
+    if (!customer) return [];
+
+    const orders = await ctx.db
+      .query("orders")
+      .withIndex("by_customerId", (q) => q.eq("customerId", customer._id))
+      .order("desc")
+      .collect();
+
+    return orders.map((order) => ({
+      ...order,
+      customer: {
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+      },
+    }));
+  },
+});
+
+export const getMyOrderById = query({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, { orderId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const clerkUserId = identity.subject;
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+      .first();
+
+    if (!customer) return null;
+
+    const order = await ctx.db.get(orderId);
+    if (!order || order.customerId !== customer._id) return null;
+
+    return { ...order, customer };
+  },
+});

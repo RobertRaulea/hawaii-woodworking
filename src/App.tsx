@@ -26,7 +26,11 @@ const AdminLogin = lazy(() => import('./pages/Admin/AdminLogin').then((m) => ({ 
 const AdminLayout = lazy(() => import('./pages/Admin/AdminLayout').then((m) => ({ default: m.AdminLayout })));
 const AdminProducts = lazy(() => import('./pages/Admin/Products/AdminProducts').then((m) => ({ default: m.AdminProducts })));
 const ProductForm = lazy(() => import('./pages/Admin/Products/ProductForm').then((m) => ({ default: m.ProductForm })));
+const MyOrders = lazy(() => import('./pages/MyOrders/MyOrders').then((m) => ({ default: m.MyOrders })));
+const MyOrderDetail = lazy(() => import('./pages/MyOrders/MyOrderDetail').then((m) => ({ default: m.MyOrderDetail })));
 const AdminOrders = lazy(() => import('./pages/Admin/Orders/AdminOrders').then((m) => ({ default: m.AdminOrders })));
+const AdminCustomers = lazy(() => import('./pages/Admin/Customers/AdminCustomers').then((m) => ({ default: m.AdminCustomers })));
+const CustomerDetail = lazy(() => import('./pages/Admin/Customers/CustomerDetail').then((m) => ({ default: m.CustomerDetail })));
 const OrderDetail = lazy(() => import('./pages/Admin/Orders/OrderDetail').then((m) => ({ default: m.OrderDetail })));
 
 const PageLoader: React.FC = () => (
@@ -52,6 +56,8 @@ function App() {
                   <Route path="shipping" element={<Shipping />} />
                   <Route path="login" element={<Login />} />
                   <Route path="checkout" element={<Checkout />} />
+                  <Route path="my-orders" element={<MyOrders />} />
+                  <Route path="my-orders/:id" element={<MyOrderDetail />} />
                   <Route path="thank-you" element={<ThankYou />} />
                   <Route path="product/:productId" element={<ProductDetailPage />} />
                   <Route path="terms-and-conditions" element={<TermsAndConditions />} />
@@ -70,6 +76,8 @@ function App() {
                     <Route path="products/:id" element={<ProductForm />} />
                     <Route path="orders" element={<AdminOrders />} />
                     <Route path="orders/:id" element={<OrderDetail />} />
+                    <Route path="customers" element={<AdminCustomers />} />
+                    <Route path="customers/:id" element={<CustomerDetail />} />
                   </Route>
                 </Route>
               </Routes>

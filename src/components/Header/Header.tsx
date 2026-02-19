@@ -1,6 +1,7 @@
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { ShoppingCart, Menu, X, ClipboardList } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth, UserButton } from '@clerk/clerk-react';
 import { useCart } from '../../context/CartContext';
 
 interface HeaderProps {
@@ -13,6 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { totalItems } = useCart();
+  const { isSignedIn } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -80,8 +82,17 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               </div>
             </Link>
 
-            {/* Cart Icon */}
-            <div className="flex items-center">
+            {/* Right side: My Orders + Cart + User */}
+            <div className="flex items-center gap-1">
+              {isSignedIn && (
+                <Link
+                  to="/my-orders"
+                  className="hidden md:flex items-center gap-1 p-2 hover:bg-stone-100 rounded-full transition-colors text-sm font-medium text-stone-700"
+                  aria-label="Comenzile mele"
+                >
+                  <ClipboardList className="h-5 w-5" />
+                </Link>
+              )}
               <button 
                 onClick={() => navigate('/cart')}
                 className="relative z-50 p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -94,6 +105,11 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   </span>
                 )}
               </button>
+              {isSignedIn && (
+                <div className="ml-1">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -126,6 +142,16 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Catalog
+              </Link>
+            )}
+            {isSignedIn && !isActive('/my-orders') && (
+              <Link
+                to="/my-orders"
+                className="flex items-center gap-2 text-stone-900 transition-colors text-base py-2 hover:text-amber-500"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ClipboardList className="h-4 w-4" />
+                Comenzile mele
               </Link>
             )}
           </div>

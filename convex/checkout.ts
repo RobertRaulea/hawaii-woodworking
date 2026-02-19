@@ -76,7 +76,7 @@ export const createCheckoutSession = action({
 
     const stripe = new Stripe(stripeSecretKey);
 
-    // 1. Upsert customer
+    // 1. Upsert customer in Convex
     const customerId: Id<'customers'> = await ctx.runMutation(
       internal.customers.upsertCustomer,
       {
@@ -89,6 +89,49 @@ export const createCheckoutSession = action({
         newsletter: customer.newsletter,
       }
     );
+
+    // 1b. Create or reuse Stripe Customer
+    const existingStripeId = await ctx.runMutation(
+      internal.customers.getStripeCustomerId,
+      { customerId }
+    ) as string | null;
+
+    let stripeCustomerId: string | undefined = existingStripeId ?? undefined;
+
+    if (!stripeCustomerId) {
+      // Search Stripe for existing customer by email
+      const existingStripeCustomers = await stripe.customers.list({
+        email: customer.email,
+        limit: 1,
+      });
+
+      if (existingStripeCustomers.data.length > 0) {
+        stripeCustomerId = existingStripeCustomers.data[0].id;
+      } else {
+        const newStripeCustomer = await stripe.customers.create({
+          email: customer.email,
+          name: `${customer.firstName} ${customer.lastName}`,
+          address: {
+            line1: customer.shippingAddress.street,
+            city: customer.shippingAddress.city,
+            state: customer.shippingAddress.county,
+            postal_code: customer.shippingAddress.postalCode,
+            country: 'RO',
+          },
+          metadata: {
+            convexCustomerId: customerId,
+            source: 'hawaii-woodworking',
+          },
+        });
+        stripeCustomerId = newStripeCustomer.id;
+      }
+
+      // Save Stripe Customer ID back to Convex
+      await ctx.runMutation(internal.customers.setStripeCustomerId, {
+        customerId,
+        stripeCustomerId,
+      });
+    }
 
     // 2. Resolve products
     const products = (await ctx.runQuery(api.products.getAll, {})) as CheckoutProduct[];
@@ -138,11 +181,11 @@ export const createCheckoutSession = action({
       }
     );
 
-    // 5. Create Stripe session
+    // 5. Create Stripe session with Stripe Customer
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
-      customer_email: customer.email,
+      customer: stripeCustomerId,
       success_url: `${origin}/thank-you`,
       cancel_url: `${origin}/cart?canceled=true`,
       metadata: {

@@ -15,6 +15,8 @@ export default defineSchema({
   }),
   customers: defineTable({
     clerkUserId: v.optional(v.string()),
+    stripeCustomerId: v.optional(v.string()),
+    isRegistered: v.optional(v.boolean()),
     email: v.string(),
     firstName: v.string(),
     lastName: v.string(),
@@ -36,7 +38,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_email", ["email"])
-    .index("by_clerkUserId", ["clerkUserId"]),
+    .index("by_clerkUserId", ["clerkUserId"])
+    .index("by_stripeCustomerId", ["stripeCustomerId"]),
 
   orders: defineTable({
     customerId: v.id("customers"),
