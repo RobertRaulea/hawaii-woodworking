@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
+import { resolveAssetUrls } from "./lib/storage";
 
 export const generateAssetUploadUrl = mutation({
   args: {},
@@ -47,27 +48,7 @@ export const getAll = query({
   args: {},
   handler: async (ctx) => {
     const assets = await ctx.db.query("siteAssets").collect();
-
-    const withUrls = await Promise.all(
-      assets.map(async (asset) => {
-        const url = await ctx.storage.getUrl(asset.storageId);
-        if (!url) {
-          return null;
-        }
-
-        return {
-          _id: asset._id,
-          name: asset.name,
-          category: asset.category,
-          storageId: asset.storageId,
-          url,
-        };
-      })
-    );
-
-    return withUrls.filter(
-      (asset): asset is NonNullable<(typeof withUrls)[number]> => asset !== null
-    );
+    return await resolveAssetUrls(ctx, assets);
   },
 });
 
@@ -81,25 +62,6 @@ export const getByCategory = query({
       .withIndex("by_category", (q) => q.eq("category", category))
       .collect();
 
-    const withUrls = await Promise.all(
-      assets.map(async (asset) => {
-        const url = await ctx.storage.getUrl(asset.storageId);
-        if (!url) {
-          return null;
-        }
-
-        return {
-          _id: asset._id,
-          name: asset.name,
-          category: asset.category,
-          storageId: asset.storageId,
-          url,
-        };
-      })
-    );
-
-    return withUrls.filter(
-      (asset): asset is NonNullable<(typeof withUrls)[number]> => asset !== null
-    );
+    return await resolveAssetUrls(ctx, assets);
   },
 });

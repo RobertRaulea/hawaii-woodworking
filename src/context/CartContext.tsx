@@ -1,32 +1,8 @@
 import React, { createContext, useContext, useReducer, useState, useEffect } from 'react';
 import { Toast } from '../components/Toast/Toast';
+import type { CartItem, CartState, CartAction, CartContextType } from '../types/cart.types';
 
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-}
-
-interface CartState {
-  items: CartItem[];
-}
-
-type CartAction =
-  | { type: 'ADD_ITEM'; payload: CartItem }
-  | { type: 'REMOVE_ITEM'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
-  | { type: 'CLEAR_CART' };
-
-interface CartContextType {
-  state: CartState;
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
-  totalItems: number;
-}
+export type { CartItem } from '../types/cart.types';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 

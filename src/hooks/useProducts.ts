@@ -1,18 +1,9 @@
 import { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import type { Product } from '../types/product.types';
 
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  images: string[] | null; // Array of image paths
-  imageUrls?: string[] | null;
-  category: string | null;
-  description: string | null;
-  stripeProductId?: string | null;
-  stripePriceId?: string | null;
-}
+export type { Product } from '../types/product.types';
 
 export const useProducts = () => {
   const data = useQuery(api.products.getAll);
@@ -27,8 +18,7 @@ export const useProducts = () => {
       name: product.name,
       price: product.price,
       images: product.images ?? null,
-      imageUrls:
-        ((product as unknown as { imageUrls?: string[] | null }).imageUrls ?? null) ?? null,
+      imageUrls: product.imageUrls ?? null,
       category: product.category ?? null,
       description: product.description ?? null,
       stripeProductId: product.stripe_product_id ?? null,

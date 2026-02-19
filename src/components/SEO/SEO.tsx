@@ -1,4 +1,6 @@
+import type React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS } from '../../constants/site.constants';
 
 interface SEOProps {
   title?: string;
@@ -17,32 +19,9 @@ export const SEO: React.FC<SEOProps> = ({
   type = 'website',
   schema,
 }) => {
-  const siteUrl = 'https://www.hawaiiproducts.ro';
-  const siteName = 'Hawaii Woodworking';
-  const defaultDescription = 'Produse din lemn personalizate, cadouri artizanale și mobilier pentru restaurante realizate cu pasiune în România';
-  const defaultKeywords = [
-    'cadouri din lemn',
-    'cadouri personalizate',
-    'cadouri pentru mama',
-    'cadouri pentru tata',
-    'decorațiuni din lemn',
-    'mobilier restaurant lemn',
-    'produse din lemn masiv',
-    'cadouri artizanale',
-    'decorațiuni restaurant',
-    'tâmplărie cnc',
-    'prelucrare lemn cnc',
-    'mobilier personalizat',
-    'cadouri handmade',
-    'decorațiuni interioare lemn',
-    'cadouri aniversare lemn',
-    'hawaii sibiu',
-    'platouase'
-  ];
-
-  const fullTitle = title ? `${title} | ${siteName}` : siteName;
-  const finalDescription = description || defaultDescription;
-  const finalKeywords = [...defaultKeywords, ...keywords].join(', ');
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+  const finalDescription = description || DEFAULT_DESCRIPTION;
+  const finalKeywords = [...DEFAULT_KEYWORDS, ...keywords].join(', ');
 
   return (
     <Helmet>
@@ -59,16 +38,16 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:type" content={type} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={finalDescription} />
-      <meta property="og:site_name" content={siteName} />
-      <meta property="og:url" content={`${siteUrl}${window.location.pathname}${window.location.search}`} />
-      {image && <meta property="og:image" content={image.startsWith('http') ? image : `${siteUrl}${image}`} />}
+      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:url" content={`${SITE_URL}${window.location.pathname}${window.location.search}`} />
+      {image && <meta property="og:image" content={image.startsWith('http') ? image : `${SITE_URL}${image}`} />}
       <meta property="og:locale" content="ro_RO" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={finalDescription} />
-      {image && <meta name="twitter:image" content={image.startsWith('http') ? image : `${siteUrl}${image}`} />}
+      {image && <meta name="twitter:image" content={image.startsWith('http') ? image : `${SITE_URL}${image}`} />}
 
       {/* Schema.org JSON-LD */}
       {schema && (
@@ -78,7 +57,7 @@ export const SEO: React.FC<SEOProps> = ({
       )}
 
       {/* Canonical URL */}
-      <link rel="canonical" href={`${siteUrl}${window.location.pathname}${window.location.search}`} />
+      <link rel="canonical" href={`${SITE_URL}${window.location.pathname}${window.location.search}`} />
     </Helmet>
   );
 };

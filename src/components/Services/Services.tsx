@@ -1,3 +1,4 @@
+import type React from 'react';
 import { Hammer, Trees, Shield } from 'lucide-react';
 
 interface ServiceCardProps {

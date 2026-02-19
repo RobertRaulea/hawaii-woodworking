@@ -1,3 +1,4 @@
+import type React from 'react';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
@@ -16,7 +17,7 @@ export const ThankYou: React.FC = () => {
       <p className="text-gray-700 mb-8">Comanda ta a fost plasată cu succes. Vei primi în curând un e-mail de confirmare.</p>
       <Link
         to="/"
-        className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
+        className="inline-block bg-amber-600 text-white px-6 py-3 rounded-md hover:bg-amber-700 transition-colors"
       >
         Înapoi la pagină principală
       </Link>

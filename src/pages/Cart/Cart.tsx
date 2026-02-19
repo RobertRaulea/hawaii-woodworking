@@ -1,3 +1,4 @@
+import type React from 'react';
 import { ShoppingCart, Minus, Plus, Trash2, XCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { CartItem } from '../../context/CartContext';
@@ -51,7 +52,7 @@ export const Cart: React.FC = () => {
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Coșul tău este gol</h2>
           <p className="text-gray-600 mb-6">Adaugă produse în coș pentru a începe!</p>
           <button
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            className="bg-amber-600 text-white px-6 py-2 rounded-md hover:bg-amber-700 transition-colors"
             onClick={() => window.history.back()}
           >
             Continuă cumpărăturile
@@ -120,7 +121,7 @@ export const Cart: React.FC = () => {
               <span>{formatPrice(calculateTotal())}</span>
             </div>
             <button
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition-colors"
               onClick={() => navigate('/checkout')}
             >
               Finalizează comanda

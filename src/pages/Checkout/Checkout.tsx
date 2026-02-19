@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState } from 'react';
 import { useAction } from 'convex/react';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -53,7 +54,7 @@ export const Checkout: React.FC = () => {
         </div>
       ))}
       <div className="text-right font-semibold mt-4">Total: {total.toFixed(2)} RON</div>
-      <button disabled={loading || total === 0} onClick={handleCheckout} className="mt-6 bg-blue-600 text-white px-6 py-3 rounded-lg disabled:opacity-50">
+      <button disabled={loading || total === 0} onClick={handleCheckout} className="mt-6 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg disabled:opacity-50 transition-colors">
         {loading ? 'Se redirecționează...' : 'Plătește cu cardul'}
       </button>
     </div>

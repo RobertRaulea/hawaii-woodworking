@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import type { SiteAsset } from '../types/siteAsset.types';
 
-export interface SiteAsset {
-  id: string;
-  name: string;
-  category: string;
-  url: string;
-}
+export type { SiteAsset } from '../types/siteAsset.types';
 
 export const useSiteAssets = (category: string) => {
   const data = useQuery(api.siteAssets.getByCategory, { category });

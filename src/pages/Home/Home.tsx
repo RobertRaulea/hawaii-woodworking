@@ -1,3 +1,4 @@
+import type React from 'react';
 import { Hero } from '../../components/Hero';
 import { Products } from '../Products/Products';
 import { SEO } from '../../components/SEO/SEO';

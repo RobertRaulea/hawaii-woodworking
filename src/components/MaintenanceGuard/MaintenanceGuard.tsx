@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { shouldShowUnderConstruction, maintenanceConfig } from '../../utils/maintenance.utils';
 import UnderConstruction from '../../pages/UnderConstruction/UnderConstruction';
 

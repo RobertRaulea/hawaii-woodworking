@@ -1,112 +1,12 @@
+import type React from 'react';
 import { useState, useMemo } from 'react';
-import { useCart } from '../../context/CartContext';
-import { Link } from 'react-router-dom';
-import { useProducts, Product as P } from '../../hooks/useProducts';
+import { useProducts } from '../../hooks/useProducts';
+import type { Product } from '../../types/product.types';
 import { SEO } from '../../components/SEO/SEO';
-
-interface ProductCardProps {
-  id: string;
-  name: string;
-  price: number;
-  imageUrls?: string[] | null;
-}
-
-const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls, id }) => {
-  const { addItem } = useCart();
-
-  const displayImages = useMemo(() => {
-    return imageUrls ?? [];
-  }, [imageUrls]);
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(() => {
-    if (displayImages.length === 0) return 0;
-    const mainImageIdx = displayImages.findIndex(
-      (img) => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
-    );
-    return mainImageIdx !== -1 ? mainImageIdx : 0;
-  });
-
-  const coverImage =
-    displayImages.length > 0
-      ? (displayImages.find(
-          (img) => img.endsWith('_main.png') || img.endsWith('_main.jpg') || img.endsWith('_main.webp')
-        ) ?? displayImages[0])
-      : null;
-
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.preventDefault(); 
-    e.stopPropagation();
-    if (displayImages.length > 0) {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % displayImages.length);
-    }
-  };
-
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.preventDefault(); 
-    e.stopPropagation();
-    if (displayImages.length > 0) {
-      setCurrentImageIndex((prevIndex) => (prevIndex - 1 + displayImages.length) % displayImages.length);
-    }
-  };
-
-  return (
-    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      <Link to={`/product/${id}`} className="block">
-        <div className="relative group/carousel"> 
-          <img
-            src={displayImages.length > 0 ? displayImages[currentImageIndex] : 'https://placehold.co/600x400?text=Product+Image'}
-            alt={`${name} - image ${currentImageIndex + 1}`}
-            className="w-full h-64 object-cover transition-all duration-300 ease-in-out"
-          />
-          {displayImages.length > 1 && (
-            <>
-              <button
-                onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-30 text-white p-2 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 z-10"
-                aria-label="Previous Image"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-              </button>
-              <button
-                onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-30 text-white p-2 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 z-10"
-                aria-label="Next Image"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-            </>
-          )}
-        </div>
-        <div className="p-6">
-          <h3 className="text-xl font-semibold mb-2 truncate" title={name}>{name}</h3>
-          <p className="text-amber-700 font-medium text-lg">{price.toFixed(2)} RON</p>
-        </div>
-      </Link>
-      <div className="p-6 pt-0">
-        <button
-          onClick={() =>
-            addItem({
-              id,
-              name,
-              price,
-              image: coverImage || 'https://placehold.co/100x100?text=No+Image',
-            })
-          }
-          className="w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors"
-        >
-          Adaugă în Coș
-        </button>
-      </div>
-    </div>
-  );
-};
+import { ProductCard } from '../../components/ProductCard';
+import { SITE_URL } from '../../constants/site.constants';
 
 export const Products: React.FC = () => {
-  const SITE_URL = 'https://www.hawaiiproducts.ro';
   const pageTitle = "Produse din Lemn Artizanale - Hawaii Woodworking";
   const pageDescription = "Explorați gama noastră variată de produse din lemn lucrate manual: cadouri personalizate, decorațiuni unice și mobilier pentru casă și restaurant. Calitate românească.";
   const pageKeywords = [
@@ -122,11 +22,11 @@ export const Products: React.FC = () => {
 
   const pageUrl = useMemo(() => 
     typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/products`
-  , [SITE_URL]);
+  , []);
 
   const dynamicSchema = useMemo(() => {
     const itemListElements = (!loading && products && products.length > 0)
-      ? products.map((product: P, index: number) => {
+      ? products.map((product: Product, index: number) => {
           const imageUrl = product.imageUrls?.[0] ?? `${SITE_URL}/images/placeholder-product.jpg`;
 
           return {
@@ -167,17 +67,17 @@ export const Products: React.FC = () => {
         itemListElement: itemListElements,
       }
     };
-  }, [products, loading, pageTitle, pageDescription, pageUrl, SITE_URL]);
+  }, [products, loading, pageTitle, pageDescription, pageUrl]);
 
   const categories: string[] = useMemo(() => [
     'all',
-    ...Array.from(new Set(products.map((p: P) => p.category ?? ''))).filter((c): c is string => c !== '')
+    ...Array.from(new Set(products.map((p: Product) => p.category ?? ''))).filter((c): c is string => c !== '')
   ], [products]);
 
   const filteredProducts = useMemo(() => 
     selectedCategory === 'all'
       ? products
-      : products.filter((product: P) => product.category === selectedCategory)
+      : products.filter((product: Product) => product.category === selectedCategory)
   , [products, selectedCategory]);
 
   return (
@@ -206,7 +106,7 @@ export const Products: React.FC = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product: P) => (
+          {filteredProducts.map((product: Product) => (
             <ProductCard
               key={product.id}
               id={product.id}

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
+import { resolveImageUrls } from "./lib/storage";
 
 // Fetch all products
 export const getAll = query({
@@ -10,16 +11,8 @@ export const getAll = query({
 
     return await Promise.all(
       products.map(async (product) => {
-        const imageUrls = product.imageStorageIds
-          ? (await Promise.all(product.imageStorageIds.map((id) => ctx.storage.getUrl(id)))).filter(
-              (url): url is string => typeof url === "string" && url.length > 0
-            )
-          : [];
-
-        return {
-          ...product,
-          imageUrls,
-        };
+        const imageUrls = await resolveImageUrls(ctx, product.imageStorageIds);
+        return { ...product, imageUrls };
       })
     );
   },
@@ -161,12 +154,7 @@ export const getById = query({
       return null;
     }
 
-    const imageUrls = product.imageStorageIds
-      ? (await Promise.all(product.imageStorageIds.map((sid) => ctx.storage.getUrl(sid)))).filter(
-          (url): url is string => typeof url === "string" && url.length > 0
-        )
-      : [];
-
+    const imageUrls = await resolveImageUrls(ctx, product.imageStorageIds);
     return { ...product, imageUrls };
   },
 });

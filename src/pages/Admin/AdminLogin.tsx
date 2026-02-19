@@ -1,3 +1,4 @@
+import type React from 'react';
 import { SignIn, useAuth } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 import { useAdmin } from '../../hooks/useAdmin';
