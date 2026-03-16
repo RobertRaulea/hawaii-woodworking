@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, ClipboardList } from 'lucide-react';
+import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, UserButton } from '@clerk/clerk-react';
@@ -19,12 +19,33 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
+    const SHRINK_THRESHOLD = 20;
+    const EXPAND_THRESHOLD = 5;
+    const DEBOUNCE_MS = 50;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      if (timeoutId) return;
+      
+      timeoutId = setTimeout(() => {
+        const currentScroll = window.scrollY;
+        
+        if (!scrolled && currentScroll > SHRINK_THRESHOLD) {
+          setScrolled(true);
+        } else if (scrolled && currentScroll < EXPAND_THRESHOLD) {
+          setScrolled(false);
+        }
+        
+        timeoutId = null;
+      }, DEBOUNCE_MS);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [scrolled]);
 
   return (
     <header className={`sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-50 font-bold transition-all duration-300 ${scrolled ? 'py-0' : 'py-2'}`}>
@@ -37,9 +58,9 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               className="md:hidden p-2 hover:bg-stone-100 rounded-full transition-all duration-300 relative z-30"
             >
               {isMenuOpen ? (
-                <X className="h-6 w-6 text-stone-900 transform rotate-0 transition-transform duration-300" />
+                <XMarkIcon className="h-6 w-6 text-stone-900 transition-transform duration-300" />
               ) : (
-                <Menu className="h-6 w-6 text-stone-900 transform rotate-0 transition-transform duration-300" />
+                <Bars3Icon className="h-6 w-6 text-stone-900 transition-transform duration-300" />
               )}
             </button>
 
@@ -48,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               {!isActive('/') && (
                 <Link 
                   to="/" 
-                  className={`text-stone-900 transition-colors text-base ${isActive('/') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
                   Acasă
                 </Link>
@@ -56,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               {!isActive('/products') && (
                 <Link 
                   to="/products" 
-                  className={`text-stone-900 transition-colors text-base ${isActive('/products') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
                   Produse
                 </Link>
@@ -64,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               {!isActive('/catalog') && (
                 <Link 
                   to="/catalog" 
-                  className={`text-stone-900 transition-colors text-base ${isActive('/catalog') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/catalog') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
                   Catalog
                 </Link>
@@ -90,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   className="hidden md:flex items-center gap-1 p-2 hover:bg-stone-100 rounded-full transition-colors text-sm font-medium text-stone-700"
                   aria-label="Comenzile mele"
                 >
-                  <ClipboardList className="h-5 w-5" />
+                  <ClipboardDocumentListIcon className="h-5 w-5" />
                 </Link>
               )}
               <button 
@@ -98,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 className="relative z-50 p-2 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Shopping cart"
               >
-                <ShoppingCart className="h-6 w-6 text-stone-900" />
+                <ShoppingBagIcon className="h-6 w-6 text-stone-900" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
@@ -120,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             {!isActive('/') && (
               <Link 
                 to="/" 
-                className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Acasă
@@ -129,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             {!isActive('/products') && (
               <Link 
                 to="/products" 
-                className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/products') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Produse
@@ -138,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             {!isActive('/catalog') && (
               <Link 
                 to="/catalog" 
-                className={`block text-stone-900 transition-colors text-base py-2 ${isActive('/catalog') ? 'text-amber-500 pointer-events-none' : 'hover:text-amber-500'}`}
+                className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/catalog') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Catalog
@@ -147,10 +168,10 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
             {isSignedIn && !isActive('/my-orders') && (
               <Link
                 to="/my-orders"
-                className="flex items-center gap-2 text-stone-900 transition-colors text-base py-2 hover:text-amber-500"
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 text-stone-700 hover:bg-stone-100"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <ClipboardList className="h-4 w-4" />
+                <ClipboardDocumentListIcon className="h-4 w-4" />
                 Comenzile mele
               </Link>
             )}
