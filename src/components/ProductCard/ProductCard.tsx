@@ -34,20 +34,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
   }, [displayImages]);
 
   return (
-    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    <div className="group bg-white rounded-lg overflow-hidden border border-stone-200 hover:border-stone-300 hover:shadow-soft-lg transition-all duration-300">
       <Link to={`/product/${id}`} className="block">
-        <ImageCarousel
-          images={displayImages}
-          alt={name}
-          className="w-full h-64 object-cover"
-          initialIndex={initialIndex}
-        />
-        <div className="p-6">
-          <h3 className="text-xl font-semibold mb-2 truncate" title={name}>{name}</h3>
-          <p className="text-amber-700 font-medium text-lg">{price.toFixed(2)} RON</p>
+        <div className="overflow-hidden">
+          <ImageCarousel
+            images={displayImages}
+            alt={name}
+            className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
+            initialIndex={initialIndex}
+          />
+        </div>
+        <div className="p-5 pb-3">
+          <h3 className="font-serif text-lg font-medium text-stone-900 mb-1.5 truncate" title={name}>{name}</h3>
+          <p className="text-amber-700 font-semibold text-base tracking-wide">{price.toFixed(2)} RON</p>
         </div>
       </Link>
-      <div className="p-6 pt-0">
+      <div className="px-5 pb-5">
         <button
           onClick={() =>
             addItem({
@@ -57,7 +59,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
               image: coverImage || 'https://placehold.co/100x100?text=No+Image',
             })
           }
-          className="w-full bg-stone-100 hover:bg-stone-200 text-gray-900 px-4 py-3 rounded-lg transition-colors"
+          className="w-full border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200"
         >
           Adaugă în Coș
         </button>

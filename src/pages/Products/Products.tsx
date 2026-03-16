@@ -88,24 +88,32 @@ export const Products: React.FC = () => {
         keywords={pageKeywords}
         schema={dynamicSchema}
       />
-      <div className="container mx-auto px-4 py-8">
-        {loading && <p>Loading products...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Produsele Noastre</h2>
-          <div className="flex flex-wrap gap-4">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-6 h-6 border-2 border-stone-300 border-t-amber-600 rounded-full animate-spin"></div>
+          </div>
+        )}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <div className="mb-10">
+          <h2 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-8">Produsele Noastre</h2>
+          <div className="flex flex-wrap gap-1">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg capitalize ${selectedCategory === category ? 'bg-amber-700 text-white' : 'bg-stone-100 text-gray-900 hover:bg-stone-200'}`}
+                className={`px-4 py-2 text-sm font-medium capitalize transition-all duration-200 border-b-2 ${
+                  selectedCategory === category 
+                    ? 'border-stone-900 text-stone-900' 
+                    : 'border-transparent text-stone-400 hover:text-stone-600 hover:border-stone-300'
+                }`}
               >
                 {category === 'all' ? 'Toate' : category}
               </button>
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {filteredProducts.map((product: Product) => (
             <ProductCard
               key={product.id}

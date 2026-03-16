@@ -8,12 +8,12 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description }) => (
-  <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-    <div className="bg-amber-50 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-6">
+  <div className="bg-white p-8 rounded-lg border border-stone-200 hover:border-stone-300 hover:shadow-soft transition-all duration-300">
+    <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-6">
       {icon}
     </div>
-    <h3 className="text-xl font-semibold mb-4 text-center">{title}</h3>
-    <p className="text-gray-600 text-center">{description}</p>
+    <h3 className="font-serif text-xl font-medium mb-3 text-center text-stone-900">{title}</h3>
+    <p className="text-stone-500 text-center text-sm leading-relaxed">{description}</p>
   </div>
 );
 
@@ -37,14 +37,14 @@ export const Services: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-stone-50 py-24 lg:py-32">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900">Serviciile Noastre</h2>
-          <p className="mt-4 text-gray-600">Descoperă gama noastră completă de servicii de tâmplărie</p>
+          <h2 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900">Serviciile Noastre</h2>
+          <p className="mt-4 text-stone-500 text-base max-w-lg mx-auto">Descoperă gama noastră completă de servicii de tâmplărie</p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {services.map((service, index) => (
             <ServiceCard key={index} {...service} />
           ))}

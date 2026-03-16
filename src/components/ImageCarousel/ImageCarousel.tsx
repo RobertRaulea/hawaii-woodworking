@@ -47,24 +47,37 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       <img
         src={currentSrc}
         alt={`${alt} - image ${currentIndex + 1}`}
-        className={`${className} transition-all duration-300 ease-in-out`}
+        className={`${className} transition-all duration-500 ease-in-out`}
       />
       {images.length > 1 && (
         <>
           <button
             onClick={handlePrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-30 text-white p-2 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 z-10"
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm text-stone-700 p-1.5 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-amber-500 z-10 shadow-sm"
             aria-label="Previous Image"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={handleNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-30 text-white p-2 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 z-10"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm text-stone-700 p-1.5 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-amber-500 z-10 shadow-sm"
             aria-label="Next Image"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
+          {/* Dot indicators */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+            {images.map((_, idx) => (
+              <span
+                key={idx}
+                className={`block rounded-full transition-all duration-300 ${
+                  idx === currentIndex
+                    ? 'w-5 h-1.5 bg-white'
+                    : 'w-1.5 h-1.5 bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
         </>
       )}
     </div>

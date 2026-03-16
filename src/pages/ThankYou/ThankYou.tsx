@@ -12,15 +12,24 @@ export const ThankYou: React.FC = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-20 text-center">
-      <h1 className="text-3xl font-bold mb-4">Îți mulțumim pentru comandă!</h1>
-      <p className="text-gray-700 mb-8">Comanda ta a fost plasată cu succes. Vei primi în curând un e-mail de confirmare.</p>
-      <Link
-        to="/"
-        className="inline-block bg-amber-600 text-white px-6 py-3 rounded-md hover:bg-amber-700 transition-colors"
-      >
-        Înapoi la pagină principală
-      </Link>
+    <div className="max-w-2xl mx-auto px-6 lg:px-8 py-20 lg:py-28 text-center">
+      <div className="animate-fade-in-up">
+        <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-8">
+          <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </div>
+        <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-4">Îți mulțumim pentru comandă!</h1>
+        <p className="text-stone-500 text-base leading-relaxed mb-10 max-w-md mx-auto">
+          Comanda ta a fost plasată cu succes. Vei primi în curând un e-mail de confirmare.
+        </p>
+        <Link
+          to="/"
+          className="inline-block border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-8 py-2.5 rounded-md text-sm font-medium transition-all duration-200"
+        >
+          Înapoi la pagină principală
+        </Link>
+      </div>
     </div>
   );
 };

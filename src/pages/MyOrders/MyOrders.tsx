@@ -43,7 +43,7 @@ export const MyOrders: React.FC = () => {
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-stone-500">Se încarcă...</p>
+        <div className="w-6 h-6 border-2 border-stone-300 border-t-amber-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -56,38 +56,40 @@ export const MyOrders: React.FC = () => {
   if (orders === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-stone-500">Se încarcă comenzile...</p>
+        <div className="w-6 h-6 border-2 border-stone-300 border-t-amber-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-2xl font-bold text-stone-900 mb-6">Comenzile mele</h1>
+    <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+      <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-8">Comenzile mele</h1>
 
       {orders.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-stone-300 bg-white p-12 text-center">
-          <ShoppingBag className="h-12 w-12 text-stone-300 mx-auto mb-4" />
-          <p className="text-stone-600 text-lg mb-2">Nu ai comenzi încă</p>
-          <p className="text-stone-400 mb-6">Explorează produsele noastre și plasează prima comandă.</p>
+        <div className="rounded-lg border border-dashed border-stone-300 bg-white p-16 text-center">
+          <div className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-5">
+            <ShoppingBag className="h-6 w-6 text-stone-400" />
+          </div>
+          <p className="font-serif text-xl font-medium text-stone-900 mb-2">Nu ai comenzi încă</p>
+          <p className="text-stone-500 text-sm mb-8">Explorează produsele noastre și plasează prima comandă.</p>
           <Link
             to="/products"
-            className="inline-block bg-amber-600 text-white px-6 py-2.5 rounded-lg hover:bg-amber-700 transition-colors font-medium"
+            className="inline-block border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-8 py-2.5 rounded-md text-sm font-medium transition-all duration-200"
           >
             Vezi produsele
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {orders.map((order) => (
             <div
               key={order._id}
-              className="bg-white rounded-lg border border-stone-200 p-5 hover:border-stone-300 transition-colors"
+              className="bg-white rounded-lg border border-stone-200 p-5 hover:border-stone-300 transition-all duration-200"
             >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-mono text-sm text-stone-500">
+                    <span className="font-mono text-xs text-stone-400 tracking-wide">
                       #{order._id.slice(-8).toUpperCase()}
                     </span>
                     <span
@@ -96,7 +98,7 @@ export const MyOrders: React.FC = () => {
                       {STATUS_LABELS[order.status as OrderStatus]}
                     </span>
                   </div>
-                  <p className="text-sm text-stone-500 mb-1">
+                  <p className="text-xs text-stone-400 mb-1">
                     {formatDate(order.createdAt)}
                   </p>
                   <p className="text-sm text-stone-600">
@@ -109,9 +111,9 @@ export const MyOrders: React.FC = () => {
 
                 <Link
                   to={`/my-orders/${order._id}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-stone-200 px-4 py-2 text-xs font-medium text-stone-600 hover:border-stone-400 hover:text-stone-900 transition-all duration-200"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3.5 w-3.5" />
                   Detalii
                 </Link>
               </div>

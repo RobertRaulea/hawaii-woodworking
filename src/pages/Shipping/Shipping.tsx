@@ -62,7 +62,7 @@ const InputField: React.FC<InputFieldProps> = ({
   registration,
 }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-stone-700 mb-1">
+    <label htmlFor={id} className="block text-xs font-medium text-stone-500 mb-1.5 tracking-wide uppercase">
       {label}
       {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
@@ -70,8 +70,8 @@ const InputField: React.FC<InputFieldProps> = ({
       id={id}
       type={type}
       placeholder={placeholder}
-      className={`w-full rounded-lg border px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-colors ${
-        error ? 'border-red-400 focus:ring-red-400' : 'border-stone-300'
+      className={`w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200 ${
+        error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300'
       }`}
       {...registration}
     />
@@ -97,14 +97,14 @@ const SelectField: React.FC<SelectFieldProps> = ({
   registration,
 }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-stone-700 mb-1">
+    <label htmlFor={id} className="block text-xs font-medium text-stone-500 mb-1.5 tracking-wide uppercase">
       {label}
       {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
     <select
       id={id}
-      className={`w-full rounded-lg border px-3 py-2.5 text-sm text-stone-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-colors ${
-        error ? 'border-red-400 focus:ring-red-400' : 'border-stone-300'
+      className={`w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200 ${
+        error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300'
       }`}
       {...registration}
     >
@@ -219,12 +219,12 @@ export const Shipping: React.FC = () => {
 
   if (cartState.items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-semibold text-stone-800 mb-2">Coșul tău este gol</h2>
-        <p className="text-stone-600 mb-6">Adaugă produse înainte de a continua.</p>
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 text-center">
+        <h2 className="font-serif text-2xl font-medium text-stone-900 mb-2">Coșul tău este gol</h2>
+        <p className="text-stone-500 text-sm mb-8">Adaugă produse înainte de a continua.</p>
         <button
           onClick={() => navigate('/products')}
-          className="bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700 transition-colors"
+          className="border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-8 py-2.5 rounded-md text-sm font-medium transition-all duration-200"
         >
           Înapoi la produse
         </button>
@@ -394,10 +394,10 @@ export const Shipping: React.FC = () => {
 
   if (showVerification) {
     return (
-      <div className="container mx-auto px-4 py-12 max-w-md">
-        <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-8">
-          <h2 className="text-xl font-bold text-stone-900 mb-2">Verifică adresa de email</h2>
-          <p className="text-sm text-stone-600 mb-6">
+      <div className="max-w-md mx-auto px-6 py-16">
+        <div className="bg-white rounded-lg border border-stone-200 p-8">
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-2">Verifică adresa de email</h2>
+          <p className="text-sm text-stone-500 mb-6">
             Am trimis un cod de verificare la <strong>{pendingFormData?.email}</strong>.
             Introdu codul pentru a crea contul Clerk și a continua.
           </p>
@@ -409,7 +409,7 @@ export const Shipping: React.FC = () => {
             value={verificationCode}
             onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, ''))}
             placeholder="000000"
-            className="w-full rounded-lg border border-stone-300 px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-md border border-stone-300 px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200"
           />
 
           {verificationError && <p className="mt-2 text-sm text-red-600">{verificationError}</p>}
@@ -418,7 +418,7 @@ export const Shipping: React.FC = () => {
             type="button"
             onClick={handleVerifyCode}
             disabled={verificationCode.length < 6 || submitting}
-            className="mt-6 w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50"
+            className="mt-6 w-full bg-stone-900 hover:bg-stone-800 text-white font-medium py-3 rounded-md text-sm tracking-wide transition-all duration-200 disabled:opacity-50"
           >
             {submitting ? 'Se verifică...' : 'Verifică și continuă'}
           </button>
@@ -441,9 +441,9 @@ export const Shipping: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-stone-900 mb-2">Informații de livrare</h1>
-      <p className="text-stone-500 text-sm mb-8">
+    <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+      <h1 className="font-serif text-3xl font-medium text-stone-900 mb-2">Informații de livrare</h1>
+      <p className="text-stone-500 text-sm mb-10">
         Completează datele de mai jos pentru a continua comanda.
       </p>
 
@@ -456,7 +456,7 @@ export const Shipping: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
         {/* Contact */}
         <section>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4 border-b border-stone-200 pb-2">
+          <h2 className="font-serif text-lg font-medium text-stone-900 mb-5 pb-2 border-b border-stone-200">
             Contact
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -498,7 +498,7 @@ export const Shipping: React.FC = () => {
 
         {/* Name */}
         <section>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4 border-b border-stone-200 pb-2">
+          <h2 className="font-serif text-lg font-medium text-stone-900 mb-5 pb-2 border-b border-stone-200">
             Nume
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -529,7 +529,7 @@ export const Shipping: React.FC = () => {
 
         {/* Shipping Address */}
         <section>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4 border-b border-stone-200 pb-2">
+          <h2 className="font-serif text-lg font-medium text-stone-900 mb-5 pb-2 border-b border-stone-200">
             Adresă de livrare
           </h2>
           <div className="space-y-4">
@@ -661,7 +661,7 @@ export const Shipping: React.FC = () => {
 
         {/* Billing Address */}
         <section>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4 border-b border-stone-200 pb-2">
+          <h2 className="font-serif text-lg font-medium text-stone-900 mb-5 pb-2 border-b border-stone-200">
             Adresă de facturare
           </h2>
           <label className="flex items-center gap-2 mb-4 cursor-pointer">
@@ -806,7 +806,7 @@ export const Shipping: React.FC = () => {
 
         {/* Options */}
         <section>
-          <h2 className="text-lg font-semibold text-stone-800 mb-4 border-b border-stone-200 pb-2">
+          <h2 className="font-serif text-lg font-medium text-stone-900 mb-5 pb-2 border-b border-stone-200">
             Opțiuni
           </h2>
           <div className="space-y-3">
@@ -877,7 +877,7 @@ export const Shipping: React.FC = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white font-medium px-8 py-3 rounded-lg transition-colors disabled:opacity-50"
+            className="w-full md:w-auto bg-stone-900 hover:bg-stone-800 text-white font-medium px-10 py-3 rounded-md text-sm tracking-wide transition-all duration-200 disabled:opacity-50"
           >
             {submitting ? 'Se procesează...' : 'Continuă spre plată'}
           </button>

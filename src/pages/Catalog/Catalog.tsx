@@ -82,41 +82,46 @@ export const Catalog: React.FC = () => {
         description={pageDescription}
         keywords={pageKeywords}
       />
-      <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-stone-900 mb-8">Our Catalog</h1>
-      {catalogLoading && <p className="mb-6 text-gray-600">Loading catalog images...</p>}
-      {!catalogLoading && images.length === 0 && (
-        <p className="mb-6 text-gray-600">Catalog images are not available yet.</p>
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+      <div className="mb-10">
+        <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-3">Catalogul Nostru</h1>
+        <p className="text-stone-500 text-base">Portofoliu de lucrări din lemn realizate în atelierul nostru</p>
+      </div>
+      {catalogLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-6 h-6 border-2 border-stone-300 border-t-amber-600 rounded-full animate-spin"></div>
+        </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {!catalogLoading && images.length === 0 && (
+        <p className="text-stone-400 text-sm py-12 text-center">Imaginile din catalog nu sunt disponibile momentan.</p>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
         {images.map((image) => (
           <div 
             key={image.name}
-            className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
+            className="group relative overflow-hidden rounded-lg cursor-pointer aspect-[4/3]"
             onClick={() => setSelectedImage(image)}
           >
             {/* Loading skeleton */}
             {!loadedImageNames[image.name] && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+              <div className="absolute inset-0 bg-stone-100 animate-pulse rounded-lg" />
             )}
             
-            <div className="aspect-w-4 aspect-h-3">
-              <img
-                src={image.src}
-                alt={image.alt}
-                onLoad={() => handleImageLoad(image.name)}
-                className={`w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110 ${
-                  !loadedImageNames[image.name] ? 'opacity-0' : 'opacity-100'
-                }`}
-                loading="lazy"
-              />
-            </div>
+            <img
+              src={image.src}
+              alt={image.alt}
+              onLoad={() => handleImageLoad(image.name)}
+              className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${
+                !loadedImageNames[image.name] ? 'opacity-0' : 'opacity-100'
+              }`}
+              loading="lazy"
+            />
             
             {/* Hover overlay with title */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-end">
-              <div className="p-4 w-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <h3 className="text-white font-semibold text-lg">{image.title}</h3>
-                <p className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 flex items-end">
+              <div className="p-5 w-full">
+                <h3 className="font-serif text-white font-medium text-lg">{image.title}</h3>
+                <p className="text-white/60 text-xs mt-1">
                   Click pentru a vedea detalii
                 </p>
               </div>
@@ -128,23 +133,23 @@ export const Catalog: React.FC = () => {
       {/* Modal for full-size image view */}
       {selectedImage && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 lg:p-8 animate-fade-in"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-4xl w-full h-auto">
+          <div className="relative max-w-4xl w-full h-auto animate-scale-in">
             <button
-              className="absolute -top-10 right-0 text-white hover:text-gray-300 text-xl"
+              className="absolute -top-12 right-0 text-white/60 hover:text-white text-sm font-medium tracking-wide transition-colors duration-200"
               onClick={() => setSelectedImage(null)}
             >
-              Close ×
+              Închide ×
             </button>
             <img
               src={selectedImage.src}
               alt={selectedImage.alt}
-              className="w-full h-auto rounded-lg shadow-2xl"
+              className="w-full h-auto rounded-lg"
             />
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-50 text-white rounded-b-lg">
-              <h3 className="text-xl font-semibold">{selectedImage.title}</h3>
+            <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent text-white rounded-b-lg">
+              <h3 className="font-serif text-xl font-medium">{selectedImage.title}</h3>
             </div>
           </div>
         </div>

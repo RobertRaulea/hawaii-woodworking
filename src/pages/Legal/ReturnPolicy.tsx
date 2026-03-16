@@ -2,12 +2,12 @@ import type React from 'react';
 
 export const ReturnPolicy: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8 text-center">Politica de Retur</h1>
+    <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+      <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-10 text-center">Politica de Retur</h1>
       
       <div className="prose prose-amber max-w-none">
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">1. Dreptul de retragere</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">1. Dreptul de retragere</h2>
           <p className="mb-4">
             Conform legislației în vigoare (O.U.G. nr. 34/2014), aveți dreptul de a vă retrage din contract 
             în termen de 14 zile calendaristice de la data la care dumneavoastră sau un terț desemnat de dumneavoastră, 
@@ -21,7 +21,7 @@ export const ReturnPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">2. Condiții de returnare</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">2. Condiții de returnare</h2>
           <p className="mb-4">
             Pentru a fi eligibile pentru returnare, produsele trebuie să îndeplinească următoarele condiții:
           </p>
@@ -34,7 +34,7 @@ export const ReturnPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">3. Excepții</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">3. Excepții</h2>
           <p className="mb-4">
             Conform legislației în vigoare, următoarele categorii de produse nu pot fi returnate:
           </p>
@@ -46,7 +46,7 @@ export const ReturnPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">4. Procedura de retur</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">4. Procedura de retur</h2>
           <p className="mb-4">
             Pentru a returna un produs, vă rugăm să urmați acești pași:
           </p>
@@ -59,7 +59,7 @@ export const ReturnPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">5. Rambursarea</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">5. Rambursarea</h2>
           <p className="mb-4">
             După primirea și verificarea produsului returnat, vom procesa rambursarea în maximum 14 zile calendaristice. 
             Rambursarea se va face folosind aceeași modalitate de plată pe care ați utilizat-o pentru tranzacția inițială, 
@@ -72,7 +72,7 @@ export const ReturnPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">6. Produse defecte</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">6. Produse defecte</h2>
           <p className="mb-4">
             În cazul în care primiți un produs defect sau deteriorat, vă rugăm să ne contactați în termen de 48 de ore 
             de la primirea coletului. Vom înlocui produsul sau vom oferi o rambursare completă, inclusiv costurile de livrare.
@@ -80,7 +80,7 @@ export const ReturnPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">7. Model formular de retragere</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">7. Model formular de retragere</h2>
           <div className="border p-4 mb-4">
             <p className="mb-2">Către: SC Hawaii Woodworking SRL</p>
             <p className="mb-2">Adresa: [Adresa completă]</p>

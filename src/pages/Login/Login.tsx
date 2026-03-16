@@ -10,11 +10,11 @@ export const Login: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-md">
-      <h1 className="text-2xl font-bold text-stone-900 mb-2 text-center">
+    <div className="max-w-md mx-auto px-6 py-16 lg:py-20">
+      <h1 className="font-serif text-2xl font-medium text-stone-900 mb-2 text-center">
         Conectează-te la contul tău
       </h1>
-      <p className="text-stone-500 text-sm mb-8 text-center">
+      <p className="text-stone-500 text-sm mb-10 text-center">
         Folosește contul tău existent pentru a finaliza comanda mai rapid.
       </p>
 
@@ -25,25 +25,25 @@ export const Login: React.FC = () => {
           appearance={{
             elements: {
               rootBox: 'mx-auto w-full',
-              card: 'shadow-lg rounded-xl border border-stone-200',
-              headerTitle: 'text-stone-900',
+              card: 'shadow-soft rounded-lg border border-stone-200',
+              headerTitle: 'font-serif text-stone-900',
               headerSubtitle: 'text-stone-500',
               socialButtonsBlockButton:
-                'border-stone-300 text-stone-700 hover:bg-stone-50',
+                'border-stone-200 text-stone-700 hover:bg-stone-50 rounded-md',
               formFieldInput:
-                'border-stone-300 focus:ring-amber-500 focus:border-amber-500',
+                'border-stone-300 focus:ring-amber-500/40 focus:border-amber-500 rounded-md',
               formButtonPrimary:
-                'bg-amber-600 hover:bg-amber-700 text-white',
+                'bg-stone-900 hover:bg-stone-800 text-white rounded-md',
               footerActionLink: 'text-amber-600 hover:text-amber-700',
             },
           }}
         />
       </div>
 
-      <div className="mt-6 text-center">
+      <div className="mt-8 text-center">
         <Link
           to="/shipping"
-          className="text-sm text-stone-500 hover:text-stone-700 underline transition-colors"
+          className="text-sm text-stone-400 hover:text-stone-600 transition-colors duration-200"
         >
           Continuă fără cont →
         </Link>

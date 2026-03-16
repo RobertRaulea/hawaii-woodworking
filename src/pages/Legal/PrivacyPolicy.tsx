@@ -2,12 +2,12 @@ import type React from 'react';
 
 export const PrivacyPolicy: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8 text-center">Politica de Confidențialitate</h1>
+    <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+      <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-10 text-center">Politica de Confidențialitate</h1>
       
       <div className="prose prose-amber max-w-none">
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">1. Informații generale</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">1. Informații generale</h2>
           <p className="mb-4">
             Această Politică de Confidențialitate explică modul în care SC Hawaii Woodworking SRL colectează, 
             utilizează și protejează datele dumneavoastră personale atunci când utilizați site-ul nostru. 
@@ -17,7 +17,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">2. Informații colectate</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">2. Informații colectate</h2>
           <p className="mb-4">
             Colectăm următoarele tipuri de informații:
           </p>
@@ -31,7 +31,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">3. Scopul colectării datelor</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">3. Scopul colectării datelor</h2>
           <p className="mb-4">
             Utilizăm datele colectate pentru următoarele scopuri:
           </p>
@@ -45,7 +45,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">4. Temeiul legal pentru prelucrarea datelor</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">4. Temeiul legal pentru prelucrarea datelor</h2>
           <p className="mb-4">
             Procesăm datele dumneavoastră personale în baza următoarelor temeiuri legale:
           </p>
@@ -58,7 +58,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">5. Perioada de păstrare a datelor</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">5. Perioada de păstrare a datelor</h2>
           <p className="mb-4">
             Păstrăm datele personale atât timp cât este necesar pentru scopurile pentru care au fost colectate sau 
             conform cerințelor legale (de exemplu, păstrarea facturilor pentru perioada prevăzută de legislația fiscală).
@@ -66,7 +66,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">6. Drepturile dumneavoastră</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">6. Drepturile dumneavoastră</h2>
           <p className="mb-4">
             Conform GDPR, beneficiați de următoarele drepturi:
           </p>
@@ -83,7 +83,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">7. Cookie-uri</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">7. Cookie-uri</h2>
           <p className="mb-4">
             Site-ul nostru utilizează cookie-uri pentru a îmbunătăți experiența de navigare. 
             Puteți seta browserul pentru a refuza toate sau anumite cookie-uri.
@@ -91,7 +91,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">8. Securitatea datelor</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">8. Securitatea datelor</h2>
           <p className="mb-4">
             Implementăm măsuri tehnice și organizatorice adecvate pentru a proteja datele personale 
             împotriva accesului neautorizat, modificării, divulgării sau distrugerii accidentale.
@@ -99,7 +99,7 @@ export const PrivacyPolicy: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">9. Contact</h2>
+          <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">9. Contact</h2>
           <p className="mb-4">
             Pentru orice întrebări sau solicitări legate de prelucrarea datelor personale, ne puteți 
             contacta la adresa de email: contact@hawaiiwoodworking.ro

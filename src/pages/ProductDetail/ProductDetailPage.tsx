@@ -81,22 +81,25 @@ export const ProductDetailPage: React.FC = () => {
         type="product"
         schema={productSchema}
       />
-      <div className="container mx-auto px-4 py-12">
-        <div className="bg-white shadow-xl rounded-lg overflow-hidden md:flex">
-          <div className="md:w-1/2">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
+          <div className="overflow-hidden rounded-lg">
             <ImageCarousel
               images={productImages}
               alt={product.name}
-              className="w-full h-64 sm:h-80 md:h-96 lg:h-[500px] object-cover rounded-lg shadow-lg"
+              className="w-full h-72 sm:h-96 md:h-[480px] lg:h-[560px] object-cover"
             />
           </div>
-          <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-between">
+          <div className="flex flex-col justify-center py-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
-              <p className="text-gray-700 text-base mb-6">
+              <p className="text-amber-600 text-xs font-medium tracking-[0.2em] uppercase mb-3">
+                {product.category || 'Produs din lemn'}
+              </p>
+              <h1 className="font-serif text-3xl md:text-4xl font-medium text-stone-900 mb-5 leading-tight">{product.name}</h1>
+              <p className="text-stone-500 text-base leading-relaxed mb-8">
                 {shortDescription}
               </p>
-              <p className="text-amber-700 font-semibold text-2xl mb-6">{product.price.toFixed(2)} RON</p>
+              <p className="text-stone-900 font-semibold text-2xl mb-8 tracking-wide">{product.price.toFixed(2)} <span className="text-base font-normal text-stone-500">RON</span></p>
             </div>
             <button
               onClick={() => {
@@ -108,7 +111,7 @@ export const ProductDetailPage: React.FC = () => {
                   image: image || 'https://placehold.co/100x100?text=No+Image',
                 });
               }}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg transition-colors duration-300 text-lg font-medium"
+              className="w-full bg-stone-900 hover:bg-stone-800 text-white px-6 py-3.5 rounded-md transition-all duration-300 text-sm font-medium tracking-wide hover:shadow-soft-lg"
             >
               Adaugă în Coș
             </button>
