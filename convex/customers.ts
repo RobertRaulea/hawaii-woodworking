@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
 
 const addressValidator = v.object({
@@ -43,6 +43,51 @@ export const upsertCustomer = internalMutation({
     }
 
     // Create new customer
+    return await ctx.db.insert("customers", {
+      clerkUserId: args.clerkUserId,
+      isRegistered,
+      email: args.email,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      shippingAddress: args.shippingAddress,
+      billingAddress: args.billingAddress,
+      newsletter: args.newsletter,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const upsertFromShipping = mutation({
+  args: {
+    clerkUserId: v.optional(v.string()),
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    shippingAddress: addressValidator,
+    billingAddress: addressValidator,
+    newsletter: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const isRegistered = !!args.clerkUserId;
+
+    const existing = await ctx.db
+      .query("customers")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        firstName: args.firstName,
+        lastName: args.lastName,
+        shippingAddress: args.shippingAddress,
+        billingAddress: args.billingAddress,
+        newsletter: args.newsletter,
+        isRegistered: isRegistered || existing.isRegistered,
+        ...(args.clerkUserId ? { clerkUserId: args.clerkUserId } : {}),
+      });
+      return existing._id;
+    }
+
     return await ctx.db.insert("customers", {
       clerkUserId: args.clerkUserId,
       isRegistered,

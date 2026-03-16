@@ -9,6 +9,7 @@ interface SearchableSelectProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: string;
+  required?: boolean;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -21,6 +22,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   onChange,
   onBlur,
   error,
+  required = false,
   placeholder = 'Selectează...',
   disabled = false,
 }) => {
@@ -63,7 +65,6 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const handleSelect = (opt: string) => {
     onChange(opt);
     close();
-    onBlur?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -107,6 +108,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     <div ref={containerRef} className="relative">
       <label htmlFor={id} className="block text-sm font-medium text-stone-700 mb-1">
         {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <input
         id={id}

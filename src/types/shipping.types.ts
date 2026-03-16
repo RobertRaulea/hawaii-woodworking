@@ -8,6 +8,7 @@ export interface Address {
 
 export interface ShippingFormData {
   email: string;
+  phone: string;
   firstName: string;
   lastName: string;
   shippingAddress: Address;

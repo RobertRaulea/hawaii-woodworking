@@ -1,7 +1,10 @@
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth, useSignUp } from '@clerk/clerk-react';
+import { api } from '../../../convex/_generated/api';
 import { useShipping } from '../../context/ShippingContext';
 import type { ShippingFormData } from '../../types/shipping.types';
 import { useCart } from '../../context/CartContext';
@@ -45,6 +48,7 @@ interface InputFieldProps {
   type?: string;
   placeholder?: string;
   error?: string;
+  required?: boolean;
   registration: ReturnType<ReturnType<typeof useForm>['register']>;
 }
 
@@ -54,11 +58,13 @@ const InputField: React.FC<InputFieldProps> = ({
   type = 'text',
   placeholder,
   error,
+  required = false,
   registration,
 }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-stone-700 mb-1">
       {label}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
     <input
       id={id}
@@ -78,6 +84,7 @@ interface SelectFieldProps {
   id: string;
   options: readonly string[];
   error?: string;
+  required?: boolean;
   registration: ReturnType<ReturnType<typeof useForm>['register']>;
 }
 
@@ -86,11 +93,13 @@ const SelectField: React.FC<SelectFieldProps> = ({
   id,
   options,
   error,
+  required = false,
   registration,
 }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-stone-700 mb-1">
       {label}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
     <select
       id={id}
@@ -112,6 +121,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
 
 const EMPTY_DEFAULTS: ShippingFormData = {
   email: '',
+  phone: '',
   firstName: '',
   lastName: '',
   shippingAddress: {
@@ -139,7 +149,16 @@ export const Shipping: React.FC = () => {
   const { setShippingData, shippingData } = useShipping();
   const { state: cartState } = useCart();
   const { customer } = useCustomerProfile();
+  const { isSignedIn, userId } = useAuth();
+  const { signUp, isLoaded: isSignUpLoaded, setActive } = useSignUp();
+  const upsertCustomerFromShipping = useMutation(api.customers.upsertFromShipping);
   const hasPreFilled = useRef(false);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [pendingFormData, setPendingFormData] = useState<ShippingFormData | null>(null);
 
   const {
     register,
@@ -149,6 +168,8 @@ export const Shipping: React.FC = () => {
     control,
     setValue,
     clearErrors,
+    setError,
+    trigger,
     formState: { errors },
   } = useForm<ShippingFormData>({
     defaultValues: shippingData ?? EMPTY_DEFAULTS,
@@ -160,6 +181,7 @@ export const Shipping: React.FC = () => {
       hasPreFilled.current = true;
       reset({
         email: customer.email,
+        phone: '',
         firstName: customer.firstName,
         lastName: customer.lastName,
         shippingAddress: customer.shippingAddress,
@@ -210,13 +232,213 @@ export const Shipping: React.FC = () => {
     );
   }
 
-  const onSubmit = (data: ShippingFormData) => {
-    if (data.sameAsShipping) {
-      data.billingAddress = { ...data.shippingAddress };
+  const prepareFormData = (data: ShippingFormData): ShippingFormData => {
+    const normalizedData: ShippingFormData = {
+      ...data,
+      email: data.email.trim().toLowerCase(),
+      phone: data.phone.trim(),
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+    };
+
+    if (!normalizedData.sameAsShipping) {
+      return normalizedData;
     }
-    setShippingData(data);
+
+    return {
+      ...normalizedData,
+      billingAddress: { ...normalizedData.shippingAddress },
+    };
+  };
+
+  const persistCustomerFromShipping = async (
+    data: ShippingFormData,
+    clerkUserId?: string
+  ) => {
+    try {
+      await upsertCustomerFromShipping({
+        clerkUserId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        shippingAddress: data.shippingAddress,
+        billingAddress: data.billingAddress,
+        newsletter: data.newsletter,
+      });
+    } catch (error) {
+      console.error('Failed to persist customer profile from shipping form:', error);
+    }
+  };
+
+  const proceedToCheckout = (data: ShippingFormData) => {
+    const payload = prepareFormData(data);
+
+    setShippingData(payload);
     navigate('/checkout');
   };
+
+  const handleCreateAccount = async (data: ShippingFormData) => {
+    if (!isSignUpLoaded || !signUp) {
+      setError('email', {
+        message: 'Serviciul de conturi nu este încă pregătit. Reîncearcă în câteva secunde.',
+      });
+      return;
+    }
+
+    try {
+      const created = await signUp.create({
+        emailAddress: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
+      console.log('[Clerk] signUp.create result:', { status: created.status, missingFields: created.missingFields, unverifiedFields: created.unverifiedFields });
+
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      console.log('[Clerk] prepareEmailAddressVerification done');
+      setPendingFormData(data);
+      setVerificationCode('');
+      setVerificationError('');
+      setShowVerification(true);
+    } catch (error: unknown) {
+      const clerkError = error as {
+        errors?: Array<{ code?: string; message?: string }>;
+      };
+      const firstError = clerkError.errors?.[0];
+
+      if (firstError?.code === 'form_identifier_exists') {
+        setError('email', {
+          message: 'Există deja un cont cu acest email. Conectează-te sau debifează crearea contului.',
+        });
+      } else {
+        setError('email', {
+          message:
+            firstError?.message ??
+            'Nu am putut crea contul acum. Încearcă din nou sau continuă fără cont.',
+        });
+      }
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!isSignUpLoaded || !signUp || !pendingFormData) {
+      return;
+    }
+
+    setSubmitting(true);
+    setVerificationError('');
+
+    try {
+      const result = await signUp.attemptEmailAddressVerification({
+        code: verificationCode.trim(),
+      });
+      console.log('[Clerk] attemptEmailAddressVerification result:', {
+        status: result.status,
+        createdUserId: result.createdUserId,
+        createdSessionId: result.createdSessionId,
+        missingFields: result.missingFields,
+        unverifiedFields: result.unverifiedFields,
+      });
+
+      if (result.status !== 'complete') {
+        const detail = result.missingFields?.length
+          ? `Lipsesc câmpuri: ${result.missingFields.join(', ')}`
+          : 'Verificarea nu a fost finalizată. Încearcă din nou.';
+        setVerificationError(detail);
+        return;
+      }
+
+      const newUserId = result.createdUserId ?? undefined;
+      const newSessionId = result.createdSessionId;
+
+      await persistCustomerFromShipping(pendingFormData, newUserId);
+
+      if (newSessionId) {
+        await setActive({ session: newSessionId });
+      }
+
+      setShowVerification(false);
+      proceedToCheckout(pendingFormData);
+    } catch (error: unknown) {
+      console.error('Verification error:', JSON.stringify(error, null, 2), error);
+      const clerkError = error as {
+        errors?: Array<{ code?: string; message?: string; longMessage?: string }>;
+      };
+      const msg =
+        clerkError.errors?.[0]?.longMessage ??
+        clerkError.errors?.[0]?.message ??
+        (error instanceof Error ? error.message : 'Cod invalid. Încearcă din nou.');
+      setVerificationError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onSubmit = async (data: ShippingFormData) => {
+    setSubmitting(true);
+    const preparedData = prepareFormData(data);
+
+    try {
+      if (preparedData.createAccount && !isSignedIn) {
+        await handleCreateAccount(preparedData);
+        return;
+      }
+
+      await persistCustomerFromShipping(preparedData, userId ?? undefined);
+      proceedToCheckout(preparedData);
+    } catch (error) {
+      console.error('Shipping form submission error:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (showVerification) {
+    return (
+      <div className="container mx-auto px-4 py-12 max-w-md">
+        <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-8">
+          <h2 className="text-xl font-bold text-stone-900 mb-2">Verifică adresa de email</h2>
+          <p className="text-sm text-stone-600 mb-6">
+            Am trimis un cod de verificare la <strong>{pendingFormData?.email}</strong>.
+            Introdu codul pentru a crea contul Clerk și a continua.
+          </p>
+
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={verificationCode}
+            onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, ''))}
+            placeholder="000000"
+            className="w-full rounded-lg border border-stone-300 px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+
+          {verificationError && <p className="mt-2 text-sm text-red-600">{verificationError}</p>}
+
+          <button
+            type="button"
+            onClick={handleVerifyCode}
+            disabled={verificationCode.length < 6 || submitting}
+            className="mt-6 w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {submitting ? 'Se verifică...' : 'Verifică și continuă'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowVerification(false);
+              setVerificationCode('');
+              setVerificationError('');
+              setPendingFormData(null);
+            }}
+            className="mt-3 w-full text-sm text-stone-500 hover:text-stone-700 transition-colors"
+          >
+            Înapoi la formular
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -237,20 +459,41 @@ export const Shipping: React.FC = () => {
           <h2 className="text-lg font-semibold text-stone-800 mb-4 border-b border-stone-200 pb-2">
             Contact
           </h2>
-          <InputField
-            label="Email"
-            id="email"
-            type="email"
-            placeholder="your@email.com"
-            error={errors.email?.message}
-            registration={register('email', {
-              required: 'Adresa de email este obligatorie',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Adresa de email nu este validă',
-              },
-            })}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+              label="Email"
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              error={errors.email?.message}
+              required
+              registration={register('email', {
+                required: 'Adresa de email este obligatorie',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Adresa de email nu este validă',
+                },
+                onBlur: () => {
+                  void trigger('email');
+                },
+              })}
+            />
+            <InputField
+              label="Telefon"
+              id="phone"
+              type="tel"
+              placeholder="+40 7xx xxx xxx"
+              error={errors.phone?.message}
+              required
+              registration={register('phone', {
+                required: 'Numărul de telefon este obligatoriu',
+                pattern: {
+                  value: /^\+?[0-9\s\-()]{7,20}$/,
+                  message: 'Numărul de telefon nu este valid',
+                },
+              })}
+            />
+          </div>
         </section>
 
         {/* Name */}
@@ -264,6 +507,7 @@ export const Shipping: React.FC = () => {
               id="firstName"
               placeholder="First name"
               error={errors.firstName?.message}
+              required
               registration={register('firstName', {
                 required: 'Prenumele este obligatoriu',
                 minLength: { value: 2, message: 'Minim 2 caractere' },
@@ -274,6 +518,7 @@ export const Shipping: React.FC = () => {
               id="lastName"
               placeholder="Last name"
               error={errors.lastName?.message}
+              required
               registration={register('lastName', {
                 required: 'Numele este obligatoriu',
                 minLength: { value: 2, message: 'Minim 2 caractere' },
@@ -293,6 +538,7 @@ export const Shipping: React.FC = () => {
               id="shippingCountry"
               options={COUNTRIES}
               error={errors.shippingAddress?.country?.message}
+              required
               registration={register('shippingAddress.country', {
                 required: 'Țara este obligatorie',
                 onChange: () => {
@@ -306,6 +552,7 @@ export const Shipping: React.FC = () => {
               id="shippingStreet"
               placeholder="Street address"
               error={errors.shippingAddress?.street?.message}
+              required
               registration={register('shippingAddress.street', {
                 required: 'Strada este obligatorie',
               })}
@@ -322,9 +569,20 @@ export const Shipping: React.FC = () => {
                       id="shippingCounty"
                       options={JUDETE}
                       value={field.value}
+                      required
                       onChange={(val) => {
-                        field.onChange(val);
-                        setValue('shippingAddress.city', '');
+                        setValue('shippingAddress.county', val, {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
+                        setValue('shippingAddress.city', '', {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors('shippingAddress.county');
+                        clearErrors('shippingAddress.city');
                       }}
                       onBlur={field.onBlur}
                       error={errors.shippingAddress?.county?.message}
@@ -338,6 +596,7 @@ export const Shipping: React.FC = () => {
                   id="shippingCounty"
                   placeholder="County / State"
                   error={errors.shippingAddress?.county?.message}
+                  required
                   registration={register('shippingAddress.county', {
                     required: 'Județul este obligatoriu',
                   })}
@@ -354,7 +613,15 @@ export const Shipping: React.FC = () => {
                       id="shippingCity"
                       options={shippingLocalities}
                       value={field.value}
-                      onChange={field.onChange}
+                      required
+                      onChange={(val) => {
+                        setValue('shippingAddress.city', val, {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors('shippingAddress.city');
+                      }}
                       onBlur={field.onBlur}
                       error={errors.shippingAddress?.city?.message}
                       placeholder="Caută localitate..."
@@ -367,6 +634,7 @@ export const Shipping: React.FC = () => {
                   id="shippingCity"
                   placeholder="City"
                   error={errors.shippingAddress?.city?.message}
+                  required
                   registration={register('shippingAddress.city', {
                     required: 'Orașul este obligatoriu',
                   })}
@@ -380,15 +648,11 @@ export const Shipping: React.FC = () => {
                 placeholder="Postal code"
                 error={errors.shippingAddress?.postalCode?.message}
                 registration={register('shippingAddress.postalCode', {
-                  required: 'Codul poștal este obligatoriu',
-                  ...(isRomaniaShipping
-                    ? {
-                        pattern: {
-                          value: /^\d{6}$/,
-                          message: 'Codul poștal trebuie să aibă 6 cifre',
-                        },
-                      }
-                    : {}),
+                  validate: (val) => {
+                    if (!val) return true;
+                    if (!isRomaniaShipping) return true;
+                    return /^\d{6}$/.test(val) || 'Codul poștal trebuie să aibă 6 cifre';
+                  },
                 })}
               />
             </div>
@@ -418,6 +682,7 @@ export const Shipping: React.FC = () => {
                 id="billingCountry"
                 options={COUNTRIES}
                 error={errors.billingAddress?.country?.message}
+                required
                 registration={register('billingAddress.country', {
                   required: 'Țara este obligatorie',
                   onChange: () => {
@@ -431,6 +696,7 @@ export const Shipping: React.FC = () => {
                 id="billingStreet"
                 placeholder="Street address"
                 error={errors.billingAddress?.street?.message}
+                required
                 registration={register('billingAddress.street', {
                   required: 'Strada este obligatorie',
                 })}
@@ -447,9 +713,20 @@ export const Shipping: React.FC = () => {
                         id="billingCounty"
                         options={JUDETE}
                         value={field.value}
+                        required
                         onChange={(val) => {
-                          field.onChange(val);
-                          setValue('billingAddress.city', '');
+                          setValue('billingAddress.county', val, {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                            shouldValidate: true,
+                          });
+                          setValue('billingAddress.city', '', {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                            shouldValidate: true,
+                          });
+                          clearErrors('billingAddress.county');
+                          clearErrors('billingAddress.city');
                         }}
                         onBlur={field.onBlur}
                         error={errors.billingAddress?.county?.message}
@@ -463,6 +740,7 @@ export const Shipping: React.FC = () => {
                     id="billingCounty"
                     placeholder="County / State"
                     error={errors.billingAddress?.county?.message}
+                    required
                     registration={register('billingAddress.county', {
                       required: 'Județul este obligatoriu',
                     })}
@@ -479,7 +757,15 @@ export const Shipping: React.FC = () => {
                         id="billingCity"
                         options={billingLocalities}
                         value={field.value}
-                        onChange={field.onChange}
+                        required
+                        onChange={(val) => {
+                          setValue('billingAddress.city', val, {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                            shouldValidate: true,
+                          });
+                          clearErrors('billingAddress.city');
+                        }}
                         onBlur={field.onBlur}
                         error={errors.billingAddress?.city?.message}
                         placeholder="Caută localitate..."
@@ -492,6 +778,7 @@ export const Shipping: React.FC = () => {
                     id="billingCity"
                     placeholder="City"
                     error={errors.billingAddress?.city?.message}
+                    required
                     registration={register('billingAddress.city', {
                       required: 'Orașul este obligatoriu',
                     })}
@@ -505,15 +792,11 @@ export const Shipping: React.FC = () => {
                   placeholder="Postal code"
                   error={errors.billingAddress?.postalCode?.message}
                   registration={register('billingAddress.postalCode', {
-                    required: 'Codul poștal este obligatoriu',
-                    ...(isRomaniaBilling
-                      ? {
-                          pattern: {
-                            value: /^\d{6}$/,
-                            message: 'Codul poștal trebuie să aibă 6 cifre',
-                          },
-                        }
-                      : {}),
+                    validate: (val) => {
+                      if (!val) return true;
+                      if (!isRomaniaBilling) return true;
+                      return /^\d{6}$/.test(val) || 'Codul poștal trebuie să aibă 6 cifre';
+                    },
                   })}
                 />
               </div>
@@ -567,16 +850,18 @@ export const Shipping: React.FC = () => {
             )}
 
             {/* Create Account */}
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
-                {...register('createAccount')}
-              />
-              <span className="text-sm text-stone-700">
-                Doresc să îmi creez un cont pentru comenzi viitoare
-              </span>
-            </label>
+            {!isSignedIn && (
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+                  {...register('createAccount')}
+                />
+                <span className="text-sm text-stone-700">
+                  Doresc să îmi creez un cont pentru comenzi viitoare
+                </span>
+              </label>
+            )}
           </div>
         </section>
 
@@ -591,9 +876,10 @@ export const Shipping: React.FC = () => {
           </button>
           <button
             type="submit"
-            className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white font-medium px-8 py-3 rounded-lg transition-colors"
+            disabled={submitting}
+            className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white font-medium px-8 py-3 rounded-lg transition-colors disabled:opacity-50"
           >
-            Continuă spre plată
+            {submitting ? 'Se procesează...' : 'Continuă spre plată'}
           </button>
         </div>
       </form>
