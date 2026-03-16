@@ -6,6 +6,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { Upload, X, ArrowLeft, GripVertical } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
+import { compressImages } from '../../../utils/imageCompression.utils';
 
 interface ProductFormValues {
   name: string;
@@ -35,6 +36,7 @@ export const ProductForm: React.FC = () => {
 
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -77,11 +79,19 @@ export const ProductForm: React.FC = () => {
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    setUploading(true);
+    setCompressing(true);
+    setSubmitError(null);
+
     try {
+      const fileArray = Array.from(files);
+      const compressedFiles = await compressImages(fileArray);
+
+      setCompressing(false);
+      setUploading(true);
+
       const newImages: UploadedImage[] = [];
 
-      for (const file of Array.from(files)) {
+      for (const file of compressedFiles) {
         const postUrl = await generateUploadUrl({});
 
         const uploadResponse = await fetch(postUrl, {
@@ -107,6 +117,7 @@ export const ProductForm: React.FC = () => {
       console.error('Image upload failed:', err);
       setSubmitError(err instanceof Error ? err.message : 'Image upload failed');
     } finally {
+      setCompressing(false);
       setUploading(false);
     }
   };
@@ -338,14 +349,14 @@ export const ProductForm: React.FC = () => {
           {/* Upload area */}
           <label
             className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 cursor-pointer transition-colors ${
-              uploading
+              uploading || compressing
                 ? 'border-amber-400 bg-amber-50'
                 : 'border-stone-300 hover:border-stone-400 bg-white'
             }`}
           >
             <Upload className="h-6 w-6 text-stone-400 mb-2" />
             <span className="text-sm text-stone-500">
-              {uploading ? 'Uploading...' : 'Click to upload images'}
+              {compressing ? 'Compressing images...' : uploading ? 'Uploading...' : 'Click to upload images'}
             </span>
             <span className="text-xs text-stone-400 mt-1">PNG, JPG, WebP</span>
             <input
@@ -353,7 +364,7 @@ export const ProductForm: React.FC = () => {
               accept="image/*"
               multiple
               className="hidden"
-              disabled={uploading}
+              disabled={uploading || compressing}
               onChange={(e) => handleFileUpload(e.target.files)}
             />
           </label>
