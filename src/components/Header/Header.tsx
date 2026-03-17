@@ -1,13 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, UserButton } from '@clerk/clerk-react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
 import { useCart } from '../../context/CartContext';
-import { useDelayedHover } from '../../hooks/useDelayedHover';
 import { useScrollShrink } from '../../hooks/useScrollShrink';
-import { useCategories } from '../../hooks/useCategories';
-import { CategoryList } from './CategoryList';
 import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
@@ -16,44 +11,13 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const scrolled = useScrollShrink();
-  const {
-    isOpen: isProductsDropdownOpen,
-    onMouseEnter: handleDropdownMouseEnter,
-    onMouseLeave: handleDropdownMouseLeave,
-    setIsOpen: setIsProductsDropdownOpen,
-  } = useDelayedHover(150);
   const location = useLocation();
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { isSignedIn } = useAuth();
-  const { categories } = useCategories();
-  const products = useQuery(api.products.getAll);
 
   const isActive = (path: string) => location.pathname === path;
-
-  const handleCategoryClick = (categoryName: string) => {
-    navigate(`/products?category=${encodeURIComponent(categoryName)}`);
-    setIsProductsDropdownOpen(false);
-    setIsMenuOpen(false);
-    setIsMobileProductsOpen(false);
-  };
-
-  const handleAllProductsClick = () => {
-    navigate('/products');
-    setIsProductsDropdownOpen(false);
-    setIsMenuOpen(false);
-    setIsMobileProductsOpen(false);
-  };
-
-  // Filter categories that have products
-  const categoriesWithProducts = useMemo(() => {
-    if (!categories.length || !products) return [];
-    return categories.filter(category => 
-      products.some(product => product.category === category.name)
-    );
-  }, [categories, products]);
 
   return (
     <header className={`sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-50 font-bold transition-all duration-300 ${scrolled ? 'py-0' : 'py-2'}`}>
@@ -82,32 +46,13 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   Acasă
                 </Link>
               )}
-              {/* Products dropdown */}
               {!isActive('/products') && (
-                <div 
-                  className="relative"
-                  onMouseEnter={handleDropdownMouseEnter}
-                  onMouseLeave={handleDropdownMouseLeave}
+                <Link 
+                  to="/products" 
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
-                  <button
-                    className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 text-stone-700 hover:bg-stone-100"
-                  >
-                    Produse
-                  </button>
-
-                {/* Dropdown menu */}
-                {isProductsDropdownOpen && (
-                  <div className="absolute top-full left-0 pt-2 w-52 z-50">
-                    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 py-3 transition-all duration-200">
-                      <CategoryList
-                        categories={categoriesWithProducts}
-                        onCategoryClick={handleCategoryClick}
-                        onAllProductsClick={handleAllProductsClick}
-                      />
-                    </div>
-                  </div>
-                )}
-                </div>
+                  Produse
+                </Link>
               )}
               {!isActive('/catalog') && (
                 <Link 
@@ -174,26 +119,14 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 Acasă
               </Link>
             )}
-            {/* Mobile Products with categories */}
             {!isActive('/products') && (
-              <div>
-                <button
-                  onClick={() => setIsMobileProductsOpen(!isMobileProductsOpen)}
-                  className="w-full flex items-center justify-between px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 text-stone-700 hover:bg-stone-100"
-                >
-                  Produse
-                </button>
-              
-              {isMobileProductsOpen && (
-                <div className="mt-2 ml-3 bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/20 shadow-lg">
-                  <CategoryList
-                    categories={categoriesWithProducts}
-                    onCategoryClick={handleCategoryClick}
-                    onAllProductsClick={handleAllProductsClick}
-                  />
-                </div>
-              )}
-              </div>
+              <Link 
+                to="/products" 
+                className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Produse
+              </Link>
             )}
             {!isActive('/catalog') && (
               <Link 

@@ -16,6 +16,7 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as lib_storage from "../lib/storage.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
+import type * as seedCategories from "../seedCategories.js";
 import type * as siteAssets from "../siteAssets.js";
 import type * as stripeVerify from "../stripeVerify.js";
 import type * as stripeWebhook from "../stripeWebhook.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   "lib/storage": typeof lib_storage;
   orders: typeof orders;
   products: typeof products;
+  seedCategories: typeof seedCategories;
   siteAssets: typeof siteAssets;
   stripeVerify: typeof stripeVerify;
   stripeWebhook: typeof stripeWebhook;

@@ -82,6 +82,25 @@ const products: SeedProduct[] = [
 
 (async () => {
   try {
+    // First, seed categories
+    console.log('Seeding categories...');
+    const categoriesResult = await convex.mutation(
+      api.seedCategories.seedCategories,
+      { force }
+    );
+
+    if ('skipped' in categoriesResult && categoriesResult.skipped) {
+      console.log(
+        `Categories: found ${categoriesResult.existing} existing categories.`
+      );
+    } else {
+      console.log(
+        `Categories: inserted ${categoriesResult.inserted} categories.`
+      );
+    }
+
+    // Then, seed products
+    console.log('Seeding products...');
     const result = await convex.mutation(api.products.seedProducts, {
       force,
       products: products.map((p) => ({
@@ -95,14 +114,15 @@ const products: SeedProduct[] = [
 
     if ('skipped' in result && result.skipped) {
       console.log(
-        `Skipped seeding: found ${result.existing} existing products. Re-run with --force to replace them.`
+        `Products: found ${result.existing} existing products. Re-run with --force to replace them.`
       );
       return;
     }
 
-    console.log(`Seed complete: inserted ${result.inserted} products.`);
+    console.log(`Products: inserted ${result.inserted} products.`);
+    console.log('\n✅ Seed complete!');
   } catch (e) {
-    console.error(e);
+    console.error('❌ Seeding failed:', e);
     process.exit(1);
   }
 })();
