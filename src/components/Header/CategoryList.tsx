@@ -1,12 +1,8 @@
 import React from 'react';
-
-interface Category {
-  _id: string;
-  name: string;
-}
+import type { Category } from '../../types/category.types';
 
 interface CategoryListProps {
-  categories: Category[] | undefined;
+  categories: Category[];
   onCategoryClick: (name: string) => void;
   onAllProductsClick: () => void;
 }
@@ -24,12 +20,12 @@ export const CategoryList: React.FC<CategoryListProps> = ({
       >
         Toate Produsele
       </button>
-      {categories && categories.length > 0 && (
+      {categories.length > 0 && (
         <>
           <div className="h-px bg-stone-300/30 my-1.5"></div>
           {categories.map((category) => (
             <button
-              key={category._id}
+              key={category.id}
               onClick={() => onCategoryClick(category.name)}
               className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
             >

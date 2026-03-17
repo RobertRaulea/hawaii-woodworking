@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api';
 import { useCart } from '../../context/CartContext';
 import { useDelayedHover } from '../../hooks/useDelayedHover';
 import { useScrollShrink } from '../../hooks/useScrollShrink';
+import { useCategories } from '../../hooks/useCategories';
 import { CategoryList } from './CategoryList';
 import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
@@ -27,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { isSignedIn } = useAuth();
-  const categories = useQuery(api.categories.getAll);
+  const { categories } = useCategories();
   const products = useQuery(api.products.getAll);
 
   const isActive = (path: string) => location.pathname === path;
@@ -48,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
   // Filter categories that have products
   const categoriesWithProducts = useMemo(() => {
-    if (!categories || !products) return [];
+    if (!categories.length || !products) return [];
     return categories.filter(category => 
       products.some(product => product.category === category.name)
     );
