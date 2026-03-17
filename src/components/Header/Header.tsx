@@ -1,7 +1,9 @@
 import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, UserButton } from '@clerk/clerk-react';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { useCart } from '../../context/CartContext';
 
 interface HeaderProps {
@@ -11,10 +13,16 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+  const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
+  const productsDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { isSignedIn } = useAuth();
+  const categories = useQuery(api.categories.getAll);
+  const products = useQuery(api.products.getAll);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -47,6 +55,53 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
     };
   }, [scrolled]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (productsDropdownRef.current && !productsDropdownRef.current.contains(event.target as Node)) {
+        setIsProductsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleCategoryClick = (categoryName: string) => {
+    navigate(`/products?category=${encodeURIComponent(categoryName)}`);
+    setIsProductsDropdownOpen(false);
+    setIsMenuOpen(false);
+    setIsMobileProductsOpen(false);
+  };
+
+  const handleAllProductsClick = () => {
+    navigate('/products');
+    setIsProductsDropdownOpen(false);
+    setIsMenuOpen(false);
+    setIsMobileProductsOpen(false);
+  };
+
+  const handleDropdownMouseEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setIsProductsDropdownOpen(true);
+  };
+
+  const handleDropdownMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setIsProductsDropdownOpen(false);
+    }, 150);
+  };
+
+  // Filter categories that have products
+  const categoriesWithProducts = useMemo(() => {
+    if (!categories || !products) return [];
+    return categories.filter(category => 
+      products.some(product => product.category === category.name)
+    );
+  }, [categories, products]);
+
   return (
     <header className={`sticky top-0 bg-white/70 backdrop-blur-sm text-stone-900 z-50 font-bold transition-all duration-300 ${scrolled ? 'py-0' : 'py-2'}`}>
       <nav className="relative z-20">
@@ -74,13 +129,50 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   Acasă
                 </Link>
               )}
+              {/* Products dropdown */}
               {!isActive('/products') && (
-                <Link 
-                  to="/products" 
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
+                <div 
+                  className="relative" 
+                  ref={productsDropdownRef}
+                  onMouseEnter={handleDropdownMouseEnter}
+                  onMouseLeave={handleDropdownMouseLeave}
                 >
-                  Produse
-                </Link>
+                  <button
+                    className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 text-stone-700 hover:bg-stone-100"
+                  >
+                    Produse
+                  </button>
+
+                {/* Dropdown menu */}
+                {isProductsDropdownOpen && (
+                  <div className="absolute top-full left-0 pt-2 w-52 z-50">
+                    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 py-3 transition-all duration-200">
+                      <div className="px-2 space-y-0.5">
+                        <button
+                          onClick={handleAllProductsClick}
+                          className="w-full text-left px-3 py-1.5 text-sm text-stone-900 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
+                        >
+                          Toate Produsele
+                        </button>
+                        {categoriesWithProducts && categoriesWithProducts.length > 0 && (
+                          <>
+                            <div className="h-px bg-stone-300/30 my-1.5"></div>
+                            {categoriesWithProducts.map((category) => (
+                              <button
+                                key={category._id}
+                                onClick={() => handleCategoryClick(category.name)}
+                                className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
+                              >
+                                {category.name}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                </div>
               )}
               {!isActive('/catalog') && (
                 <Link 
@@ -147,14 +239,41 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 Acasă
               </Link>
             )}
+            {/* Mobile Products with categories */}
             {!isActive('/products') && (
-              <Link 
-                to="/products" 
-                className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Produse
-              </Link>
+              <div>
+                <button
+                  onClick={() => setIsMobileProductsOpen(!isMobileProductsOpen)}
+                  className="w-full flex items-center justify-between px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 text-stone-700 hover:bg-stone-100"
+                >
+                  Produse
+                </button>
+              
+              {isMobileProductsOpen && (
+                <div className="mt-2 ml-3 space-y-0.5 bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/20 shadow-lg">
+                  <button
+                    onClick={handleAllProductsClick}
+                    className="w-full text-left px-3 py-1.5 text-sm text-stone-900 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
+                  >
+                    Toate Produsele
+                  </button>
+                  {categoriesWithProducts && categoriesWithProducts.length > 0 && (
+                    <>
+                      <div className="h-px bg-stone-300/30 my-1.5"></div>
+                      {categoriesWithProducts.map((category) => (
+                        <button
+                          key={category._id}
+                          onClick={() => handleCategoryClick(category.name)}
+                          className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
+                        >
+                          {category.name}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+              </div>
             )}
             {!isActive('/catalog') && (
               <Link 

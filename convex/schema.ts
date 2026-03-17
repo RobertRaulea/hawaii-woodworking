@@ -75,4 +75,8 @@ export default defineSchema({
   })
     .index("by_category", ["category"])
     .index("by_category_name", ["category", "name"]),
+
+  categories: defineTable({
+    name: v.string(),
+  }).index("by_name", ["name"]),
 });

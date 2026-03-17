@@ -1,5 +1,6 @@
 import type React from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '../../hooks/useProducts';
 import type { Product } from '../../types/product.types';
 import { SEO } from '../../components/SEO/SEO';
@@ -17,8 +18,24 @@ export const Products: React.FC = () => {
     'artizanat românesc lemn'
   ];
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryFromUrl || 'all');
   const { products, loading, error } = useProducts();
+
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category) {
+      setSelectedCategory(category);
+    } else {
+      setSelectedCategory('all');
+    }
+  }, [searchParams]);
+
+  const handleClearFilter = () => {
+    setSelectedCategory('all');
+    setSearchParams({});
+  };
 
   const pageUrl = useMemo(() => 
     typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/products`
@@ -69,11 +86,6 @@ export const Products: React.FC = () => {
     };
   }, [products, loading, pageTitle, pageDescription, pageUrl]);
 
-  const categories: string[] = useMemo(() => [
-    'all',
-    ...Array.from(new Set(products.map((p: Product) => p.category ?? ''))).filter((c): c is string => c !== '')
-  ], [products]);
-
   const filteredProducts = useMemo(() => 
     selectedCategory === 'all'
       ? products
@@ -96,22 +108,23 @@ export const Products: React.FC = () => {
         )}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="mb-10">
-          <h2 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-8">Produsele Noastre</h2>
-          <div className="flex flex-wrap gap-1">
-            {categories.map(category => (
+          <h2 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-6">
+            {selectedCategory !== 'all' ? selectedCategory : 'Produsele Noastre'}
+          </h2>
+          
+          {/* Selected category indicator */}
+          {selectedCategory !== 'all' && (
+            <div className="flex items-center gap-2 text-sm text-stone-600 mb-4">
+              <span>Afișare produse din categoria:</span>
+              <span className="font-medium text-stone-900">{selectedCategory}</span>
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 text-sm font-medium capitalize transition-all duration-200 border-b-2 ${
-                  selectedCategory === category 
-                    ? 'border-stone-900 text-stone-900' 
-                    : 'border-transparent text-stone-400 hover:text-stone-600 hover:border-stone-300'
-                }`}
+                onClick={handleClearFilter}
+                className="ml-2 text-amber-600 hover:text-amber-700 underline"
               >
-                {category === 'all' ? 'Toate' : category}
+                Șterge filtrul
               </button>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {filteredProducts.map((product: Product) => (

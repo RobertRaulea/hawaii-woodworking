@@ -32,6 +32,7 @@ const AdminOrders = lazy(() => import('./pages/Admin/Orders/AdminOrders').then((
 const AdminCustomers = lazy(() => import('./pages/Admin/Customers/AdminCustomers').then((m) => ({ default: m.AdminCustomers })));
 const CustomerDetail = lazy(() => import('./pages/Admin/Customers/CustomerDetail').then((m) => ({ default: m.CustomerDetail })));
 const OrderDetail = lazy(() => import('./pages/Admin/Orders/OrderDetail').then((m) => ({ default: m.OrderDetail })));
+const AdminCategories = lazy(() => import('./pages/Admin/Categories/AdminCategories').then((m) => ({ default: m.AdminCategories })));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -78,6 +79,7 @@ function App() {
                     <Route path="orders/:id" element={<OrderDetail />} />
                     <Route path="customers" element={<AdminCustomers />} />
                     <Route path="customers/:id" element={<CustomerDetail />} />
+                    <Route path="categories" element={<AdminCategories />} />
                   </Route>
                 </Route>
               </Routes>

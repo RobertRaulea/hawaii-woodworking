@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from 'convex/react';
-import { Upload, X, ArrowLeft, GripVertical } from 'lucide-react';
+import { Upload, X, ArrowLeft, GripVertical, AlertCircle } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { compressImages } from '../../../utils/imageCompression.utils';
@@ -29,6 +29,9 @@ export const ProductForm: React.FC = () => {
     api.products.getById,
     id ? { id: id as Id<'products'> } : 'skip'
   );
+
+  const categories = useQuery(api.categories.getAll);
+  const categoriesLoading = categories === undefined;
 
   const createProduct = useMutation(api.products.createProduct);
   const updateProduct = useMutation(api.products.updateProduct);
@@ -274,13 +277,29 @@ export const ProductForm: React.FC = () => {
           <label htmlFor="category" className="block text-sm font-medium text-stone-700 mb-1">
             Category
           </label>
-          <input
-            id="category"
-            type="text"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            placeholder="e.g. Kitchen"
-            {...register('category')}
-          />
+          {categoriesLoading ? (
+            <div className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-400">
+              Loading categories...
+            </div>
+          ) : categories && categories.length > 0 ? (
+            <select
+              id="category"
+              className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+              {...register('category')}
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="flex items-center gap-2 w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span>No categories available. Please create categories first in the Categories section.</span>
+            </div>
+          )}
         </div>
 
         {/* Description */}

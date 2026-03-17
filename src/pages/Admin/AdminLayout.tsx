@@ -2,10 +2,11 @@ import type React from 'react';
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { UserButton } from '@clerk/clerk-react';
-import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, Menu } from 'lucide-react';
+import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, Menu, FolderTree } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/admin/products', label: 'Products', icon: Package },
+  { to: '/admin/categories', label: 'Categories', icon: FolderTree },
   { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { to: '/admin/customers', label: 'Customers', icon: Users },
 ] as const;
