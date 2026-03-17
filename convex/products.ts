@@ -166,6 +166,12 @@ export const createProduct = mutation({
     category: v.optional(v.string()),
     description: v.optional(v.string()),
     imageStorageIds: v.optional(v.array(v.id("_storage"))),
+    name_ro: v.optional(v.string()),
+    name_en: v.optional(v.string()),
+    name_de: v.optional(v.string()),
+    description_ro: v.optional(v.string()),
+    description_en: v.optional(v.string()),
+    description_de: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -175,6 +181,12 @@ export const createProduct = mutation({
       category: args.category,
       description: args.description,
       imageStorageIds: args.imageStorageIds,
+      name_ro: args.name_ro,
+      name_en: args.name_en,
+      name_de: args.name_de,
+      description_ro: args.description_ro,
+      description_en: args.description_en,
+      description_de: args.description_de,
     });
     return id;
   },
@@ -188,6 +200,12 @@ export const updateProduct = mutation({
     category: v.optional(v.string()),
     description: v.optional(v.string()),
     imageStorageIds: v.optional(v.array(v.id("_storage"))),
+    name_ro: v.optional(v.string()),
+    name_en: v.optional(v.string()),
+    name_de: v.optional(v.string()),
+    description_ro: v.optional(v.string()),
+    description_en: v.optional(v.string()),
+    description_de: v.optional(v.string()),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);
@@ -202,6 +220,12 @@ export const updateProduct = mutation({
     if (fields.category !== undefined) update.category = fields.category;
     if (fields.description !== undefined) update.description = fields.description;
     if (fields.imageStorageIds !== undefined) update.imageStorageIds = fields.imageStorageIds;
+    if (fields.name_ro !== undefined) update.name_ro = fields.name_ro;
+    if (fields.name_en !== undefined) update.name_en = fields.name_en;
+    if (fields.name_de !== undefined) update.name_de = fields.name_de;
+    if (fields.description_ro !== undefined) update.description_ro = fields.description_ro;
+    if (fields.description_en !== undefined) update.description_en = fields.description_en;
+    if (fields.description_de !== undefined) update.description_de = fields.description_de;
 
     await ctx.db.patch(id, update);
     return id;

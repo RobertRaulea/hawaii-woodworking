@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Category } from '../../types/category.types';
 
 interface CategoryListProps {
@@ -12,13 +13,15 @@ export const CategoryList: React.FC<CategoryListProps> = ({
   onCategoryClick,
   onAllProductsClick,
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="px-2 space-y-0.5">
       <button
         onClick={onAllProductsClick}
         className="w-full text-left px-3 py-1.5 text-sm text-stone-900 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
       >
-        Toate Produsele
+        {t('nav.allProducts')}
       </button>
       {categories.length > 0 && (
         <>

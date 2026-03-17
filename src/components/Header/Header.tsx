@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth, UserButton } from '@clerk/clerk-react';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { useScrollShrink } from '../../hooks/useScrollShrink';
-import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { SettingsMenu } from '../SettingsMenu';
+import { ShoppingBagIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
   logoSrc: string;
@@ -12,10 +13,10 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const scrolled = useScrollShrink();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { totalItems } = useCart();
-  const { isSignedIn } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -43,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   to="/" 
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
-                  Acasă
+                  {t('nav.home')}
                 </Link>
               )}
               {!isActive('/products') && (
@@ -51,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   to="/products" 
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
-                  Produse
+                  {t('nav.products')}
                 </Link>
               )}
               {!isActive('/catalog') && (
@@ -59,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   to="/catalog" 
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/catalog') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 >
-                  Catalog
+                  {t('nav.catalog')}
                 </Link>
               )}
             </div>
@@ -75,21 +76,13 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               </div>
             </Link>
 
-            {/* Right side: My Orders + Cart + User */}
+            {/* Right side: Settings + Cart */}
             <div className="flex items-center gap-1">
-              {isSignedIn && (
-                <Link
-                  to="/my-orders"
-                  className="hidden md:flex items-center gap-1 p-2 hover:bg-stone-100 rounded-full transition-colors text-sm font-medium text-stone-700"
-                  aria-label="Comenzile mele"
-                >
-                  <ClipboardDocumentListIcon className="h-5 w-5" />
-                </Link>
-              )}
+              <SettingsMenu />
               <button 
                 onClick={() => navigate('/cart')}
                 className="relative z-50 p-2 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Shopping cart"
+                aria-label={t('nav.cart')}
               >
                 <ShoppingBagIcon className="h-6 w-6 text-stone-900" />
                 {totalItems > 0 && (
@@ -98,11 +91,6 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                   </span>
                 )}
               </button>
-              {isSignedIn && (
-                <div className="ml-1">
-                  <UserButton afterSignOutUrl="/" />
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -116,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Acasă
+                {t('nav.home')}
               </Link>
             )}
             {!isActive('/products') && (
@@ -125,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/products') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Produse
+                {t('nav.products')}
               </Link>
             )}
             {!isActive('/catalog') && (
@@ -134,17 +122,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 className={`block px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive('/catalog') ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 hover:bg-stone-100'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Catalog
-              </Link>
-            )}
-            {isSignedIn && !isActive('/my-orders') && (
-              <Link
-                to="/my-orders"
-                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 text-stone-700 hover:bg-stone-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <ClipboardDocumentListIcon className="h-4 w-4" />
-                Comenzile mele
+                {t('nav.catalog')}
               </Link>
             )}
           </div>

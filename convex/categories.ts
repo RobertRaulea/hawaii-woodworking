@@ -20,8 +20,13 @@ export const getByName = query({
 });
 
 export const create = mutation({
-  args: { name: v.string() },
-  handler: async (ctx, { name }) => {
+  args: { 
+    name: v.string(),
+    name_ro: v.optional(v.string()),
+    name_en: v.optional(v.string()),
+    name_de: v.optional(v.string()),
+  },
+  handler: async (ctx, { name, name_ro, name_en, name_de }) => {
     await requireAdmin(ctx);
 
     const trimmedName = name.trim();
@@ -38,7 +43,12 @@ export const create = mutation({
       throw new Error("A category with this name already exists");
     }
 
-    return await ctx.db.insert("categories", { name: trimmedName });
+    return await ctx.db.insert("categories", { 
+      name: trimmedName,
+      name_ro,
+      name_en,
+      name_de,
+    });
   },
 });
 
@@ -46,8 +56,11 @@ export const update = mutation({
   args: {
     id: v.id("categories"),
     name: v.string(),
+    name_ro: v.optional(v.string()),
+    name_en: v.optional(v.string()),
+    name_de: v.optional(v.string()),
   },
-  handler: async (ctx, { id, name }) => {
+  handler: async (ctx, { id, name, name_ro, name_en, name_de }) => {
     await requireAdmin(ctx);
 
     const trimmedName = name.trim();
@@ -69,7 +82,12 @@ export const update = mutation({
       throw new Error("A category with this name already exists");
     }
 
-    await ctx.db.patch(id, { name: trimmedName });
+    await ctx.db.patch(id, { 
+      name: trimmedName,
+      name_ro,
+      name_en,
+      name_de,
+    });
     return id;
   },
 });

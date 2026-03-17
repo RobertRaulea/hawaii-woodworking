@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { ImageCarousel } from '../ImageCarousel';
 
@@ -12,6 +13,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls, id }) => {
+  const { t } = useTranslation();
   const { addItem } = useCart();
 
   const displayImages = useMemo(() => {
@@ -61,7 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
           }
           className="w-full border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200"
         >
-          Adaugă în Coș
+          {t('product.addToCart')}
         </button>
       </div>
     </div>

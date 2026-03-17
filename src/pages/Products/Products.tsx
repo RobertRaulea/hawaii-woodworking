@@ -1,9 +1,12 @@
 import type React from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
+import { useTranslatedProducts } from '../../hooks/useTranslatedProducts';
+import { useTranslatedCategories } from '../../hooks/useTranslatedCategories';
 import type { Product } from '../../types/product.types';
 import { SEO } from '../../components/SEO/SEO';
 import { ProductCard } from '../../components/ProductCard';
@@ -13,8 +16,9 @@ import { SITE_URL } from '../../constants/site.constants';
 type SortOption = 'price-asc' | 'price-desc' | 'name-asc';
 
 export const Products: React.FC = () => {
-  const pageTitle = "Produse din Lemn Artizanale - Hawaii Woodworking";
-  const pageDescription = "Explorați gama noastră variată de produse din lemn lucrate manual: cadouri personalizate, decorațiuni unice și mobilier pentru casă și restaurant. Calitate românească.";
+  const { t } = useTranslation();
+  const pageTitle = t('seo.productsTitle');
+  const pageDescription = t('seo.productsDescription');
   const pageKeywords = [
     'produse lemn românia',
     'magazin online cadouri lemn',
@@ -24,8 +28,10 @@ export const Products: React.FC = () => {
   ];
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const { products, loading, error } = useProducts();
-  const { categories } = useCategories();
+  const { products: rawProducts, loading, error } = useProducts();
+  const { categories: rawCategories } = useCategories();
+  const products = useTranslatedProducts(rawProducts);
+  const categories = useTranslatedCategories(rawCategories);
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 });
@@ -215,39 +221,40 @@ export const Products: React.FC = () => {
         
         {!loading && (
           <>
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
+            <div className="mb-6 lg:mb-8">
+              <h1 className="font-serif text-2xl lg:text-4xl font-medium text-stone-900 mb-4">
+                {t('nav.products')}
+              </h1>
+              
+              <div className="flex items-center justify-between gap-3">
                 <button
                   onClick={() => setIsFilterOpen(true)}
                   className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-colors"
                 >
                   <FunnelIcon className="h-5 w-5 text-stone-700" />
-                  <span className="text-sm font-medium text-stone-700">Filtre</span>
+                  <span className="text-sm font-medium text-stone-700">{t('common.filter')}</span>
                   {activeFilterCount > 0 && (
                     <span className="inline-flex items-center justify-center w-5 h-5 text-xs bg-amber-500 text-white rounded-full">
                       {activeFilterCount}
                     </span>
                   )}
                 </button>
-                <h1 className="font-serif text-2xl lg:text-4xl font-medium text-stone-900">
-                  Produsele Noastre
-                </h1>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <label htmlFor="sort" className="text-sm text-stone-600 hidden sm:block">
-                  Sortează după:
-                </label>
-                <select
-                  id="sort"
-                  value={sortBy}
-                  onChange={handleSortChange}
-                  className="px-4 py-2 text-sm border border-stone-300 rounded-full bg-white hover:bg-stone-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
-                >
-                  <option value="price-asc">Preț: Mic la Mare</option>
-                  <option value="price-desc">Preț: Mare la Mic</option>
-                  <option value="name-asc">Nume: A-Z</option>
-                </select>
+                
+                <div className="flex items-center gap-3 ml-auto">
+                  <label htmlFor="sort" className="text-sm text-stone-600 hidden sm:block">
+                    {t('filters.sortBy')}:
+                  </label>
+                  <select
+                    id="sort"
+                    value={sortBy}
+                    onChange={handleSortChange}
+                    className="px-3 py-2 text-sm border border-stone-300 rounded-full bg-white hover:bg-stone-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                  >
+                    <option value="price-asc">{t('filters.priceAsc')}</option>
+                    <option value="price-desc">{t('filters.priceDesc')}</option>
+                    <option value="name-asc">{t('filters.nameAsc')}</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -284,12 +291,12 @@ export const Products: React.FC = () => {
               <main>
                 {filteredAndSortedProducts.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-stone-600">Nu au fost găsite produse cu filtrele selectate.</p>
+                    <p className="text-stone-600">{t('product.noProducts')}</p>
                   </div>
                 ) : (
                   <>
                     <div className="mb-4 text-sm text-stone-600">
-                      Afișare {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'produs' : 'produse'}
+                      {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? t('product.details') : t('nav.products').toLowerCase()}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                       {filteredAndSortedProducts.map((product: Product) => (

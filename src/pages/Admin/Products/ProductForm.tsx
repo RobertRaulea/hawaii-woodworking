@@ -10,9 +10,13 @@ import { compressImages } from '../../../utils/imageCompression.utils';
 
 interface ProductFormValues {
   name: string;
+  name_en: string;
+  name_de: string;
   price: string;
   category: string;
   description: string;
+  description_en: string;
+  description_de: string;
 }
 
 interface UploadedImage {
@@ -51,9 +55,13 @@ export const ProductForm: React.FC = () => {
   } = useForm<ProductFormValues>({
     defaultValues: {
       name: '',
+      name_en: '',
+      name_de: '',
       price: '',
       category: '',
       description: '',
+      description_en: '',
+      description_de: '',
     },
   });
 
@@ -62,9 +70,13 @@ export const ProductForm: React.FC = () => {
     if (existingProduct) {
       reset({
         name: existingProduct.name,
+        name_en: existingProduct.name_en ?? '',
+        name_de: existingProduct.name_de ?? '',
         price: String(existingProduct.price),
         category: existingProduct.category ?? '',
         description: existingProduct.description ?? '',
+        description_en: existingProduct.description_en ?? '',
+        description_de: existingProduct.description_de ?? '',
       });
 
       if (existingProduct.imageStorageIds && existingProduct.imageUrls) {
@@ -166,17 +178,25 @@ export const ProductForm: React.FC = () => {
         await updateProduct({
           id: id as Id<'products'>,
           name: values.name,
+          name_en: values.name_en || undefined,
+          name_de: values.name_de || undefined,
           price,
           category: values.category || undefined,
           description: values.description || undefined,
+          description_en: values.description_en || undefined,
+          description_de: values.description_de || undefined,
           imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,
         });
       } else {
         await createProduct({
           name: values.name,
+          name_en: values.name_en || undefined,
+          name_de: values.name_de || undefined,
           price,
           category: values.category || undefined,
           description: values.description || undefined,
+          description_en: values.description_en || undefined,
+          description_de: values.description_de || undefined,
           imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,
         });
       }
@@ -235,7 +255,7 @@ export const ProductForm: React.FC = () => {
         {/* Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">
-            Product Name <span className="text-red-500">*</span>
+            Product Name (Romanian) <span className="text-red-500">*</span>
           </label>
           <input
             id="name"
@@ -243,12 +263,40 @@ export const ProductForm: React.FC = () => {
             className={`w-full rounded-lg border px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
               errors.name ? 'border-red-400' : 'border-stone-300'
             }`}
-            placeholder="e.g. Oak Cutting Board"
+            placeholder="e.g. Tocător din Stejar"
             {...register('name', { required: 'Product name is required' })}
           />
           {errors.name && (
             <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
           )}
+        </div>
+
+        {/* English Name */}
+        <div>
+          <label htmlFor="name_en" className="block text-sm font-medium text-stone-700 mb-1">
+            Product Name (English)
+          </label>
+          <input
+            id="name_en"
+            type="text"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            placeholder="e.g. Oak Cutting Board"
+            {...register('name_en')}
+          />
+        </div>
+
+        {/* German Name */}
+        <div>
+          <label htmlFor="name_de" className="block text-sm font-medium text-stone-700 mb-1">
+            Product Name (German)
+          </label>
+          <input
+            id="name_de"
+            type="text"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            placeholder="e.g. Eichen Schneidebrett"
+            {...register('name_de')}
+          />
         </div>
 
         {/* Price */}
@@ -305,14 +353,42 @@ export const ProductForm: React.FC = () => {
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-stone-700 mb-1">
-            Description
+            Description (Romanian)
           </label>
           <textarea
             id="description"
             rows={4}
             className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
-            placeholder="Describe the product..."
+            placeholder="Descriere produs..."
             {...register('description')}
+          />
+        </div>
+
+        {/* English Description */}
+        <div>
+          <label htmlFor="description_en" className="block text-sm font-medium text-stone-700 mb-1">
+            Description (English)
+          </label>
+          <textarea
+            id="description_en"
+            rows={4}
+            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+            placeholder="Describe the product..."
+            {...register('description_en')}
+          />
+        </div>
+
+        {/* German Description */}
+        <div>
+          <label htmlFor="description_de" className="block text-sm font-medium text-stone-700 mb-1">
+            Description (German)
+          </label>
+          <textarea
+            id="description_de"
+            rows={4}
+            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+            placeholder="Produktbeschreibung..."
+            {...register('description_de')}
           />
         </div>
 

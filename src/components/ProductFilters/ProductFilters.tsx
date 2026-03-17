@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import type { Category } from '../../types/category.types';
 import { FilterSection } from './FilterSection';
@@ -33,12 +34,14 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   onClose,
   isMobile = false,
 }) => {
+  const { t } = useTranslation();
+  
   const filterContent = (
     <div className="bg-white rounded-2xl shadow-lg border border-stone-200">
       {isMobile && (
         <div className="flex items-center justify-between p-4 border-b border-stone-200">
           <h3 className="font-medium text-stone-900 uppercase tracking-wide text-sm">
-            Filtrează & Sortează
+            {t('filters.title')}
             {(selectedCategories.length > 0 || selectedMinPrice > minPrice || selectedMaxPrice < maxPrice) && (
               <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-amber-500 text-white rounded-full">
                 {selectedCategories.length + (selectedMinPrice > minPrice || selectedMaxPrice < maxPrice ? 1 : 0)}
@@ -55,7 +58,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       )}
 
       <div className="p-4">
-        <FilterSection title="Categorie" defaultOpen={true}>
+        <FilterSection title={t('filters.category')} defaultOpen={true}>
           <CategoryFilter
             categories={categories}
             selectedCategories={selectedCategories}
@@ -64,7 +67,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           />
         </FilterSection>
 
-        <FilterSection title="Preț (RON)" defaultOpen={true}>
+        <FilterSection title={t('filters.price')} defaultOpen={true}>
           <PriceFilter
             minPrice={minPrice}
             maxPrice={maxPrice}

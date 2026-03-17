@@ -12,6 +12,12 @@ export default defineSchema({
     description: v.optional(v.string()),
     stripe_product_id: v.optional(v.string()),
     stripe_price_id: v.optional(v.string()),
+    name_ro: v.optional(v.string()),
+    name_en: v.optional(v.string()),
+    name_de: v.optional(v.string()),
+    description_ro: v.optional(v.string()),
+    description_en: v.optional(v.string()),
+    description_de: v.optional(v.string()),
   }),
   customers: defineTable({
     clerkUserId: v.optional(v.string()),
@@ -78,5 +84,8 @@ export default defineSchema({
 
   categories: defineTable({
     name: v.string(),
+    name_ro: v.optional(v.string()),
+    name_en: v.optional(v.string()),
+    name_de: v.optional(v.string()),
   }).index("by_name", ["name"]),
 });

@@ -1,5 +1,6 @@
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface HeroProps {
   backgroundImage: string;
@@ -7,6 +8,7 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ backgroundImage }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <div className="relative min-h-screen">
       {/* Background Image */}
@@ -21,19 +23,19 @@ export const Hero: React.FC<HeroProps> = ({ backgroundImage }) => {
 
       {/* Centred Content */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full px-6 sm:px-8 lg:px-12 min-h-[85vh] gap-6">
-        <p className="text-amber-400 text-sm font-medium tracking-[0.25em] uppercase animate-fade-in">Artizanat & Tehnologie CNC</p>
+        <p className="text-amber-400 text-sm font-medium tracking-[0.25em] uppercase animate-fade-in">{t('hero.subtitle')}</p>
         <h1 className="font-serif text-4xl sm:text-5xl lg:text-7xl font-medium text-white leading-tight max-w-4xl animate-fade-in-up">
-          Bun venit la Hawaii Woodworking
+          {t('hero.title')}
         </h1>
         <p className="max-w-2xl text-base md:text-lg text-white/70 leading-relaxed font-light animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-          Îmbinăm tradiția prelucrării lemnului cu tehnologia CNC de ultimă generație pentru a crea piese unice, durabile și personalizate.
+          {t('hero.description')}
         </p>
         <button
           onClick={() => navigate('/catalog')}
           className="mt-4 bg-white text-stone-900 hover:bg-amber-50 px-10 py-3.5 rounded-md text-sm font-medium tracking-wide transition-all duration-300 hover:shadow-soft-lg animate-fade-in-up"
           style={{ animationDelay: '0.3s' }}
         >
-          Vezi Catalog
+          {t('hero.viewCatalog')}
         </button>
       </div>
 

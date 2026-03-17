@@ -1,10 +1,12 @@
 import type React from 'react';
 import { ShoppingCart, Minus, Plus, Trash2, XCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { CartItem } from '../../context/CartContext';
 import { useCart } from '../../context/CartContext';
 
 export const Cart: React.FC = () => {
+  const { t } = useTranslation();
   const { state, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,13 +53,13 @@ export const Cart: React.FC = () => {
           <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center mb-6">
             <ShoppingCart className="w-7 h-7 text-stone-400" />
           </div>
-          <h2 className="font-serif text-2xl font-medium text-stone-900 mb-2">Coșul tău este gol</h2>
-          <p className="text-stone-500 text-sm mb-8">Adaugă produse în coș pentru a începe!</p>
+          <h2 className="font-serif text-2xl font-medium text-stone-900 mb-2">{t('cart.empty')}</h2>
+          <p className="text-stone-500 text-sm mb-8">{t('cart.emptyDescription')}</p>
           <button
             className="border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-8 py-2.5 rounded-md text-sm font-medium transition-all duration-200"
             onClick={() => window.history.back()}
           >
-            Continuă cumpărăturile
+            {t('cart.continueShopping')}
           </button>
         </div>
       </div>
@@ -68,13 +70,13 @@ export const Cart: React.FC = () => {
     <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
       {isCanceled && (
         <div className="flex items-center justify-between bg-amber-50 border border-amber-200 text-amber-800 rounded-md px-4 py-3 mb-8 text-sm">
-          <span>Plata a fost anulată. Produsele tale sunt încă în coș.</span>
-          <button onClick={dismissCanceled} aria-label="Închide" className="hover:text-amber-600 transition-colors">
+          <span>{t('cart.paymentCanceled')}</span>
+          <button onClick={dismissCanceled} aria-label={t('common.close')} className="hover:text-amber-600 transition-colors">
             <XCircle className="w-4 h-4" />
           </button>
         </div>
       )}
-      <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-10">Coș de cumpărături</h1>
+      <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 mb-10">{t('cart.title')}</h1>
       <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
         <div className="flex-grow">
           {state.items.map((item: CartItem) => (
@@ -117,14 +119,14 @@ export const Cart: React.FC = () => {
         </div>
         <div className="lg:w-80 flex-shrink-0">
           <div className="bg-white border border-stone-200 rounded-lg p-6 sticky top-24">
-            <h2 className="font-serif text-lg font-medium text-stone-900 mb-5">Sumar comandă</h2>
+            <h2 className="font-serif text-lg font-medium text-stone-900 mb-5">{t('cart.orderSummary')}</h2>
             <div className="flex justify-between mb-6 text-sm">
-              <span className="text-stone-500">Subtotal</span>
+              <span className="text-stone-500">{t('common.subtotal')}</span>
               <span className="font-medium text-stone-900">{formatPrice(calculateTotal())}</span>
             </div>
             <div className="border-t border-stone-200 pt-4 mb-6">
               <div className="flex justify-between">
-                <span className="font-medium text-stone-900">Total</span>
+                <span className="font-medium text-stone-900">{t('common.total')}</span>
                 <span className="font-semibold text-stone-900">{formatPrice(calculateTotal())}</span>
               </div>
             </div>
@@ -132,7 +134,7 @@ export const Cart: React.FC = () => {
               className="w-full bg-stone-900 text-white py-3 rounded-md hover:bg-stone-800 text-sm font-medium tracking-wide transition-all duration-200"
               onClick={() => navigate('/shipping')}
             >
-              Finalizează comanda
+              {t('cart.checkout')}
             </button>
           </div>
         </div>

@@ -1,8 +1,11 @@
 import type React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <footer className="bg-stone-900 text-stone-400 pt-16 pb-8">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -10,29 +13,29 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
           {/* Column 1: Quick Links */}
           <div>
-            <h4 className="font-serif text-white text-lg mb-5 tracking-wide">Link-uri rapide</h4>
+            <h4 className="font-serif text-white text-lg mb-5 tracking-wide">{t('footer.quickLinks')}</h4>
             <ul className="space-y-3">
-              <li><Link to="/" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Acasă</Link></li>
-              <li><Link to="/products" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Produse</Link></li>
-              <li><Link to="/catalog" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Catalog</Link></li>
-              <li><Link to="/cart" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Coș</Link></li>
+              <li><Link to="/" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.home')}</Link></li>
+              <li><Link to="/products" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.products')}</Link></li>
+              <li><Link to="/catalog" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.catalog')}</Link></li>
+              <li><Link to="/cart" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.cart')}</Link></li>
             </ul>
           </div>
 
           {/* Column 2: Legal Info */}
           <div className="text-left md:text-center">
-            <h4 className="font-serif text-white text-lg mb-5 tracking-wide">Informații legale</h4>
+            <h4 className="font-serif text-white text-lg mb-5 tracking-wide">{t('footer.legalInformation')}</h4>
             <ul className="space-y-3">
-              <li><Link to="/terms-and-conditions" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Termeni și Condiții</Link></li>
-              <li><Link to="/privacy-policy" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Politica de Confidențialitate</Link></li>
-              <li><Link to="/return-policy" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Politica de Retur</Link></li>
-              <li><Link to="/legal-information" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">Informații Legale</Link></li>
+              <li><Link to="/terms-and-conditions" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('footer.termsAndConditions')}</Link></li>
+              <li><Link to="/privacy-policy" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('footer.privacyPolicy')}</Link></li>
+              <li><Link to="/return-policy" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('footer.returnPolicy')}</Link></li>
+              <li><Link to="/legal-information" className="text-stone-400 hover:text-amber-400 transition-colors duration-200 text-sm">{t('footer.legalInformation')}</Link></li>
             </ul>
           </div>
 
           {/* Column 3: Contact */}
           <div className="text-left md:text-right">
-            <h4 className="font-serif text-white text-lg mb-5 tracking-wide">Contact</h4>
+            <h4 className="font-serif text-white text-lg mb-5 tracking-wide">{t('footer.contact')}</h4>
             <ul className="space-y-3">
               <li><p className="text-sm">hawaiisibiu@gmail.com</p></li>
               <li><p className="text-sm">+40 748 831 477</p></li>
@@ -57,14 +60,14 @@ export const Footer: React.FC = () => {
             
             {/* ANPC Links */}
             <div className="text-center space-y-0.5">
-              <p><a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors duration-200">Soluționarea Alternativă a Litigiilor (SAL)</a></p>
-              <p><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors duration-200">Soluționarea Online a Litigiilor (SOL)</a></p>
+              <p><a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors duration-200">{t('footer.alternativeDispute')}</a></p>
+              <p><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors duration-200">{t('footer.onlineDispute')}</a></p>
             </div>
             
             {/* Copyright */}
             <div className="text-center md:text-right space-y-0.5">
               <p>&copy; {new Date().getFullYear()} Hawaii Woodworking Sibiu.</p>
-              <p>Toate drepturile rezervate.</p>
+              <p>{t('footer.allRightsReserved')}</p>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useSignUp } from '@clerk/clerk-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../../convex/_generated/api';
 import { useShipping } from '../../context/ShippingContext';
 import type { ShippingFormData } from '../../types/shipping.types';
@@ -145,6 +146,7 @@ const EMPTY_DEFAULTS: ShippingFormData = {
 };
 
 export const Shipping: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { setShippingData, shippingData } = useShipping();
   const { state: cartState } = useCart();
