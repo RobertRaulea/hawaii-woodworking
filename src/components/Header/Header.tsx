@@ -1,10 +1,13 @@
-import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, UserButton } from '@clerk/clerk-react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCart } from '../../context/CartContext';
+import { useDelayedHover } from '../../hooks/useDelayedHover';
+import { useScrollShrink } from '../../hooks/useScrollShrink';
+import { CategoryList } from './CategoryList';
+import { ShoppingBagIcon, Bars3Icon, XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
   logoSrc: string;
@@ -12,11 +15,14 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
-  const productsDropdownRef = useRef<HTMLDivElement>(null);
-  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrolled = useScrollShrink();
+  const {
+    isOpen: isProductsDropdownOpen,
+    onMouseEnter: handleDropdownMouseEnter,
+    onMouseLeave: handleDropdownMouseLeave,
+    setIsOpen: setIsProductsDropdownOpen,
+  } = useDelayedHover(150);
   const location = useLocation();
   const navigate = useNavigate();
   const { totalItems } = useCart();
@@ -25,46 +31,6 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
   const products = useQuery(api.products.getAll);
 
   const isActive = (path: string) => location.pathname === path;
-
-  useEffect(() => {
-    const SHRINK_THRESHOLD = 20;
-    const EXPAND_THRESHOLD = 5;
-    const DEBOUNCE_MS = 50;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    const handleScroll = () => {
-      if (timeoutId) return;
-      
-      timeoutId = setTimeout(() => {
-        const currentScroll = window.scrollY;
-        
-        if (!scrolled && currentScroll > SHRINK_THRESHOLD) {
-          setScrolled(true);
-        } else if (scrolled && currentScroll < EXPAND_THRESHOLD) {
-          setScrolled(false);
-        }
-        
-        timeoutId = null;
-      }, DEBOUNCE_MS);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [scrolled]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (productsDropdownRef.current && !productsDropdownRef.current.contains(event.target as Node)) {
-        setIsProductsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleCategoryClick = (categoryName: string) => {
     navigate(`/products?category=${encodeURIComponent(categoryName)}`);
@@ -78,20 +44,6 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
     setIsProductsDropdownOpen(false);
     setIsMenuOpen(false);
     setIsMobileProductsOpen(false);
-  };
-
-  const handleDropdownMouseEnter = () => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
-      dropdownTimeoutRef.current = null;
-    }
-    setIsProductsDropdownOpen(true);
-  };
-
-  const handleDropdownMouseLeave = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setIsProductsDropdownOpen(false);
-    }, 150);
   };
 
   // Filter categories that have products
@@ -132,8 +84,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
               {/* Products dropdown */}
               {!isActive('/products') && (
                 <div 
-                  className="relative" 
-                  ref={productsDropdownRef}
+                  className="relative"
                   onMouseEnter={handleDropdownMouseEnter}
                   onMouseLeave={handleDropdownMouseLeave}
                 >
@@ -147,28 +98,11 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 {isProductsDropdownOpen && (
                   <div className="absolute top-full left-0 pt-2 w-52 z-50">
                     <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 py-3 transition-all duration-200">
-                      <div className="px-2 space-y-0.5">
-                        <button
-                          onClick={handleAllProductsClick}
-                          className="w-full text-left px-3 py-1.5 text-sm text-stone-900 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
-                        >
-                          Toate Produsele
-                        </button>
-                        {categoriesWithProducts && categoriesWithProducts.length > 0 && (
-                          <>
-                            <div className="h-px bg-stone-300/30 my-1.5"></div>
-                            {categoriesWithProducts.map((category) => (
-                              <button
-                                key={category._id}
-                                onClick={() => handleCategoryClick(category.name)}
-                                className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
-                              >
-                                {category.name}
-                              </button>
-                            ))}
-                          </>
-                        )}
-                      </div>
+                      <CategoryList
+                        categories={categoriesWithProducts}
+                        onCategoryClick={handleCategoryClick}
+                        onAllProductsClick={handleAllProductsClick}
+                      />
                     </div>
                   </div>
                 )}
@@ -250,27 +184,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
                 </button>
               
               {isMobileProductsOpen && (
-                <div className="mt-2 ml-3 space-y-0.5 bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/20 shadow-lg">
-                  <button
-                    onClick={handleAllProductsClick}
-                    className="w-full text-left px-3 py-1.5 text-sm text-stone-900 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
-                  >
-                    Toate Produsele
-                  </button>
-                  {categoriesWithProducts && categoriesWithProducts.length > 0 && (
-                    <>
-                      <div className="h-px bg-stone-300/30 my-1.5"></div>
-                      {categoriesWithProducts.map((category) => (
-                        <button
-                          key={category._id}
-                          onClick={() => handleCategoryClick(category.name)}
-                          className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-white/60 hover:text-stone-900 rounded-full transition-all duration-200"
-                        >
-                          {category.name}
-                        </button>
-                      ))}
-                    </>
-                  )}
+                <div className="mt-2 ml-3 bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/20 shadow-lg">
+                  <CategoryList
+                    categories={categoriesWithProducts}
+                    onCategoryClick={handleCategoryClick}
+                    onAllProductsClick={handleAllProductsClick}
+                  />
                 </div>
               )}
               </div>
