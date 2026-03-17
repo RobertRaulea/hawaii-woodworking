@@ -32,6 +32,8 @@ const CONVEX_URL =
     ? DEFAULT_LOCAL_CONVEX_URL
     : process.env.VITE_CONVEX_URL;
 
+const CONVEX_ADMIN_KEY = process.env.CONVEX_ADMIN_KEY;
+
 const projectRoot = process.cwd();
 const argv = process.argv.slice(2);
 const skipProducts = argv.includes('--skip-products');
@@ -71,7 +73,7 @@ const siteAssetDefinitions: AssetDefinition[] = [
   {
     category: 'hero',
     name: 'WoodPhoto.jpg',
-    relativePath: 'assets/HeroAssets/WoodPhoto.jpg',
+    relativePath: 'public/images/wood-bg.jpg',
   },
   {
     category: 'logo',
@@ -126,7 +128,7 @@ const isNonEmptyStringArray = (value: unknown): value is string[] =>
 
 (async () => {
   try {
-    const convex = new ConvexHttpClient(CONVEX_URL);
+    const convex = new ConvexHttpClient(CONVEX_URL, { auth: CONVEX_ADMIN_KEY });
 
     console.log(`Using Convex URL: ${CONVEX_URL}`);
 
