@@ -124,6 +124,7 @@ const EMPTY_DEFAULTS: ShippingFormData = {
   phone: '',
   firstName: '',
   lastName: '',
+  password: '',
   shippingAddress: {
     street: '',
     city: '',
@@ -184,6 +185,7 @@ export const Shipping: React.FC = () => {
         phone: '',
         firstName: customer.firstName,
         lastName: customer.lastName,
+        password: '',
         shippingAddress: customer.shippingAddress,
         billingAddress: customer.billingAddress,
         sameAsShipping: true,
@@ -195,6 +197,7 @@ export const Shipping: React.FC = () => {
   }, [customer, shippingData, reset]);
 
   const sameAsShipping = watch('sameAsShipping');
+  const createAccount = watch('createAccount');
   const shippingCounty = watch('shippingAddress.county');
   const billingCounty = watch('billingAddress.county');
   const shippingCountry = watch('shippingAddress.country');
@@ -285,9 +288,17 @@ export const Shipping: React.FC = () => {
       return;
     }
 
+    if (!data.password) {
+      setError('password', {
+        message: 'Parola este obligatorie pentru crearea contului.',
+      });
+      return;
+    }
+
     try {
       const created = await signUp.create({
         emailAddress: data.email,
+        password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
       });
@@ -399,7 +410,7 @@ export const Shipping: React.FC = () => {
           <h2 className="font-serif text-xl font-medium text-stone-900 mb-2">Verifică adresa de email</h2>
           <p className="text-sm text-stone-500 mb-6">
             Am trimis un cod de verificare la <strong>{pendingFormData?.email}</strong>.
-            Introdu codul pentru a crea contul Clerk și a continua.
+            Introdu codul pentru a crea contul și a continua.
           </p>
 
           <input
@@ -851,16 +862,36 @@ export const Shipping: React.FC = () => {
 
             {/* Create Account */}
             {!isSignedIn && (
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
-                  {...register('createAccount')}
-                />
-                <span className="text-sm text-stone-700">
-                  Doresc să îmi creez un cont pentru comenzi viitoare
-                </span>
-              </label>
+              <>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+                    {...register('createAccount')}
+                  />
+                  <span className="text-sm text-stone-700">
+                    Doresc să îmi creez un cont pentru comenzi viitoare
+                  </span>
+                </label>
+
+                {/* Password field - shown only when createAccount is checked */}
+                {createAccount && (
+                  <div className="ml-7 mt-2">
+                    <InputField
+                      label="Parolă"
+                      id="password"
+                      type="password"
+                      placeholder="Minim 8 caractere"
+                      error={errors.password?.message}
+                      required
+                      registration={register('password', {
+                        required: createAccount ? 'Parola este obligatorie pentru crearea contului' : false,
+                        minLength: createAccount ? { value: 8, message: 'Parola trebuie să aibă minim 8 caractere' } : undefined,
+                      })}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

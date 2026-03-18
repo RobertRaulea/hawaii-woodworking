@@ -11,6 +11,7 @@ export interface ShippingFormData {
   phone: string;
   firstName: string;
   lastName: string;
+  password?: string;
   shippingAddress: Address;
   billingAddress: Address;
   sameAsShipping: boolean;
