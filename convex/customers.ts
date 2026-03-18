@@ -175,3 +175,69 @@ export const getById = query({
     return { ...customer, orders };
   },
 });
+
+export const updateCustomer = mutation({
+  args: {
+    customerId: v.id("customers"),
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    shippingAddress: addressValidator,
+    billingAddress: addressValidator,
+    newsletter: v.boolean(),
+  },
+  handler: async (ctx, { customerId, ...updates }) => {
+    await requireAdmin(ctx);
+    
+    const customer = await ctx.db.get(customerId);
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    await ctx.db.patch(customerId, updates);
+    return customerId;
+  },
+});
+
+export const deleteCustomer = mutation({
+  args: { customerId: v.id("customers") },
+  handler: async (ctx, { customerId }) => {
+    await requireAdmin(ctx);
+    
+    const customer = await ctx.db.get(customerId);
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    const orders = await ctx.db
+      .query("orders")
+      .withIndex("by_customerId", (q) => q.eq("customerId", customerId))
+      .collect();
+
+    if (orders.length > 0) {
+      throw new Error("Cannot delete customer with existing orders");
+    }
+
+    await ctx.db.delete(customerId);
+  },
+});
+
+export const getNewsletterSubscribers = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    
+    const subscribers = await ctx.db
+      .query("customers")
+      .filter((q) => q.eq(q.field("newsletter"), true))
+      .collect();
+
+    return subscribers.map((sub) => ({
+      email: sub.email,
+      firstName: sub.firstName,
+      lastName: sub.lastName,
+      isRegistered: sub.isRegistered,
+      createdAt: sub.createdAt,
+    }));
+  },
+});
