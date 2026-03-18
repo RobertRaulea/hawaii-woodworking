@@ -14,9 +14,9 @@ export const LegalInformation: React.FC = () => {
             <p className="mb-2"><strong>Număr înregistrare ONRC:</strong> J32/1718/2023</p>
             <p className="mb-2"><strong>Sediu social:</strong> Cristian, Str. XIII, Nr. 113, Jud. Sibiu</p>
             <p className="mb-2"><strong>Capital social:</strong> 200 LEI</p>
-            <p className="mb-2"><strong>Email:</strong> contact@hawaiiwoodworking.ro</p>
-            <p className="mb-2"><strong>Telefon:</strong> +40 700 000 000</p>
-            <p className="mb-2"><strong>Cont bancar:</strong> RO12 BTRL 0000 0000 0000 0000, deschis la Banca Transilvania</p>
+            <p className="mb-2"><strong>Email:</strong> hawaiisibiu@gmail.com</p>
+            <p className="mb-2"><strong>Telefon:</strong> 0748831477</p>
+            <p className="mb-2"><strong>Cont bancar:</strong> RO43BTRLRONCRT0CV5643601, deschis la Banca Transilvania</p>
           </div>
         </section>
 

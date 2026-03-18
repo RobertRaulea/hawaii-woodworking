@@ -51,7 +51,7 @@ export const ReturnPolicy: React.FC = () => {
             Pentru a returna un produs, vă rugăm să urmați acești pași:
           </p>
           <ol className="list-decimal pl-6 mb-4">
-            <li>Contactați-ne la adresa de email contact@hawaiiwoodworking.ro pentru a ne informa despre intenția de retur</li>
+            <li>Contactați-ne la adresa de email hawaiisibiu@gmail.com pentru a ne informa despre intenția de retur</li>
             <li>Împachetați produsul în ambalajul original sau într-unul adecvat pentru transport</li>
             <li>Atașați o copie a facturii sau bonului fiscal</li>
             <li>Expediați produsul la adresa indicată de noi</li>
@@ -84,7 +84,7 @@ export const ReturnPolicy: React.FC = () => {
           <div className="border p-4 mb-4">
             <p className="mb-2">Către: SC Hawaii Woodworking SRL</p>
             <p className="mb-2">Adresa: [Adresa completă]</p>
-            <p className="mb-2">Email: contact@hawaiiwoodworking.ro</p>
+            <p className="mb-2">Email: hawaiisibiu@gmail.com</p>
             <p className="mb-4">Telefon: [Număr de telefon]</p>
             <p className="mb-2">Vă informez prin prezenta cu privire la retragerea mea din contractul referitor la vânzarea următoarelor produse:</p>
             <p className="mb-2">[Numele produselor]</p>
