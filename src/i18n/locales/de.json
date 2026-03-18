@@ -215,6 +215,11 @@
     "notifications": "Benachrichtigungen",
     "privacy": "Datenschutz"
   },
+  "thankYou": {
+    "title": "Vielen Dank für Ihre Bestellung!",
+    "message": "Ihre Bestellung wurde erfolgreich aufgegeben. Sie erhalten in Kürze eine Bestätigungs-E-Mail.",
+    "backToHome": "Zurück zur Startseite"
+  },
   "errors": {
     "pageNotFound": "Seite nicht gefunden",
     "serverError": "Serverfehler",

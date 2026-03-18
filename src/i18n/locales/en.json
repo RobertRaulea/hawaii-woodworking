@@ -214,12 +214,17 @@
     "notifications": "Notifications",
     "privacy": "Privacy"
   },
+  "thankYou": {
+    "title": "Thank you for your order!",
+    "message": "Your order has been placed successfully. You will receive a confirmation email shortly.",
+    "backToHome": "Back to home page"
+  },
   "errors": {
-    "pageNotFound": "Page Not Found",
-    "serverError": "Server Error",
-    "networkError": "Network Error",
-    "tryAgain": "Try Again",
-    "goHome": "Go to Home Page"
+    "pageNotFound": "Page not found",
+    "serverError": "Server error",
+    "networkError": "Network error",
+    "tryAgain": "Try again",
+    "goHome": "Go to home page"
   },
   "validation": {
     "required": "This field is required",

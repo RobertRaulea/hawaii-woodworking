@@ -4,7 +4,6 @@ import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useSignUp } from '@clerk/clerk-react';
-import { useTranslation } from 'react-i18next';
 import { api } from '../../../convex/_generated/api';
 import { useShipping } from '../../context/ShippingContext';
 import type { ShippingFormData } from '../../types/shipping.types';
@@ -146,7 +145,6 @@ const EMPTY_DEFAULTS: ShippingFormData = {
 };
 
 export const Shipping: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { setShippingData, shippingData } = useShipping();
   const { state: cartState } = useCart();
@@ -686,7 +684,7 @@ export const Shipping: React.FC = () => {
                 error={errors.billingAddress?.country?.message}
                 required
                 registration={register('billingAddress.country', {
-                  required: 'Țara este obligatorie',
+                  required: !sameAsShipping ? 'Țara este obligatorie' : false,
                   onChange: () => {
                     setValue('billingAddress.county', '');
                     setValue('billingAddress.city', '');
@@ -700,7 +698,7 @@ export const Shipping: React.FC = () => {
                 error={errors.billingAddress?.street?.message}
                 required
                 registration={register('billingAddress.street', {
-                  required: 'Strada este obligatorie',
+                  required: !sameAsShipping ? 'Strada este obligatorie' : false,
                 })}
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -708,7 +706,7 @@ export const Shipping: React.FC = () => {
                   <Controller
                     name="billingAddress.county"
                     control={control}
-                    rules={{ required: 'Județul este obligatoriu' }}
+                    rules={{ required: !sameAsShipping ? 'Județul este obligatoriu' : false }}
                     render={({ field }) => (
                       <SearchableSelect
                         label="Județ / Sector"
@@ -744,7 +742,7 @@ export const Shipping: React.FC = () => {
                     error={errors.billingAddress?.county?.message}
                     required
                     registration={register('billingAddress.county', {
-                      required: 'Județul este obligatoriu',
+                      required: !sameAsShipping ? 'Județul este obligatoriu' : false,
                     })}
                   />
                 )}
@@ -752,7 +750,7 @@ export const Shipping: React.FC = () => {
                   <Controller
                     name="billingAddress.city"
                     control={control}
-                    rules={{ required: 'Orașul este obligatoriu' }}
+                    rules={{ required: !sameAsShipping ? 'Orașul este obligatoriu' : false }}
                     render={({ field }) => (
                       <SearchableSelect
                         label="Oraș / Localitate"
@@ -782,7 +780,7 @@ export const Shipping: React.FC = () => {
                     error={errors.billingAddress?.city?.message}
                     required
                     registration={register('billingAddress.city', {
-                      required: 'Orașul este obligatoriu',
+                      required: !sameAsShipping ? 'Orașul este obligatoriu' : false,
                     })}
                   />
                 )}

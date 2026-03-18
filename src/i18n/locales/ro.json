@@ -215,6 +215,11 @@
     "notifications": "Notificări",
     "privacy": "Confidențialitate"
   },
+  "thankYou": {
+    "title": "Îți mulțumim pentru comandă!",
+    "message": "Comanda ta a fost plasată cu succes. Vei primi în curând un e-mail de confirmare.",
+    "backToHome": "Înapoi la pagină principală"
+  },
   "errors": {
     "pageNotFound": "Pagina nu a fost găsită",
     "serverError": "Eroare de server",
