@@ -199,11 +199,13 @@ export const ProductForm: React.FC = () => {
         await updateProduct({
           id: id as Id<'products'>,
           name: values.name,
+          name_ro: values.name || undefined,
           name_en: values.name_en || undefined,
           name_de: values.name_de || undefined,
           price,
           category: values.category || undefined,
           description: values.description || undefined,
+          description_ro: values.description || undefined,
           description_en: values.description_en || undefined,
           description_de: values.description_de || undefined,
           imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,

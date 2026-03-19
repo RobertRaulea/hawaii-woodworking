@@ -208,16 +208,16 @@ export const updateProduct = mutation({
   args: {
     id: v.id("products"),
     name: v.optional(v.string()),
-    price: v.optional(v.number()),
-    category: v.optional(v.string()),
-    description: v.optional(v.string()),
-    imageStorageIds: v.optional(v.array(v.id("_storage"))),
     name_ro: v.optional(v.string()),
     name_en: v.optional(v.string()),
     name_de: v.optional(v.string()),
+    price: v.optional(v.number()),
+    category: v.optional(v.string()),
+    description: v.optional(v.string()),
     description_ro: v.optional(v.string()),
     description_en: v.optional(v.string()),
     description_de: v.optional(v.string()),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
     stock: v.optional(v.number()),
     lowStockThreshold: v.optional(v.number()),
     trackStock: v.optional(v.boolean()),
@@ -231,16 +231,16 @@ export const updateProduct = mutation({
 
     const update: Record<string, unknown> = {};
     if (fields.name !== undefined) update.name = fields.name;
-    if (fields.price !== undefined) update.price = fields.price;
-    if (fields.category !== undefined) update.category = fields.category;
-    if (fields.description !== undefined) update.description = fields.description;
-    if (fields.imageStorageIds !== undefined) update.imageStorageIds = fields.imageStorageIds;
     if (fields.name_ro !== undefined) update.name_ro = fields.name_ro;
     if (fields.name_en !== undefined) update.name_en = fields.name_en;
     if (fields.name_de !== undefined) update.name_de = fields.name_de;
+    if (fields.price !== undefined) update.price = fields.price;
+    if (fields.category !== undefined) update.category = fields.category;
+    if (fields.description !== undefined) update.description = fields.description;
     if (fields.description_ro !== undefined) update.description_ro = fields.description_ro;
     if (fields.description_en !== undefined) update.description_en = fields.description_en;
     if (fields.description_de !== undefined) update.description_de = fields.description_de;
+    if (fields.imageStorageIds !== undefined) update.imageStorageIds = fields.imageStorageIds;
     if (fields.stock !== undefined) update.stock = fields.stock;
     if (fields.lowStockThreshold !== undefined) update.lowStockThreshold = fields.lowStockThreshold;
     if (fields.trackStock !== undefined) update.trackStock = fields.trackStock;
