@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, internalMutation, mutation } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
+import { internal } from "./_generated/api";
 
 export const createPendingOrder = internalMutation({
   args: {
@@ -45,12 +46,53 @@ export const markOrderPaid = internalMutation({
       throw new Error(`Order not found for Stripe session: ${stripeSessionId}`);
     }
 
+    for (const item of order.items) {
+      try {
+        await ctx.runMutation(internal.products.decrementStock, {
+          productId: item.productId,
+          quantity: item.quantity,
+        });
+      } catch (error) {
+        console.error(`Failed to decrement stock for product ${item.productId}:`, error);
+      }
+    }
+
     await ctx.db.patch(order._id, {
       status: "paid",
       ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
     });
 
     return order._id;
+  },
+});
+
+export const setInvoiceData = internalMutation({
+  args: {
+    orderId: v.id("orders"),
+    invoiceId: v.string(),
+    invoicePdfUrl: v.string(),
+  },
+  handler: async (ctx, { orderId, invoiceId, invoicePdfUrl }) => {
+    await ctx.db.patch(orderId, {
+      invoiceId,
+      invoicePdfUrl,
+    });
+  },
+});
+
+export const getOrderWithCustomer = internalMutation({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, { orderId }) => {
+    const order = await ctx.db.get(orderId);
+    if (!order) return null;
+
+    const customer = await ctx.db.get(order.customerId);
+    if (!customer) return null;
+
+    return {
+      ...order,
+      customer,
+    };
   },
 });
 

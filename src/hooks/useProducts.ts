@@ -23,6 +23,9 @@ export const useProducts = () => {
       description: product.description ?? null,
       stripeProductId: product.stripe_product_id ?? null,
       stripePriceId: product.stripe_price_id ?? null,
+      stock: product.stock,
+      lowStockThreshold: product.lowStockThreshold,
+      trackStock: product.trackStock,
     }));
   }, [data]);
 

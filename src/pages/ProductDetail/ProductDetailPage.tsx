@@ -2,6 +2,7 @@ import type React from 'react';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'convex/react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { useCart } from '../../context/CartContext';
@@ -10,7 +11,8 @@ import { ImageCarousel } from '../../components/ImageCarousel';
 
 export const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
-  const { addItem } = useCart();
+  const { t } = useTranslation();
+  const { addItem, state } = useCart();
 
   const product = useQuery(
     api.products.getById,
@@ -18,6 +20,18 @@ export const ProductDetailPage: React.FC = () => {
   );
 
   const loading = product === undefined;
+
+  const currentStock = product?.stock ?? 0;
+  const threshold = product?.lowStockThreshold ?? 5;
+  const isTrackingStock = product?.trackStock ?? true;
+  
+  // Get quantity in cart for this product
+  const quantityInCart = state.items.find(item => item.id === product?._id)?.quantity ?? 0;
+  const remainingStock = currentStock - quantityInCart;
+  const displayStock = Math.max(0, remainingStock);
+  const isOutOfStock = isTrackingStock && displayStock === 0;
+  const isLowStock = isTrackingStock && displayStock > 0 && displayStock <= threshold;
+  const isStockLimitReached = isTrackingStock && quantityInCart >= currentStock;
 
   const productImages = useMemo(() => {
     if (product?.imageUrls && product.imageUrls.length > 0) {
@@ -51,6 +65,12 @@ export const ProductDetailPage: React.FC = () => {
     'hawaii sibiu'
   ];
   
+  const availabilitySchema = isOutOfStock 
+    ? 'https://schema.org/OutOfStock' 
+    : isLowStock 
+      ? 'https://schema.org/LimitedAvailability'
+      : 'https://schema.org/InStock';
+
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -62,7 +82,7 @@ export const ProductDetailPage: React.FC = () => {
       '@type': 'Offer',
       priceCurrency: 'RON',
       price: product.price.toFixed(2),
-      availability: 'https://schema.org/InStock',
+      availability: availabilitySchema,
       url: window.location.href
     },
     brand: {
@@ -96,25 +116,62 @@ export const ProductDetailPage: React.FC = () => {
                 {product.category || 'Produs din lemn'}
               </p>
               <h1 className="font-serif text-3xl md:text-4xl font-medium text-stone-900 mb-5 leading-tight">{product.name}</h1>
-              <p className="text-stone-500 text-base leading-relaxed mb-8">
+              <p className="text-stone-500 text-base leading-relaxed mb-6">
                 {shortDescription}
               </p>
-              <p className="text-stone-900 font-semibold text-2xl mb-8 tracking-wide">{product.price.toFixed(2)} <span className="text-base font-normal text-stone-500">RON</span></p>
+              <p className="text-stone-900 font-semibold text-2xl mb-6 tracking-wide">{product.price.toFixed(2)} <span className="text-base font-normal text-stone-500">RON</span></p>
+              
+              {isTrackingStock && (
+                <div className="mb-6">
+                  {isOutOfStock ? (
+                    <div className="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-700">
+                      <span className="h-2 w-2 rounded-full bg-red-600"></span>
+                      {t('product.outOfStock')}
+                    </div>
+                  ) : isLowStock ? (
+                    <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700">
+                      <span className="h-2 w-2 rounded-full bg-amber-600"></span>
+                      {t('product.onlyXLeft', { count: displayStock })}
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
+                      <span className="h-2 w-2 rounded-full bg-green-600"></span>
+                      {t('product.xInStock', { count: displayStock })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => {
-                const image = product.imageUrls?.[0] ?? null;
-                addItem({
-                  id: product._id,
-                  name: product.name,
-                  price: product.price,
-                  image: image || 'https://placehold.co/100x100?text=No+Image',
-                });
-              }}
-              className="w-full bg-stone-900 hover:bg-stone-800 text-white px-6 py-3.5 rounded-md transition-all duration-300 text-sm font-medium tracking-wide hover:shadow-soft-lg"
-            >
-              Adaugă în Coș
-            </button>
+            {isOutOfStock ? (
+              <button
+                disabled
+                className="w-full bg-stone-300 text-stone-500 px-6 py-3.5 rounded-md text-sm font-medium tracking-wide cursor-not-allowed"
+              >
+                {t('product.outOfStock')}
+              </button>
+            ) : isStockLimitReached ? (
+              <button
+                disabled
+                className="w-full bg-stone-300 text-stone-500 px-6 py-3.5 rounded-md text-sm font-medium tracking-wide cursor-not-allowed"
+              >
+                {t('product.maxInCart')}
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  const image = product.imageUrls?.[0] ?? null;
+                  addItem({
+                    id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    image: image || 'https://placehold.co/100x100?text=No+Image',
+                  }, currentStock, isTrackingStock);
+                }}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white px-6 py-3.5 rounded-md transition-all duration-300 text-sm font-medium tracking-wide hover:shadow-soft-lg"
+              >
+                {t('product.addToCart')}
+              </button>
+            )}
           </div>
         </div>
       </div>

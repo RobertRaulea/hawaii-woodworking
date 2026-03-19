@@ -18,6 +18,9 @@ export default defineSchema({
     description_ro: v.optional(v.string()),
     description_en: v.optional(v.string()),
     description_de: v.optional(v.string()),
+    stock: v.optional(v.number()),
+    lowStockThreshold: v.optional(v.number()),
+    trackStock: v.optional(v.boolean()),
   }),
   customers: defineTable({
     clerkUserId: v.optional(v.string()),
@@ -67,6 +70,8 @@ export default defineSchema({
     ),
     stripeSessionId: v.string(),
     stripePaymentIntentId: v.optional(v.string()),
+    invoiceId: v.optional(v.string()),
+    invoicePdfUrl: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_customerId", ["customerId"])

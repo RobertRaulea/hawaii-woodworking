@@ -16,6 +16,7 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as lib_storage from "../lib/storage.js";
 import type * as lib_translations from "../lib/translations.js";
 import type * as orders from "../orders.js";
+import type * as postPayment from "../postPayment.js";
 import type * as products from "../products.js";
 import type * as seedCategories from "../seedCategories.js";
 import type * as siteAssets from "../siteAssets.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   "lib/storage": typeof lib_storage;
   "lib/translations": typeof lib_translations;
   orders: typeof orders;
+  postPayment: typeof postPayment;
   products: typeof products;
   seedCategories: typeof seedCategories;
   siteAssets: typeof siteAssets;

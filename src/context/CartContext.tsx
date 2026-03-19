@@ -65,10 +65,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('cart', JSON.stringify(state));
   }, [state]);
 
-  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+  const addItem = (item: Omit<CartItem, 'quantity'>, stock?: number, trackStock?: boolean): boolean => {
+    // Check if stock tracking is enabled (default to true if undefined)
+    const isTrackingStock = trackStock ?? true;
+    
+    if (!isTrackingStock) {
+      dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
+      setToastMessage(`${item.name} a fost adăugat în coș`);
+      setShowToast(true);
+      return true;
+    }
+
+    // Get current quantity in cart
+    const existingItem = state.items.find(cartItem => cartItem.id === item.id);
+    const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
+    const availableStock = stock ?? 0;
+
+    // Check if adding one more would exceed stock
+    if (currentQuantityInCart + 1 > availableStock) {
+      setToastMessage(`Stoc insuficient! Doar ${availableStock} disponibil${availableStock !== 1 ? 'e' : ''}.`);
+      setShowToast(true);
+      return false;
+    }
+
     dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
     setToastMessage(`${item.name} a fost adăugat în coș`);
     setShowToast(true);
+    return true;
   };
 
   const removeItem = (id: string) => {

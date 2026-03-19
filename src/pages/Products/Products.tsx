@@ -306,6 +306,9 @@ export const Products: React.FC = () => {
                           name={product.name}
                           price={product.price}
                           imageUrls={product.imageUrls ?? null}
+                          stock={product.stock}
+                          lowStockThreshold={product.lowStockThreshold}
+                          trackStock={product.trackStock}
                         />
                       ))}
                     </div>

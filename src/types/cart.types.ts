@@ -18,7 +18,7 @@ export type CartAction =
 
 export interface CartContextType {
   state: CartState;
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
+  addItem: (item: Omit<CartItem, 'quantity'>, stock?: number, trackStock?: boolean) => boolean;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
 import { resolveImageUrls } from "./lib/storage";
 
@@ -76,6 +76,9 @@ export const seedProducts = mutation({
         description: v.optional(v.string()),
         stripe_product_id: v.optional(v.string()),
         stripe_price_id: v.optional(v.string()),
+        stock: v.optional(v.number()),
+        lowStockThreshold: v.optional(v.number()),
+        trackStock: v.optional(v.boolean()),
       })
     ),
   },
@@ -106,6 +109,9 @@ export const seedProducts = mutation({
           description: p.description,
           stripe_product_id: p.stripe_product_id,
           stripe_price_id: p.stripe_price_id,
+          stock: p.stock ?? 0,
+          lowStockThreshold: p.lowStockThreshold ?? 5,
+          trackStock: p.trackStock ?? true,
         })
       )
     );
@@ -172,6 +178,9 @@ export const createProduct = mutation({
     description_ro: v.optional(v.string()),
     description_en: v.optional(v.string()),
     description_de: v.optional(v.string()),
+    stock: v.optional(v.number()),
+    lowStockThreshold: v.optional(v.number()),
+    trackStock: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -187,6 +196,9 @@ export const createProduct = mutation({
       description_ro: args.description_ro,
       description_en: args.description_en,
       description_de: args.description_de,
+      stock: args.stock ?? 0,
+      lowStockThreshold: args.lowStockThreshold ?? 5,
+      trackStock: args.trackStock ?? true,
     });
     return id;
   },
@@ -206,6 +218,9 @@ export const updateProduct = mutation({
     description_ro: v.optional(v.string()),
     description_en: v.optional(v.string()),
     description_de: v.optional(v.string()),
+    stock: v.optional(v.number()),
+    lowStockThreshold: v.optional(v.number()),
+    trackStock: v.optional(v.boolean()),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);
@@ -226,6 +241,9 @@ export const updateProduct = mutation({
     if (fields.description_ro !== undefined) update.description_ro = fields.description_ro;
     if (fields.description_en !== undefined) update.description_en = fields.description_en;
     if (fields.description_de !== undefined) update.description_de = fields.description_de;
+    if (fields.stock !== undefined) update.stock = fields.stock;
+    if (fields.lowStockThreshold !== undefined) update.lowStockThreshold = fields.lowStockThreshold;
+    if (fields.trackStock !== undefined) update.trackStock = fields.trackStock;
 
     await ctx.db.patch(id, update);
     return id;
@@ -242,5 +260,52 @@ export const deleteProduct = mutation({
     }
     await ctx.db.delete(id);
     return { deleted: true };
+  },
+});
+
+export const updateStock = mutation({
+  args: {
+    id: v.id("products"),
+    stock: v.number(),
+  },
+  handler: async (ctx, { id, stock }) => {
+    await requireAdmin(ctx);
+    const product = await ctx.db.get(id);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+    if (stock < 0) {
+      throw new Error("Stock cannot be negative");
+    }
+    await ctx.db.patch(id, { stock });
+    return { stock };
+  },
+});
+
+export const decrementStock = internalMutation({
+  args: {
+    productId: v.id("products"),
+    quantity: v.number(),
+  },
+  handler: async (ctx, { productId, quantity }) => {
+    const product = await ctx.db.get(productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const trackStock = product.trackStock ?? true;
+    if (!trackStock) {
+      return { success: true, stock: product.stock ?? 0 };
+    }
+
+    const currentStock = product.stock ?? 0;
+    const newStock = currentStock - quantity;
+
+    if (newStock < 0) {
+      throw new Error(`Insufficient stock for product ${product.name}. Available: ${currentStock}, Requested: ${quantity}`);
+    }
+
+    await ctx.db.patch(productId, { stock: newStock });
+    return { success: true, stock: newStock };
   },
 });

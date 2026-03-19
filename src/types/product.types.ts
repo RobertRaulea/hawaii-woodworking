@@ -8,4 +8,7 @@ export interface Product {
   description: string | null;
   stripeProductId?: string | null;
   stripePriceId?: string | null;
+  stock?: number;
+  lowStockThreshold?: number;
+  trackStock?: boolean;
 }

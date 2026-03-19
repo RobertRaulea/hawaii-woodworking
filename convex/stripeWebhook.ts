@@ -33,8 +33,9 @@ export const handleStripeWebhook = httpAction(async (ctx, request) => {
     event.type === "checkout.session.completed" &&
     event.paymentStatus === "paid"
   ) {
+    let orderId;
     try {
-      await ctx.runMutation(internal.orders.markOrderPaid, {
+      orderId = await ctx.runMutation(internal.orders.markOrderPaid, {
         stripeSessionId: event.sessionId,
         stripePaymentIntentId: event.paymentIntentId,
       });
@@ -43,6 +44,14 @@ export const handleStripeWebhook = httpAction(async (ctx, request) => {
       return new Response("Failed to process payment confirmation", {
         status: 500,
       });
+    }
+
+    try {
+      await ctx.runAction(internal.postPayment.handlePostPayment, {
+        orderId,
+      });
+    } catch (err) {
+      console.error("Post-payment processing failed:", err);
     }
   }
 

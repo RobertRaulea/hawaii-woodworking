@@ -2,7 +2,7 @@ import type React from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 
@@ -64,6 +64,7 @@ export const AdminProducts: React.FC = () => {
                 <th className="px-4 py-3 text-left font-medium text-stone-600">Image</th>
                 <th className="px-4 py-3 text-left font-medium text-stone-600">Name</th>
                 <th className="px-4 py-3 text-left font-medium text-stone-600 hidden md:table-cell">Category</th>
+                <th className="px-4 py-3 text-center font-medium text-stone-600 hidden lg:table-cell">Stock</th>
                 <th className="px-4 py-3 text-right font-medium text-stone-600">Price</th>
                 <th className="px-4 py-3 text-right font-medium text-stone-600">Actions</th>
               </tr>
@@ -90,6 +91,44 @@ export const AdminProducts: React.FC = () => {
                   <td className="px-4 py-3 font-medium text-stone-900">{product.name}</td>
                   <td className="px-4 py-3 text-stone-500 hidden md:table-cell">
                     {product.category ?? '—'}
+                  </td>
+                  <td className="px-4 py-3 text-center hidden lg:table-cell">
+                    {(() => {
+                      const stock = product.stock ?? 0;
+                      const threshold = product.lowStockThreshold ?? 5;
+                      const trackStock = product.trackStock ?? true;
+                      
+                      if (!trackStock) {
+                        return (
+                          <span className="inline-flex items-center gap-1 text-xs text-stone-500">
+                            <Package className="h-3.5 w-3.5" />
+                            Unlimited
+                          </span>
+                        );
+                      }
+                      
+                      if (stock === 0) {
+                        return (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700">
+                            Out of Stock
+                          </span>
+                        );
+                      }
+                      
+                      if (stock <= threshold) {
+                        return (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+                            {stock} (Low)
+                          </span>
+                        );
+                      }
+                      
+                      return (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
+                          {stock}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-right text-stone-700">
                     {product.price.toFixed(2)} RON
