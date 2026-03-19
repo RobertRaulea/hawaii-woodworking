@@ -100,7 +100,13 @@ export const Cart: React.FC = () => {
                 <span className="w-8 text-center text-sm font-medium text-stone-900">{item.quantity}</span>
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="w-8 h-8 flex items-center justify-center rounded-md border border-stone-200 hover:border-stone-400 transition-colors"
+                  disabled={(() => {
+                    const isTrackingStock = item.trackStock ?? true;
+                    if (!isTrackingStock) return false;
+                    const availableStock = item.stock ?? 0;
+                    return item.quantity >= availableStock;
+                  })()}
+                  className="w-8 h-8 flex items-center justify-center rounded-md border border-stone-200 hover:border-stone-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-stone-200"
                 >
                   <Plus className="w-3.5 h-3.5 text-stone-600" />
                 </button>

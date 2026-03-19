@@ -4,6 +4,8 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  stock?: number;
+  trackStock?: boolean;
 }
 
 export interface CartState {

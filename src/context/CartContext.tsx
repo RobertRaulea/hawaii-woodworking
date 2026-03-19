@@ -70,7 +70,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isTrackingStock = trackStock ?? true;
     
     if (!isTrackingStock) {
-      dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
+      dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1, stock, trackStock } });
       setToastMessage(`${item.name} a fost adăugat în coș`);
       setShowToast(true);
       return true;
@@ -88,7 +88,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
+    dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1, stock, trackStock } });
     setToastMessage(`${item.name} a fost adăugat în coș`);
     setShowToast(true);
     return true;
@@ -99,9 +99,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = (id: string, quantity: number) => {
-    if (quantity > 0) {
-      dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+    if (quantity <= 0) {
+      return;
     }
+
+    const item = state.items.find(cartItem => cartItem.id === id);
+    if (!item) {
+      return;
+    }
+
+    // Check if stock tracking is enabled (default to true if undefined)
+    const isTrackingStock = item.trackStock ?? true;
+    
+    if (!isTrackingStock) {
+      dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+      return;
+    }
+
+    const availableStock = item.stock ?? 0;
+    
+    // Prevent exceeding available stock
+    if (quantity > availableStock) {
+      setToastMessage(`Stoc insuficient! Doar ${availableStock} disponibil${availableStock !== 1 ? 'e' : ''}.`);
+      setShowToast(true);
+      return;
+    }
+
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
 
   const clearCart = () => {
