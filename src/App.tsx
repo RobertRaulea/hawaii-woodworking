@@ -10,6 +10,7 @@ import { CartProvider } from './context/CartContext';
 import { ShippingProvider } from './context/ShippingContext';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
 import { AdminRoute } from './components/AdminRoute';
+import { ScrollToTop } from './components/ScrollToTop';
 
 // Lazy-loaded pages
 const Catalog = lazy(() => import('./pages/Catalog/Catalog').then((m) => ({ default: m.Catalog })));
@@ -46,6 +47,7 @@ function App() {
       <CartProvider>
         <ShippingProvider>
         <Router>
+          <ScrollToTop />
           <MaintenanceGuard>
             <Suspense fallback={<PageLoader />}>
               <Routes>

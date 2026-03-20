@@ -9,18 +9,30 @@ export const SettingsMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
   const { isSignedIn } = useAuth();
   const { t } = useTranslation();
 
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.matchMedia('(min-width: 768px)').matches);
+    };
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
   const handleMouseEnter = () => {
+    if (!isDesktop) return;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsOpen(true);
   };
 
   const handleMouseLeave = () => {
+    if (!isDesktop) return;
     timeoutRef.current = setTimeout(() => {
       setIsOpen(false);
-    }, 300); // 300ms delay for smoothness
+    }, 300);
   };
 
   useEffect(() => {

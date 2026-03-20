@@ -37,7 +37,7 @@ export const Products: React.FC = () => {
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 });
   const [sortBy, setSortBy] = useState<SortOption>('price-asc');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(true);
+  const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(false);
 
   const { minPrice, maxPrice } = useMemo(() => {
     if (!products.length) return { minPrice: 0, maxPrice: 10000 };
