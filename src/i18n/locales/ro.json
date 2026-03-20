@@ -161,7 +161,9 @@
     "priceDesc": "Preț: Mare la Mic",
     "nameAsc": "Nume: A-Z",
     "nameDesc": "Nume: Z-A",
-    "newest": "Cele mai noi"
+    "newest": "Cele mai noi",
+    "hide": "Ascunde Filtrele",
+    "show": "Afișează Filtrele"
   },
   "auth": {
     "login": "Autentificare",

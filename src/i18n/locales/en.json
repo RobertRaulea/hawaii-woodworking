@@ -161,7 +161,9 @@
     "priceDesc": "Price: High to Low",
     "nameAsc": "Name: A-Z",
     "nameDesc": "Name: Z-A",
-    "newest": "Newest"
+    "newest": "Newest",
+    "hide": "Hide Filters",
+    "show": "Show Filters"
   },
   "auth": {
     "login": "Login",

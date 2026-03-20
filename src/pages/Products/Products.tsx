@@ -37,6 +37,7 @@ export const Products: React.FC = () => {
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 });
   const [sortBy, setSortBy] = useState<SortOption>('price-asc');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(true);
 
   const { minPrice, maxPrice } = useMemo(() => {
     if (!products.length) return { minPrice: 0, maxPrice: 10000 };
@@ -239,6 +240,22 @@ export const Products: React.FC = () => {
                     </span>
                   )}
                 </button>
+
+                <button
+                  onClick={() => setIsDesktopFilterOpen(prev => !prev)}
+                  className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-colors"
+                  aria-label={isDesktopFilterOpen ? 'Hide filters' : 'Show filters'}
+                >
+                  <FunnelIcon className="h-5 w-5 text-stone-700" />
+                  <span className="text-sm font-medium text-stone-700">
+                    {isDesktopFilterOpen ? t('filters.hide') : t('filters.show')}
+                  </span>
+                  {activeFilterCount > 0 && (
+                    <span className="inline-flex items-center justify-center w-5 h-5 text-xs bg-amber-500 text-white rounded-full">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
                 
                 <div className="flex items-center gap-3 ml-auto">
                   <label htmlFor="sort" className="text-sm text-stone-600 hidden sm:block">
@@ -258,19 +275,27 @@ export const Products: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8">
-              <aside className="hidden lg:block">
-                <ProductFilters
-                  categories={categories}
-                  selectedCategories={selectedCategories}
-                  onCategoryChange={handleCategoryChange}
-                  productCounts={productCounts}
-                  minPrice={minPrice}
-                  maxPrice={maxPrice}
-                  selectedMinPrice={priceRange.min}
-                  selectedMaxPrice={priceRange.max}
-                  onPriceChange={handlePriceChange}
-                />
+            <div className="lg:flex lg:gap-8">
+              <aside
+                className={`hidden lg:block transition-all duration-300 ease-in-out ${
+                  isDesktopFilterOpen
+                    ? 'w-[280px] opacity-100'
+                    : 'w-0 opacity-0 pointer-events-none overflow-hidden'
+                }`}
+              >
+                <div className="w-[280px]">
+                  <ProductFilters
+                    categories={categories}
+                    selectedCategories={selectedCategories}
+                    onCategoryChange={handleCategoryChange}
+                    productCounts={productCounts}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    selectedMinPrice={priceRange.min}
+                    selectedMaxPrice={priceRange.max}
+                    onPriceChange={handlePriceChange}
+                  />
+                </div>
               </aside>
 
               <ProductFilters
