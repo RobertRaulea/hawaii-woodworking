@@ -3,4 +3,7 @@ export interface SiteAsset {
   name: string;
   category: string;
   url: string;
+  title?: string;
+  description?: string;
+  price?: number;
 }

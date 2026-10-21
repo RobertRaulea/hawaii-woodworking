@@ -5,6 +5,8 @@ import { useQuery, useMutation } from 'convex/react';
 import { ArrowLeft } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
+import { OrderInventoryReview } from './OrderInventoryReview';
+import { inventoryError } from '../../../utils/inventory.utils';
 
 type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -68,6 +70,7 @@ export const OrderDetail: React.FC = () => {
   );
   const updateStatus = useMutation(api.orders.updateStatus);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusError, setStatusError] = useState('');
 
   if (order === undefined) {
     return (
@@ -93,6 +96,7 @@ export const OrderDetail: React.FC = () => {
 
   const handleStatusChange = async (newStatus: OrderStatus) => {
     setUpdatingStatus(true);
+    setStatusError('');
     try {
       await updateStatus({
         orderId: order._id,
@@ -100,6 +104,7 @@ export const OrderDetail: React.FC = () => {
       });
     } catch (err) {
       console.error('Failed to update order status:', err);
+      setStatusError(inventoryError(err));
     } finally {
       setUpdatingStatus(false);
     }
@@ -136,13 +141,16 @@ export const OrderDetail: React.FC = () => {
             className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50"
           >
             {ALL_STATUSES.map((s) => (
-              <option key={s} value={s}>
+              <option key={s} value={s} disabled={['shipped', 'delivered'].includes(s) && order.inventoryStatus !== undefined && order.inventoryStatus !== 'applied'}>
                 {STATUS_LABELS[s]}
               </option>
             ))}
           </select>
         </div>
       </div>
+
+      {statusError ? <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{statusError}</p> : null}
+      <OrderInventoryReview order={order} />
 
       {/* Customer Info */}
       {order.customer && (

@@ -64,7 +64,7 @@ export const AdminProducts: React.FC = () => {
                 <th className="px-4 py-3 text-left font-medium text-stone-600">Image</th>
                 <th className="px-4 py-3 text-left font-medium text-stone-600">Name</th>
                 <th className="px-4 py-3 text-left font-medium text-stone-600 hidden md:table-cell">Category</th>
-                <th className="px-4 py-3 text-center font-medium text-stone-600 hidden lg:table-cell">Stock</th>
+                <th className="px-4 py-3 text-center font-medium text-stone-600 hidden lg:table-cell">Stoc online</th>
                 <th className="px-4 py-3 text-right font-medium text-stone-600">Price</th>
                 <th className="px-4 py-3 text-right font-medium text-stone-600">Actions</th>
               </tr>

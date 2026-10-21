@@ -21,7 +21,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const loading = product === undefined;
 
-  const currentStock = product?.stock ?? 0;
+  const currentStock = product?.availableStock ?? 0;
   const threshold = product?.lowStockThreshold ?? 5;
   const isTrackingStock = product?.trackStock ?? true;
   

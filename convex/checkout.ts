@@ -1,21 +1,16 @@
-"use node";
+'use node';
 
 import Stripe from 'stripe';
 import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
 import { action } from './_generated/server';
+import type { CheckoutSnapshotLine } from './lib/inventory.utils';
+import { toCents } from './lib/pos.utils';
 
 type CheckoutItem = {
   productId: Id<'products'>;
   quantity: number;
-};
-
-type CheckoutProduct = {
-  _id: Id<'products'>;
-  name: string;
-  price: number;
-  imageUrls?: string[];
 };
 
 type CheckoutResponse = {
@@ -37,7 +32,7 @@ export const createCheckoutSession = action({
       v.object({
         productId: v.id('products'),
         quantity: v.number(),
-      })
+      }),
     ),
     customer: v.object({
       clerkUserId: v.optional(v.string()),
@@ -51,7 +46,11 @@ export const createCheckoutSession = action({
   },
   handler: async (
     ctx,
-    { origin, items, customer }: {
+    {
+      origin,
+      items,
+      customer,
+    }: {
       origin: string;
       items: CheckoutItem[];
       customer: {
@@ -59,15 +58,31 @@ export const createCheckoutSession = action({
         email: string;
         firstName: string;
         lastName: string;
-        shippingAddress: { street: string; city: string; county: string; postalCode: string; country: string };
-        billingAddress: { street: string; city: string; county: string; postalCode: string; country: string };
+        shippingAddress: {
+          street: string;
+          city: string;
+          county: string;
+          postalCode: string;
+          country: string;
+        };
+        billingAddress: {
+          street: string;
+          city: string;
+          county: string;
+          postalCode: string;
+          country: string;
+        };
         newsletter: boolean;
       };
-    }
+    },
   ): Promise<CheckoutResponse> => {
     if (items.length === 0) {
       throw new Error('No items provided for checkout.');
     }
+    const snapshot: CheckoutSnapshotLine[] = await ctx.runQuery(
+      internal.orders.getCheckoutSnapshot,
+      { items },
+    );
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
@@ -87,14 +102,14 @@ export const createCheckoutSession = action({
         shippingAddress: customer.shippingAddress,
         billingAddress: customer.billingAddress,
         newsletter: customer.newsletter,
-      }
+      },
     );
 
     // 1b. Create or reuse Stripe Customer
-    const existingStripeId = await ctx.runMutation(
+    const existingStripeId = (await ctx.runMutation(
       internal.customers.getStripeCustomerId,
-      { customerId }
-    ) as string | null;
+      { customerId },
+    )) as string | null;
 
     let stripeCustomerId: string | undefined = existingStripeId ?? undefined;
 
@@ -134,38 +149,29 @@ export const createCheckoutSession = action({
     }
 
     // 2. Resolve products
-    const products = (await ctx.runQuery(api.products.getAll, {})) as CheckoutProduct[];
-    const requestedIds = new Set(items.map((item) => item.productId));
-    const productMap = new Map<Id<'products'>, CheckoutProduct>(
-      products
-        .filter((product) => requestedIds.has(product._id))
-        .map((product) => [product._id, product])
+    const productMap = new Map(
+      snapshot.map((product) => [product.productId, product]),
     );
 
     // 3. Build order items with product snapshots
-    const orderItems = items.map((item) => {
-      const product = productMap.get(item.productId);
-      if (!product) {
-        throw new Error(`Product not found for checkout: ${item.productId}`);
-      }
-      return {
-        productId: item.productId,
-        name: product.name,
-        price: product.price,
-        quantity: item.quantity,
-      };
-    });
+    const orderItems = snapshot.map(({ productId, name, price, quantity }) => ({
+      productId,
+      name,
+      price,
+      quantity,
+    }));
 
-    const total = orderItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    const total =
+      orderItems.reduce(
+        (sum, item) => sum + toCents(item.price) * item.quantity,
+        0,
+      ) / 100;
 
     // 4. Build Stripe line items
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems.map(
-      (item) => {
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
+      orderItems.map((item) => {
         const product = productMap.get(item.productId);
-        const image = product?.imageUrls?.[0];
+        const image = product?.image;
 
         return {
           price_data: {
@@ -178,8 +184,7 @@ export const createCheckoutSession = action({
           },
           quantity: item.quantity,
         };
-      }
-    );
+      });
 
     // 5. Create Stripe session with Stripe Customer
     const session = await stripe.checkout.sessions.create({

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from 'convex/react';
 import { ShoppingBag, Eye } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
+import { InventoryReviewSummary } from './InventoryReviewSummary';
 
 type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -71,6 +72,7 @@ export const AdminOrders: React.FC = () => {
 
   return (
     <section className="space-y-8">
+      <InventoryReviewSummary />
       {/* Today's Summary */}
       <div>
         <h1 className="text-2xl font-bold text-stone-900 mb-4">Orders</h1>

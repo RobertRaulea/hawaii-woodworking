@@ -70,6 +70,14 @@ export const handlePostPayment = internalAction({
     if (!order) {
       throw new Error(`Order not found: ${orderId}`);
     }
+    if (
+      order.inventoryStatus !== undefined &&
+      order.inventoryStatus !== "applied"
+    ) {
+      throw new Error(
+        "Order inventory must be applied before post-payment processing"
+      );
+    }
 
     let invoiceId = "";
     let invoicePdfUrl = "";

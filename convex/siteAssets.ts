@@ -15,9 +15,12 @@ export const saveSiteAsset = mutation({
   args: {
     name: v.string(),
     category: v.string(),
-    storageId: v.id("_storage"),
+    storageId: v.optional(v.id("_storage")),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    price: v.optional(v.number()),
   },
-  handler: async (ctx, { name, category, storageId }) => {
+  handler: async (ctx, { name, category, storageId, title, description, price }) => {
     await requireAdmin(ctx);
     const existing = await ctx.db
       .query("siteAssets")
@@ -27,19 +30,31 @@ export const saveSiteAsset = mutation({
     if (existing.length > 0) {
       const [primary, ...duplicates] = existing;
 
-      await ctx.db.patch(primary._id, { storageId });
-
       if (duplicates.length > 0) {
         await Promise.all(duplicates.map((duplicate) => ctx.db.delete(duplicate._id)));
       }
 
+      await ctx.db.patch(primary._id, {
+        ...(storageId ? { storageId } : {}),
+        title,
+        description,
+        price,
+      });
+
       return primary._id;
+    }
+
+    if (!storageId) {
+      throw new Error("An image is required to create a new custom work");
     }
 
     return await ctx.db.insert("siteAssets", {
       name,
       category,
       storageId,
+      title,
+      description,
+      price,
     });
   },
 });

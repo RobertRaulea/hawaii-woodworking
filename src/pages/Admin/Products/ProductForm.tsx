@@ -357,7 +357,7 @@ export const ProductForm: React.FC = () => {
           
           <div>
             <label htmlFor="stock" className="block text-sm font-medium text-stone-700 mb-1">
-              Stock Quantity <span className="text-red-500">*</span>
+              Stoc disponibil online <span className="text-red-500">*</span>
             </label>
             <input
               id="stock"
