@@ -18,6 +18,9 @@ export const useSiteAssets = (category: string) => {
       name: asset.name,
       category: asset.category,
       url: asset.url,
+      title: asset.title,
+      description: asset.description,
+      price: asset.price,
     }));
   }, [data]);
 

@@ -1,18 +1,26 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
 import { resolveImageUrls } from "./lib/storage";
+import { catalogAvailableStock, onlineReviewClaims } from "./lib/inventory.utils";
 
 // Fetch all products
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    const products = await ctx.db.query("products").collect();
+    const [products, claims] = await Promise.all([
+      ctx.db.query("products").collect(),
+      onlineReviewClaims(ctx),
+    ]);
 
     return await Promise.all(
       products.map(async (product) => {
         const imageUrls = await resolveImageUrls(ctx, product.imageStorageIds);
-        return { ...product, imageUrls };
+        return {
+          ...product,
+          imageUrls,
+          availableStock: catalogAvailableStock(product, claims),
+        };
       })
     );
   },
@@ -161,7 +169,11 @@ export const getById = query({
     }
 
     const imageUrls = await resolveImageUrls(ctx, product.imageStorageIds);
-    return { ...product, imageUrls };
+    return {
+      ...product,
+      imageUrls,
+      availableStock: catalogAvailableStock(product, await onlineReviewClaims(ctx)),
+    };
   },
 });
 
@@ -257,6 +269,10 @@ export const deleteProduct = mutation({
     const product = await ctx.db.get(id);
     if (!product) {
       throw new Error("Product not found");
+    }
+    const balances = await ctx.db.query("fairInventory").withIndex("by_product", (q) => q.eq("productId", id)).collect();
+    if (balances.some((balance) => balance.quantity !== 0)) {
+      throw new ConvexError("Produsul are stoc la târg. Transferă stocul înainte de ștergere.");
     }
     await ctx.db.delete(id);
     return { deleted: true };

@@ -2,7 +2,7 @@
   "nav": {
     "home": "Acasă",
     "products": "Produse",
-    "catalog": "Catalog",
+    "catalog": "La comandă",
     "cart": "Coș",
     "myOrders": "Comenzile mele",
     "accountSettings": "Setări cont",
@@ -50,7 +50,19 @@
     "subtitle": "Artizanat & Tehnologie CNC",
     "title": "Bun venit la Hawaii Woodworking",
     "description": "Îmbinăm tradiția prelucrării lemnului cu tehnologia CNC de ultimă generație pentru a crea piese unice, durabile și personalizate.",
-    "viewCatalog": "Vezi Catalog"
+    "viewCatalog": "Vezi lucrările"
+  },
+  "customWork": {
+    "title": "Lucrări la comandă",
+    "subtitle": "Fiecare piesă pornește de la o idee și prinde formă în atelierul nostru. Descoperă proiecte realizate pentru clienții noștri, cu prețul și povestea fiecărei lucrări.",
+    "projects": "proiecte",
+    "empty": "În curând vom adăuga aici lucrări realizate la comandă.",
+    "madeToOrder": "Realizat la comandă",
+    "viewDetails": "Vezi detalii",
+    "price": "Preț",
+    "priceOnRequest": "Preț la cerere",
+    "legacyDescription": "Lucrare realizată în atelierul Hawaii Woodworking.",
+    "close": "Închide"
   },
   "cart": {
     "title": "Coș de cumpărături",
@@ -212,8 +224,8 @@
     "productsDescription": "Explorați gama noastră variată de produse din lemn lucrate manual: cadouri personalizate, decorațiuni unice și mobilier pentru casă și restaurant. Calitate românească.",
     "homeTitle": "Hawaii Woodworking - Artizanat din Lemn de Calitate",
     "homeDescription": "Descoperiți produse unice din lemn, lucrate manual cu pasiune și precizie. De la mobilier personalizat la decorațiuni artizanale.",
-    "catalogTitle": "Catalog Produse - Hawaii Woodworking",
-    "catalogDescription": "Răsfoiți catalogul nostru complet de produse din lemn: mobilier, decorațiuni, cadouri personalizate și multe altele."
+    "catalogTitle": "Lucrări la comandă - Hawaii Woodworking",
+    "catalogDescription": "Descoperă lucrări din lemn realizate la comandă în atelierul Hawaii Woodworking, alături de descrieri și prețuri."
   },
   "settings": {
     "title": "Setări",

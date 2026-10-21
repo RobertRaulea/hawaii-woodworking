@@ -2,7 +2,7 @@
   "nav": {
     "home": "Startseite",
     "products": "Produkte",
-    "catalog": "Katalog",
+    "catalog": "Auftragsarbeiten",
     "cart": "Warenkorb",
     "myOrders": "Meine Bestellungen",
     "accountSettings": "Kontoeinstellungen",
@@ -50,7 +50,19 @@
     "subtitle": "Handwerk & CNC-Technologie",
     "title": "Willkommen bei Hawaii Woodworking",
     "description": "Wir verbinden traditionelle Holzbearbeitung mit modernster CNC-Technologie, um einzigartige, langlebige und personalisierte Stücke zu schaffen.",
-    "viewCatalog": "Katalog ansehen"
+    "viewCatalog": "Arbeiten ansehen"
+  },
+  "customWork": {
+    "title": "Individuelle Auftragsarbeiten",
+    "subtitle": "Jedes Stück beginnt mit einer Idee und nimmt in unserer Werkstatt Gestalt an. Entdecken Sie Projekte für unsere Kunden mit Preis und Geschichte.",
+    "projects": "Projekte",
+    "empty": "Hier erscheinen bald neue Auftragsarbeiten.",
+    "madeToOrder": "Auf Bestellung gefertigt",
+    "viewDetails": "Details ansehen",
+    "price": "Preis",
+    "priceOnRequest": "Preis auf Anfrage",
+    "legacyDescription": "Handgefertigt in der Hawaii Woodworking Werkstatt.",
+    "close": "Schließen"
   },
   "cart": {
     "title": "Warenkorb",
@@ -212,8 +224,8 @@
     "productsDescription": "Entdecken Sie unsere vielfältige Auswahl an handgefertigten Holzprodukten: personalisierte Geschenke, einzigartige Dekorationen und Möbel für Zuhause und Restaurant. Rumänische Qualität.",
     "homeTitle": "Hawaii Woodworking - Qualitätsholzhandwerk",
     "homeDescription": "Entdecken Sie einzigartige Holzprodukte, handgefertigt mit Leidenschaft und Präzision. Von maßgefertigten Möbeln bis hin zu handwerklichen Dekorationen.",
-    "catalogTitle": "Produktkatalog - Hawaii Woodworking",
-    "catalogDescription": "Durchsuchen Sie unseren vollständigen Katalog von Holzprodukten: Möbel, Dekorationen, personalisierte Geschenke und vieles mehr."
+    "catalogTitle": "Auftragsarbeiten aus Holz - Hawaii Woodworking",
+    "catalogDescription": "Entdecken Sie individuelle Holzarbeiten aus der Werkstatt von Hawaii Woodworking mit Beschreibungen und Preisen."
   },
   "settings": {
     "title": "Einstellungen",

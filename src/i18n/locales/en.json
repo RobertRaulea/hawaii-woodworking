@@ -2,7 +2,7 @@
   "nav": {
     "home": "Home",
     "products": "Products",
-    "catalog": "Catalog",
+    "catalog": "Custom work",
     "cart": "Cart",
     "myOrders": "My Orders",
     "accountSettings": "Account Settings",
@@ -50,7 +50,19 @@
     "subtitle": "Craftsmanship & CNC Technology",
     "title": "Welcome to Hawaii Woodworking",
     "description": "We combine traditional woodworking with state-of-the-art CNC technology to create unique, durable and personalized pieces.",
-    "viewCatalog": "View Catalog"
+    "viewCatalog": "View our work"
+  },
+  "customWork": {
+    "title": "Made to order",
+    "subtitle": "Every piece begins with an idea and takes shape in our workshop. Explore projects made for our customers, with the price and story behind each one.",
+    "projects": "projects",
+    "empty": "New made-to-order projects will appear here soon.",
+    "madeToOrder": "Made to order",
+    "viewDetails": "View details",
+    "price": "Price",
+    "priceOnRequest": "Price on request",
+    "legacyDescription": "Handcrafted in the Hawaii Woodworking workshop.",
+    "close": "Close"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -212,8 +224,8 @@
     "homeDescription": "Discover unique wooden products, handcrafted with passion and precision. From custom furniture to artisan decorations.",
     "productsTitle": "Handcrafted Wooden Products - Hawaii Woodworking",
     "productsDescription": "Explore our diverse range of handcrafted wooden products: personalized gifts, unique decorations, and furniture for home and restaurant. Romanian quality.",
-    "catalogTitle": "Product Catalog - Hawaii Woodworking",
-    "catalogDescription": "Browse our complete catalog of wooden products: furniture, decorations, personalized gifts and much more."
+    "catalogTitle": "Custom Woodwork - Hawaii Woodworking",
+    "catalogDescription": "Explore made-to-order woodwork from the Hawaii Woodworking workshop, with project descriptions and prices."
   },
   "settings": {
     "title": "Settings",

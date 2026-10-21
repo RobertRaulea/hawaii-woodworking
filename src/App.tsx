@@ -34,6 +34,10 @@ const AdminCustomers = lazy(() => import('./pages/Admin/Customers/AdminCustomers
 const CustomerDetail = lazy(() => import('./pages/Admin/Customers/CustomerDetail').then((m) => ({ default: m.CustomerDetail })));
 const OrderDetail = lazy(() => import('./pages/Admin/Orders/OrderDetail').then((m) => ({ default: m.OrderDetail })));
 const AdminCategories = lazy(() => import('./pages/Admin/Categories/AdminCategories').then((m) => ({ default: m.AdminCategories })));
+const AdminCustomWorks = lazy(() => import('./pages/Admin/CustomWorks/AdminCustomWorks').then((m) => ({ default: m.AdminCustomWorks })));
+const PointOfSale = lazy(() => import('./pages/Admin/PointOfSale/PointOfSale').then((m) => ({ default: m.PointOfSale })));
+const AdminFairs = lazy(() => import('./pages/Admin/Fairs/AdminFairs').then((m) => ({ default: m.AdminFairs })));
+const AdminInventory = lazy(() => import('./pages/Admin/Inventory/AdminInventory').then((m) => ({ default: m.AdminInventory })));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -72,7 +76,10 @@ function App() {
                 {/* Admin routes */}
                 <Route path="admin/login" element={<AdminLogin />} />
                 <Route path="admin" element={<AdminRoute />}>
+                  <Route path="pos" element={<PointOfSale />} />
                   <Route element={<AdminLayout />}>
+                    <Route path="fairs" element={<AdminFairs />} />
+                    <Route path="inventory" element={<AdminInventory />} />
                     <Route index element={<AdminProducts />} />
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="products/new" element={<ProductForm />} />
@@ -82,6 +89,7 @@ function App() {
                     <Route path="customers" element={<AdminCustomers />} />
                     <Route path="customers/:id" element={<CustomerDetail />} />
                     <Route path="categories" element={<AdminCategories />} />
+                    <Route path="custom-works" element={<AdminCustomWorks />} />
                   </Route>
                 </Route>
               </Routes>
