@@ -23,6 +23,9 @@ export default defineSchema({
     trackStock: v.optional(v.boolean()),
     sku: v.optional(v.string()),
     posFavorite: v.optional(v.boolean()),
+    active: v.optional(v.boolean()),
+    archivedAt: v.optional(v.number()),
+    archivedBy: v.optional(v.string()),
   }),
   customers: defineTable({
     clerkUserId: v.optional(v.string()),
@@ -81,7 +84,45 @@ export default defineSchema({
         v.literal("pending"),
         v.literal("applied"),
         v.literal("needs_review"),
+        v.literal("released"),
       ),
+    ),
+    fulfillmentStatus: v.optional(
+      v.union(v.literal("preparing"), v.literal("packed")),
+    ),
+    assignedTo: v.optional(v.string()),
+    assignedAt: v.optional(v.number()),
+    checklist: v.optional(
+      v.array(
+        v.object({
+          productId: v.id("products"),
+          checked: v.boolean(),
+        }),
+      ),
+    ),
+    packedAt: v.optional(v.number()),
+    shippedAt: v.optional(v.number()),
+    shippedBy: v.optional(v.string()),
+    awb: v.optional(v.string()),
+    carrier: v.optional(v.string()),
+    deliveredAt: v.optional(v.number()),
+    cancelledAt: v.optional(v.number()),
+    cancelledBy: v.optional(v.string()),
+    cancelReason: v.optional(v.string()),
+    refundStatus: v.optional(v.literal("manual_required")),
+    inventoryRestockedAt: v.optional(v.number()),
+    shipping: v.optional(
+      v.object({
+        firstName: v.string(),
+        lastName: v.string(),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          county: v.string(),
+          postalCode: v.string(),
+          country: v.string(),
+        }),
+      }),
     ),
     inventoryAppliedAt: v.optional(v.number()),
     inventoryAppliedItems: v.optional(
@@ -136,10 +177,34 @@ export default defineSchema({
     name: v.string(),
     active: v.boolean(),
     createdBy: v.string(),
+    startsOn: v.optional(v.string()),
+    endsOn: v.optional(v.string()),
     archivedAt: v.optional(v.number()),
     archivedBy: v.optional(v.string()),
     archiveOperationId: v.optional(v.id("inventoryOperations")),
   }),
+
+  fairAssignments: defineTable({
+    fairId: v.id("fairs"),
+    userId: v.string(),
+    assignedBy: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_fair", ["fairId"])
+    .index("by_fair_user", ["fairId", "userId"]),
+
+  staffDirectory: defineTable({
+    userId: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    role: v.optional(
+      v.union(v.literal("admin"), v.literal("seller"), v.literal("atelier")),
+    ),
+    updatedAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_email", ["email"]),
 
   fairInventory: defineTable({
     fairId: v.id("fairs"),
@@ -211,6 +276,12 @@ export default defineSchema({
       v.literal("transfer"),
       v.literal("sale"),
       v.literal("online_sale"),
+      v.literal("receipt"),
+      v.literal("adjustment"),
+      v.literal("count"),
+      v.literal("transfer_out"),
+      v.literal("transfer_in"),
+      v.literal("online_cancel"),
     ),
     quantity: v.number(),
     balanceAfter: v.number(),
@@ -218,9 +289,151 @@ export default defineSchema({
     saleId: v.optional(v.id("posSales")),
     orderId: v.optional(v.id("orders")),
     operationId: v.optional(v.id("inventoryOperations")),
-    reason: v.optional(v.literal("fair_archive")),
+    stockOperationId: v.optional(v.id("stockOperations")),
+    transferId: v.optional(v.id("transfers")),
+    reason: v.optional(
+      v.union(
+        v.literal("fair_archive"),
+        v.literal("production"),
+        v.literal("damaged"),
+        v.literal("lost"),
+        v.literal("found"),
+        v.literal("correction"),
+        v.literal("other"),
+        v.literal("count"),
+      ),
+    ),
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_request", ["requestId"])
+    .index("by_location_fair", ["location", "fairId"])
+    .index("by_product_location", ["productId", "location", "fairId"]),
+
+  stockOperations: defineTable({
+    requestId: v.string(),
+    actorId: v.string(),
+    kind: v.union(
+      v.literal("receipt"),
+      v.literal("adjustment"),
+      v.literal("count"),
+    ),
+    productId: v.id("products"),
+    productName: v.string(),
+    location: v.union(v.literal("workshop"), v.literal("fair")),
+    fairId: v.optional(v.id("fairs")),
+    fairName: v.optional(v.string()),
+    delta: v.number(),
+    quantityBefore: v.number(),
+    quantityAfter: v.number(),
+    expectedQuantity: v.optional(v.number()),
+    countedQuantity: v.optional(v.number()),
+    reason: v.union(
+      v.literal("production"),
+      v.literal("damaged"),
+      v.literal("lost"),
+      v.literal("found"),
+      v.literal("correction"),
+      v.literal("other"),
+      v.literal("count"),
+    ),
+    note: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_request", ["requestId"]),
+
+  transfers: defineTable({
+    status: v.union(
+      v.literal("requested"),
+      v.literal("draft"),
+      v.literal("in_transit"),
+      v.literal("partially_received"),
+      v.literal("received"),
+      v.literal("cancelled"),
+    ),
+    createdBy: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    fromLocation: v.optional(
+      v.union(v.literal("workshop"), v.literal("fair")),
+    ),
+    fromFairId: v.optional(v.id("fairs")),
+    toLocation: v.union(v.literal("workshop"), v.literal("fair")),
+    toFairId: v.optional(v.id("fairs")),
+    lines: v.array(
+      v.object({
+        productId: v.id("products"),
+        productName: v.string(),
+        requestedQuantity: v.optional(v.number()),
+        quantity: v.number(),
+        shippedQuantity: v.number(),
+        receivedQuantity: v.number(),
+      }),
+    ),
+    note: v.optional(v.string()),
+    shippedAt: v.optional(v.number()),
+    shippedBy: v.optional(v.string()),
+    receivedAt: v.optional(v.number()),
+    cancelledAt: v.optional(v.number()),
+    cancelledBy: v.optional(v.string()),
+    cancelReason: v.optional(v.string()),
+  })
+    .index("by_status", ["status"])
+    .index("by_createdBy", ["createdBy"]),
+
+  transferEvents: defineTable({
+    transferId: v.id("transfers"),
+    requestId: v.string(),
+    actorId: v.string(),
+    kind: v.union(
+      v.literal("requested"),
+      v.literal("accepted"),
+      v.literal("created"),
+      v.literal("updated"),
+      v.literal("shipped"),
+      v.literal("received"),
+      v.literal("cancelled"),
+    ),
+    lines: v.optional(
+      v.array(
+        v.object({ productId: v.id("products"), quantity: v.number() }),
+      ),
+    ),
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_request", ["requestId"])
+    .index("by_transfer", ["transferId"]),
+
+  orderEvents: defineTable({
+    orderId: v.id("orders"),
+    requestId: v.string(),
+    actorId: v.string(),
+    kind: v.union(
+      v.literal("claimed"),
+      v.literal("released"),
+      v.literal("reassigned"),
+      v.literal("checked"),
+      v.literal("note"),
+      v.literal("packed"),
+      v.literal("shipped"),
+      v.literal("delivered"),
+      v.literal("cancelled"),
+    ),
+    note: v.optional(v.string()),
+    data: v.optional(
+      v.object({
+        productId: v.optional(v.id("products")),
+        checked: v.optional(v.boolean()),
+        fromUser: v.optional(v.string()),
+        toUser: v.optional(v.string()),
+        awb: v.optional(v.string()),
+        carrier: v.optional(v.string()),
+      }),
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_order", ["orderId"])
+    .index("by_request", ["requestId"]),
 
   inventoryOperations: defineTable({
     requestId: v.string(),

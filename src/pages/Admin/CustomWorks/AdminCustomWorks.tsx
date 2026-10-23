@@ -83,7 +83,7 @@ export const AdminCustomWorks: React.FC = () => {
   const onSubmit = async (values: CustomWorkFormValues) => {
     setSubmitError(null);
     if (!editingAsset && !selectedFile) {
-      setSubmitError('Choose a photo for this work before publishing.');
+      setSubmitError('Alege o fotografie pentru lucrare înainte de publicare.');
       return;
     }
 
@@ -101,7 +101,7 @@ export const AdminCustomWorks: React.FC = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Image upload failed. Please try again.');
+          throw new Error('Încărcarea imaginii a eșuat. Încearcă din nou.');
         }
 
         const result = (await response.json()) as { storageId: string };
@@ -120,7 +120,7 @@ export const AdminCustomWorks: React.FC = () => {
 
       resetForm();
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Could not save this work.');
+      setSubmitError(error instanceof Error ? error.message : 'Lucrarea nu a putut fi salvată.');
     }
   };
 

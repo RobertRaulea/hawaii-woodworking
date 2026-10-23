@@ -4,20 +4,44 @@ import { Link } from 'react-router-dom';
 import {
   ArchiveBoxIcon,
   MapPinIcon,
+  PencilSquareIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline';
 import { api } from '../../../../convex/_generated/api';
-import type { Id } from '../../../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { useInventoryOperation } from '../../../hooks/useInventoryOperation';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { InventoryFeedback } from '../Inventory/InventoryFeedback';
 import { FairForm } from './FairForm';
+import { FairSellers } from './FairSellers';
 import { ArchiveFairDialog } from './ArchiveFairDialog';
 
 interface FairWorkspaceProps {
   actorId: string;
 }
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+const fairStatus = (fair: {
+  active: boolean;
+  startsOn?: string;
+  endsOn?: string;
+}) => {
+  if (!fair.active) return 'Arhivat';
+  const day = today();
+  if (fair.startsOn && day < fair.startsOn) return 'Planificat';
+  if (fair.endsOn && day > fair.endsOn) return 'Încheiat';
+  return 'Activ';
+};
+
+const fairPeriod = (fair: { startsOn?: string; endsOn?: string }) => {
+  if (fair.startsOn && fair.endsOn)
+    return `${fair.startsOn} – ${fair.endsOn}`;
+  if (fair.startsOn) return `din ${fair.startsOn}`;
+  if (fair.endsOn) return `până la ${fair.endsOn}`;
+  return 'fără perioadă';
+};
 
 const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
   const { data: fairs, error } = useAdminQuery(api.pos.listFairs, {
@@ -28,6 +52,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState(false);
   const [archiving, setArchiving] = useState<Id<'fairs'> | null>(null);
+  const [editing, setEditing] = useState<Doc<'fairs'> | null>(null);
   const active = fairs?.filter((fair) => fair.active).length ?? 0;
   const visible = fairs?.filter(
     (fair) => fair.active === (filter === 'active'),
@@ -127,49 +152,85 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
             </div>
           ) : (
             <ul className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-              {visible.map((fair) => (
-                <li
-                  key={fair._id}
-                  className="flex flex-col gap-4 border-b border-stone-100 p-5 last:border-0 md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`rounded-xl p-3 ${fair.active ? 'bg-amber-50 text-amber-800' : 'bg-stone-100 text-stone-500'}`}
-                    >
-                      <MapPinIcon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-stone-900">
-                        {fair.name}
-                      </h2>
-                      <p className="mt-1 text-xs text-stone-500">
-                        {fair.active
-                          ? 'Activ · disponibil în POS'
-                          : `Arhivat${fair.archivedAt ? ` · ${new Date(fair.archivedAt).toLocaleDateString('ro-RO')}` : ''} · istoric păstrat`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Link
-                      to={`/admin/inventory?fairId=${fair._id}`}
-                      className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-medium text-stone-700"
-                    >
-                      Vezi stocul
-                    </Link>
-                    {fair.active ? (
-                      <button
-                        type="button"
-                        disabled={operation.blocked || !operation.online}
-                        onClick={() => setArchiving(fair._id)}
-                        aria-label={`Arhivează ${fair.name}`}
-                        className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm text-amber-900 hover:bg-amber-50 disabled:opacity-40"
+              {visible.map((fair) => {
+                const status = fairStatus(fair);
+                return (
+                  <li
+                    key={fair._id}
+                    className="flex flex-col gap-4 border-b border-stone-100 p-5 last:border-0 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`rounded-xl p-3 ${fair.active ? 'bg-amber-50 text-amber-800' : 'bg-stone-100 text-stone-500'}`}
                       >
-                        <ArchiveBoxIcon className="h-4 w-4" /> Arhivează
-                      </button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
+                        <MapPinIcon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-stone-900">
+                          {fair.name}
+                        </h2>
+                        <p className="mt-1 text-xs text-stone-500">
+                          {status} · {fairPeriod(fair)}
+                          {!fair.active && fair.archivedAt
+                            ? ` · arhivat la ${new Date(fair.archivedAt).toLocaleDateString('ro-RO')} · istoric păstrat`
+                            : ''}
+                        </p>
+                        <p className="mt-0.5 text-xs text-stone-400">
+                          Locație de inventar: stocul propriu al târgului
+                        </p>
+                        {fair.active ? <FairSellers fairId={fair._id} /> : null}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        to={`/admin/pos?fairId=${fair._id}`}
+                        className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-medium text-stone-700"
+                      >
+                        Deschide POS
+                      </Link>
+                      <Link
+                        to={`/admin/inventory?fairId=${fair._id}`}
+                        className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-medium text-stone-700"
+                      >
+                        Stoc
+                      </Link>
+                      <Link
+                        to={`/admin/transfers?location=${fair._id}`}
+                        className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-medium text-stone-700"
+                      >
+                        Transferuri
+                      </Link>
+                      <Link
+                        to={`/admin/transfers/new?from=workshop&to=${fair._id}`}
+                        className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 text-sm font-medium text-stone-700"
+                      >
+                        Transfer nou
+                      </Link>
+                      {fair.active ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setEditing(fair)}
+                            aria-label={`Editează ${fair.name}`}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm text-stone-700 hover:bg-stone-50"
+                          >
+                            <PencilSquareIcon className="h-4 w-4" /> Editează
+                          </button>
+                          <button
+                            type="button"
+                            disabled={operation.blocked || !operation.online}
+                            onClick={() => setArchiving(fair._id)}
+                            aria-label={`Arhivează ${fair.name}`}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm text-amber-900 hover:bg-amber-50 disabled:opacity-40"
+                          >
+                            <ArchiveBoxIcon className="h-4 w-4" /> Arhivează
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </>
@@ -183,6 +244,15 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
               setCreated(true);
               setFilter('active');
             }}
+          />
+        </AdminDialog>
+      ) : null}
+      {editing ? (
+        <AdminDialog title="Editează târg" onClose={() => setEditing(null)}>
+          <FairForm
+            fair={editing}
+            disabled={!operation.online}
+            onCreated={() => setEditing(null)}
           />
         </AdminDialog>
       ) : null}

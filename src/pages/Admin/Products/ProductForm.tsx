@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from 'convex/react';
 import { Upload, X, ArrowLeft, GripVertical, AlertCircle } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
@@ -13,11 +13,11 @@ interface ProductFormValues {
   name_en: string;
   name_de: string;
   price: string;
+  sku: string;
   category: string;
   description: string;
   description_en: string;
   description_de: string;
-  stock: string;
   lowStockThreshold: string;
   trackStock: boolean;
 }
@@ -32,10 +32,10 @@ export const ProductForm: React.FC = () => {
   const isEditing = Boolean(id);
   const navigate = useNavigate();
 
-  const existingProduct = useQuery(
-    api.products.getById,
-    id ? { id: id as Id<'products'> } : 'skip'
-  );
+  const catalog = useQuery(api.products.listAdmin);
+  const existingProduct = isEditing
+    ? catalog?.find((product) => product._id === id)
+    : undefined;
 
   const categories = useQuery(api.categories.getAll);
   const categoriesLoading = categories === undefined;
@@ -61,11 +61,11 @@ export const ProductForm: React.FC = () => {
       name_en: '',
       name_de: '',
       price: '',
+      sku: '',
       category: '',
       description: '',
       description_en: '',
       description_de: '',
-      stock: '0',
       lowStockThreshold: '5',
       trackStock: true,
     },
@@ -79,11 +79,11 @@ export const ProductForm: React.FC = () => {
         name_en: existingProduct.name_en ?? '',
         name_de: existingProduct.name_de ?? '',
         price: String(existingProduct.price),
+        sku: existingProduct.sku ?? '',
         category: existingProduct.category ?? '',
         description: existingProduct.description ?? '',
         description_en: existingProduct.description_en ?? '',
         description_de: existingProduct.description_de ?? '',
-        stock: String(existingProduct.stock ?? 0),
         lowStockThreshold: String(existingProduct.lowStockThreshold ?? 5),
         trackStock: existingProduct.trackStock ?? true,
       });
@@ -139,7 +139,7 @@ export const ProductForm: React.FC = () => {
       setImages((prev) => [...prev, ...newImages]);
     } catch (err) {
       console.error('Image upload failed:', err);
-      setSubmitError(err instanceof Error ? err.message : 'Image upload failed');
+      setSubmitError(err instanceof Error ? err.message : 'Încărcarea imaginii a eșuat.');
     } finally {
       setCompressing(false);
       setUploading(false);
@@ -176,19 +176,13 @@ export const ProductForm: React.FC = () => {
 
     const price = parseFloat(values.price);
     if (isNaN(price) || price < 0) {
-      setSubmitError('Price must be a valid positive number.');
-      return;
-    }
-
-    const stock = parseInt(values.stock);
-    if (isNaN(stock) || stock < 0) {
-      setSubmitError('Stock must be a valid non-negative number.');
+      setSubmitError('Prețul trebuie să fie un număr pozitiv valid.');
       return;
     }
 
     const lowStockThreshold = parseInt(values.lowStockThreshold);
     if (isNaN(lowStockThreshold) || lowStockThreshold < 0) {
-      setSubmitError('Low stock threshold must be a valid non-negative number.');
+      setSubmitError('Pragul de stoc minim trebuie să fie un număr valid, mai mare sau egal cu zero.');
       return;
     }
 
@@ -203,13 +197,13 @@ export const ProductForm: React.FC = () => {
           name_en: values.name_en || undefined,
           name_de: values.name_de || undefined,
           price,
+          sku: values.sku,
           category: values.category || undefined,
           description: values.description || undefined,
           description_ro: values.description || undefined,
           description_en: values.description_en || undefined,
           description_de: values.description_de || undefined,
           imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,
-          stock,
           lowStockThreshold,
           trackStock: values.trackStock,
         });
@@ -219,12 +213,12 @@ export const ProductForm: React.FC = () => {
           name_en: values.name_en || undefined,
           name_de: values.name_de || undefined,
           price,
+          sku: values.sku,
           category: values.category || undefined,
           description: values.description || undefined,
           description_en: values.description_en || undefined,
           description_de: values.description_de || undefined,
           imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,
-          stock,
           lowStockThreshold,
           trackStock: values.trackStock,
         });
@@ -232,37 +226,37 @@ export const ProductForm: React.FC = () => {
 
       navigate('/admin/products');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save product';
+      const message = err instanceof Error ? err.message : 'Salvarea produsului a eșuat.';
       setSubmitError(message);
     }
   };
 
-  const isLoading = isEditing && existingProduct === undefined;
+  const isLoading = isEditing && catalog === undefined;
 
   const pageTitle = useMemo(() => {
     if (isEditing) {
-      return existingProduct ? `Edit: ${existingProduct.name}` : 'Edit Product';
+      return existingProduct ? `Editează: ${existingProduct.name}` : 'Editează produs';
     }
-    return 'New Product';
+    return 'Produs nou';
   }, [isEditing, existingProduct]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-stone-500">Loading product...</p>
+        <p className="text-stone-500">Se încarcă produsul...</p>
       </div>
     );
   }
 
-  if (isEditing && existingProduct === null) {
+  if (isEditing && !existingProduct) {
     return (
       <div className="text-center py-20">
-        <p className="text-red-600 mb-4">Product not found.</p>
+        <p className="text-red-600 mb-4">Produsul nu a fost găsit.</p>
         <button
           onClick={() => navigate('/admin/products')}
           className="text-amber-600 hover:text-amber-700 font-medium text-sm"
         >
-          Back to products
+          Înapoi la produse
         </button>
       </div>
     );
@@ -275,7 +269,7 @@ export const ProductForm: React.FC = () => {
         className="inline-flex items-center gap-1 text-sm text-stone-500 hover:text-stone-700 mb-4 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to products
+        Înapoi la produse
       </button>
 
       <h1 className="text-2xl font-bold text-stone-900 mb-6">{pageTitle}</h1>
@@ -284,7 +278,7 @@ export const ProductForm: React.FC = () => {
         {/* Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">
-            Product Name (Romanian) <span className="text-red-500">*</span>
+            Numele produsului (română) <span className="text-red-500">*</span>
           </label>
           <input
             id="name"
@@ -292,8 +286,8 @@ export const ProductForm: React.FC = () => {
             className={`w-full rounded-lg border px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
               errors.name ? 'border-red-400' : 'border-stone-300'
             }`}
-            placeholder="e.g. Tocător din Stejar"
-            {...register('name', { required: 'Product name is required' })}
+            placeholder="de ex. Tocător din Stejar"
+            {...register('name', { required: 'Numele produsului este obligatoriu' })}
           />
           {errors.name && (
             <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
@@ -303,13 +297,13 @@ export const ProductForm: React.FC = () => {
         {/* English Name */}
         <div>
           <label htmlFor="name_en" className="block text-sm font-medium text-stone-700 mb-1">
-            Product Name (English)
+            Numele produsului (engleză)
           </label>
           <input
             id="name_en"
             type="text"
             className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            placeholder="e.g. Oak Cutting Board"
+            placeholder="de ex. Oak Cutting Board"
             {...register('name_en')}
           />
         </div>
@@ -317,21 +311,40 @@ export const ProductForm: React.FC = () => {
         {/* German Name */}
         <div>
           <label htmlFor="name_de" className="block text-sm font-medium text-stone-700 mb-1">
-            Product Name (German)
+            Numele produsului (germană)
           </label>
           <input
             id="name_de"
             type="text"
             className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            placeholder="e.g. Eichen Schneidebrett"
+            placeholder="de ex. Eichen Schneidebrett"
             {...register('name_de')}
           />
+        </div>
+
+        {/* SKU */}
+        <div>
+          <label htmlFor="sku" className="block text-sm font-medium text-stone-700 mb-1">
+            SKU
+          </label>
+          <input
+            id="sku"
+            type="text"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            placeholder="de ex. TCDS-01"
+            {...register('sku')}
+          />
+          <p className="mt-1 text-xs text-stone-500">
+            {isEditing
+              ? 'Se normalizează automat la majuscule.'
+              : 'Lăsat gol, se generează automat din numele produsului (de ex. TCDS-01).'}
+          </p>
         </div>
 
         {/* Price */}
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-stone-700 mb-1">
-            Price (RON) <span className="text-red-500">*</span>
+            Preț (RON) <span className="text-red-500">*</span>
           </label>
           <input
             id="price"
@@ -342,7 +355,7 @@ export const ProductForm: React.FC = () => {
               errors.price ? 'border-red-400' : 'border-stone-300'
             }`}
             placeholder="0.00"
-            {...register('price', { required: 'Price is required' })}
+            {...register('price', { required: 'Prețul este obligatoriu' })}
           />
           {errors.price && (
             <p className="mt-1 text-xs text-red-600">{errors.price.message}</p>
@@ -352,32 +365,45 @@ export const ProductForm: React.FC = () => {
         {/* Stock Management */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-stone-50 rounded-lg border border-stone-200">
           <div className="sm:col-span-2">
-            <h3 className="text-sm font-semibold text-stone-900 mb-3">Inventory Management</h3>
+            <h3 className="text-sm font-semibold text-stone-900 mb-3">Gestionare stoc</h3>
           </div>
           
+          {isEditing && existingProduct ? (
+            <div className="sm:col-span-2">
+              <span className="block text-sm font-medium text-stone-700 mb-1">
+                Stare
+              </span>
+              <p className="w-full rounded-lg border border-stone-200 bg-stone-100 px-3 py-2.5 text-sm text-stone-700">
+                {existingProduct.status === 'archived'
+                  ? 'Arhivat'
+                  : existingProduct.status === 'inactive'
+                    ? 'Inactiv'
+                    : 'Activ'}
+              </p>
+            </div>
+          ) : null}
+
           <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-stone-700 mb-1">
-              Stoc disponibil online <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="stock"
-              type="number"
-              min="0"
-              step="1"
-              className={`w-full rounded-lg border px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                errors.stock ? 'border-red-400' : 'border-stone-300'
-              }`}
-              placeholder="0"
-              {...register('stock', { required: 'Stock is required' })}
-            />
-            {errors.stock && (
-              <p className="mt-1 text-xs text-red-600">{errors.stock.message}</p>
-            )}
+            <span className="block text-sm font-medium text-stone-700 mb-1">
+              Stoc disponibil online
+            </span>
+            {isEditing ? (
+              <p className="w-full rounded-lg border border-stone-200 bg-stone-100 px-3 py-2.5 text-sm text-stone-700 tabular-nums">
+                {existingProduct?.stock ?? 0}
+              </p>
+            ) : null}
+            <p className="mt-1 text-xs text-stone-500">
+              Stocul se gestionează din{' '}
+              <Link to="/admin/inventory" className="text-amber-700 underline">
+                Stocuri
+              </Link>{' '}
+              (intrare, ajustare, inventariere).
+            </p>
           </div>
 
           <div>
             <label htmlFor="lowStockThreshold" className="block text-sm font-medium text-stone-700 mb-1">
-              Low Stock Threshold
+              Prag stoc minim
             </label>
             <input
               id="lowStockThreshold"
@@ -388,7 +414,7 @@ export const ProductForm: React.FC = () => {
               placeholder="5"
               {...register('lowStockThreshold')}
             />
-            <p className="mt-1 text-xs text-stone-500">Alert when stock falls below this number</p>
+            <p className="mt-1 text-xs text-stone-500">Alertă când stocul scade sub acest număr</p>
           </div>
 
           <div className="sm:col-span-2">
@@ -398,20 +424,20 @@ export const ProductForm: React.FC = () => {
                 className="w-4 h-4 rounded border-stone-300 text-amber-600 focus:ring-2 focus:ring-amber-500"
                 {...register('trackStock')}
               />
-              <span className="text-sm font-medium text-stone-700">Track stock for this product</span>
+              <span className="text-sm font-medium text-stone-700">Evidențiază stocul pentru acest produs</span>
             </label>
-            <p className="mt-1 ml-6 text-xs text-stone-500">Uncheck for unlimited/digital products</p>
+            <p className="mt-1 ml-6 text-xs text-stone-500">Debifează pentru produse nelimitate/digitale</p>
           </div>
         </div>
 
         {/* Category */}
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-stone-700 mb-1">
-            Category
+            Categorie
           </label>
           {categoriesLoading ? (
             <div className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-400">
-              Loading categories...
+              Se încarcă categoriile...
             </div>
           ) : categories && categories.length > 0 ? (
             <select
@@ -419,7 +445,7 @@ export const ProductForm: React.FC = () => {
               className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
               {...register('category')}
             >
-              <option value="">Select a category</option>
+              <option value="">Alege o categorie</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat.name}>
                   {cat.name}
@@ -429,7 +455,7 @@ export const ProductForm: React.FC = () => {
           ) : (
             <div className="flex items-center gap-2 w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span>No categories available. Please create categories first in the Categories section.</span>
+              <span>Nu există categorii. Creează mai întâi o categorie în secțiunea Categorii.</span>
             </div>
           )}
         </div>
@@ -437,7 +463,7 @@ export const ProductForm: React.FC = () => {
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-stone-700 mb-1">
-            Description (Romanian)
+            Descriere (română)
           </label>
           <textarea
             id="description"
@@ -451,13 +477,13 @@ export const ProductForm: React.FC = () => {
         {/* English Description */}
         <div>
           <label htmlFor="description_en" className="block text-sm font-medium text-stone-700 mb-1">
-            Description (English)
+            Descriere (engleză)
           </label>
           <textarea
             id="description_en"
             rows={4}
             className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
-            placeholder="Describe the product..."
+            placeholder="Descriere produs în engleză..."
             {...register('description_en')}
           />
         </div>
@@ -465,13 +491,13 @@ export const ProductForm: React.FC = () => {
         {/* German Description */}
         <div>
           <label htmlFor="description_de" className="block text-sm font-medium text-stone-700 mb-1">
-            Description (German)
+            Descriere (germană)
           </label>
           <textarea
             id="description_de"
             rows={4}
             className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
-            placeholder="Produktbeschreibung..."
+            placeholder="Descriere produs în germană..."
             {...register('description_de')}
           />
         </div>
@@ -479,7 +505,7 @@ export const ProductForm: React.FC = () => {
         {/* Images */}
         <div>
           <label className="block text-sm font-medium text-stone-700 mb-2">
-            Images
+            Imagini
           </label>
 
           {/* Image grid */}
@@ -500,7 +526,7 @@ export const ProductForm: React.FC = () => {
                 >
                   <img
                     src={img.url}
-                    alt={`Product image ${index + 1}`}
+                    alt={`Imagine produs ${index + 1}`}
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
@@ -508,7 +534,7 @@ export const ProductForm: React.FC = () => {
                     type="button"
                     onClick={() => removeImage(index)}
                     className="absolute top-1 right-1 rounded-full bg-red-600 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label={`Remove image ${index + 1}`}
+                    aria-label={`Șterge imaginea ${index + 1}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -517,7 +543,7 @@ export const ProductForm: React.FC = () => {
                   </div>
                   {index === 0 && (
                     <span className="absolute bottom-1 left-1 rounded bg-amber-600 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                      Main
+                      Principală
                     </span>
                   )}
                 </div>
@@ -535,7 +561,7 @@ export const ProductForm: React.FC = () => {
           >
             <Upload className="h-6 w-6 text-stone-400 mb-2" />
             <span className="text-sm text-stone-500">
-              {compressing ? 'Compressing images...' : uploading ? 'Uploading...' : 'Click to upload images'}
+              {compressing ? 'Se comprimă imaginile...' : uploading ? 'Se încarcă...' : 'Apasă pentru a încărca imagini'}
             </span>
             <span className="text-xs text-stone-400 mt-1">PNG, JPG, WebP</span>
             <input
@@ -564,17 +590,17 @@ export const ProductForm: React.FC = () => {
             className="rounded-lg bg-amber-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
           >
             {isSubmitting
-              ? 'Saving...'
+              ? 'Se salvează...'
               : isEditing
-                ? 'Update Product'
-                : 'Create Product'}
+                ? 'Actualizează produsul'
+                : 'Creează produsul'}
           </button>
           <button
             type="button"
             onClick={() => navigate('/admin/products')}
             className="rounded-lg border border-stone-300 px-6 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
           >
-            Cancel
+            Anulează
           </button>
         </div>
       </form>

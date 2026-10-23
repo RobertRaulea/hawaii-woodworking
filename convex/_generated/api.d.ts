@@ -11,8 +11,12 @@
 import type * as categories from "../categories.js";
 import type * as checkout from "../checkout.js";
 import type * as customers from "../customers.js";
+import type * as fulfillment from "../fulfillment.js";
 import type * as http from "../http.js";
+import type * as inventory from "../inventory.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_directory from "../lib/directory.js";
+import type * as lib_permissions from "../lib/permissions.js";
 import type * as lib_storage from "../lib/storage.js";
 import type * as lib_translations from "../lib/translations.js";
 import type * as orders from "../orders.js";
@@ -21,8 +25,10 @@ import type * as postPayment from "../postPayment.js";
 import type * as products from "../products.js";
 import type * as seedCategories from "../seedCategories.js";
 import type * as siteAssets from "../siteAssets.js";
+import type * as staff from "../staff.js";
 import type * as stripeVerify from "../stripeVerify.js";
 import type * as stripeWebhook from "../stripeWebhook.js";
+import type * as transfers from "../transfers.js";
 
 import type {
   ApiFromModules,
@@ -34,8 +40,12 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   checkout: typeof checkout;
   customers: typeof customers;
+  fulfillment: typeof fulfillment;
   http: typeof http;
+  inventory: typeof inventory;
   "lib/auth": typeof lib_auth;
+  "lib/directory": typeof lib_directory;
+  "lib/permissions": typeof lib_permissions;
   "lib/storage": typeof lib_storage;
   "lib/translations": typeof lib_translations;
   orders: typeof orders;
@@ -44,8 +54,10 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   seedCategories: typeof seedCategories;
   siteAssets: typeof siteAssets;
+  staff: typeof staff;
   stripeVerify: typeof stripeVerify;
   stripeWebhook: typeof stripeWebhook;
+  transfers: typeof transfers;
 }>;
 
 /**

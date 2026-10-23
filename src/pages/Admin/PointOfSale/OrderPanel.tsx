@@ -7,10 +7,12 @@ import {
   ShoppingBagIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { formatMoney, parseMoney } from './pos.utils';
+import { computeDiscountCents, formatMoney, parseMoney } from './pos.utils';
+import type { PosDiscountMode } from './pos.utils';
 import type { CartLine, PaymentMethod, PosProduct } from './pos.types';
 
 interface DiscountFields {
+  mode: PosDiscountMode;
   amount: string;
   reason: string;
 }
@@ -39,18 +41,29 @@ export const OrderPanel = ({
     watch,
     handleSubmit,
     formState: { errors },
+    trigger,
   } = useForm<DiscountFields>({
-    defaultValues: { amount: '', reason: '' },
+    defaultValues: { mode: 'fixed', amount: '', reason: '' },
+    mode: 'onChange',
   });
   const subtotal = cart.reduce(
     (sum, line) => sum + line.quantity * line.product.unitPriceCents,
     0,
   );
-  const discount = parseMoney(watch('amount') || '0') ?? 0;
+  const mode = watch('mode');
+  const discount = computeDiscountCents(
+    mode,
+    watch('amount') || '',
+    subtotal,
+  );
   const units = cart.reduce((sum, line) => sum + line.quantity, 0);
   const pay = (method: PaymentMethod) =>
     handleSubmit((values) =>
-      onPay(method, parseMoney(values.amount || '0') ?? 0, values.reason),
+      onPay(
+        method,
+        computeDiscountCents(values.mode, values.amount, subtotal),
+        values.reason,
+      ),
     );
 
   return (
@@ -147,12 +160,31 @@ export const OrderPanel = ({
       )}
       <div className="space-y-4 border-t border-stone-200 bg-stone-50/70 p-5">
         <details className="text-sm text-stone-600">
-          <summary className="cursor-pointer py-1">Reducere autorizata</summary>
+          <summary className="cursor-pointer py-1">Reducere</summary>
           <p className="mb-3 mt-2 text-xs">
-            Disponibila doar administratorilor. Motivul se salveaza cu vanzarea.
+            Motivul se salveaza cu vanzarea.
           </p>
-          <label htmlFor="pos-discount" className="text-xs">
-            Reducere fixa (lei)
+          <label htmlFor="pos-discount-mode" className="text-xs">
+            Tip reducere
+          </label>
+          <select
+            id="pos-discount-mode"
+            disabled={disabled}
+            className="mt-1 w-full rounded-lg border border-stone-300 bg-white p-2.5"
+            {...register('mode', {
+              onChange: () => void trigger('amount'),
+            })}
+          >
+            <option value="fixed">Suma fixa (lei)</option>
+            <option value="percent">Procent (%)</option>
+            <option value="final">Pret convenit (total final)</option>
+          </select>
+          <label htmlFor="pos-discount" className="mt-3 block text-xs">
+            {mode === 'percent'
+              ? 'Reducere (%)'
+              : mode === 'final'
+                ? 'Suma convenita (lei)'
+                : 'Reducere fixa (lei)'}
           </label>
           <input
             id="pos-discount"
@@ -161,10 +193,23 @@ export const OrderPanel = ({
             className="mt-1 w-full rounded-lg border border-stone-300 p-2.5"
             {...register('amount', {
               validate: (value) => {
-                const cents = parseMoney(value || '0');
+                const raw = value.trim();
+                if (!raw) return true;
+                if (mode === 'percent') {
+                  const percent = Number(raw.replace(',', '.'));
+                  return (
+                    (Number.isFinite(percent) &&
+                      percent > 0 &&
+                      percent <= 100) ||
+                    'Introdu un procent intre 0 si 100.'
+                  );
+                }
+                const cents = parseMoney(raw);
                 return (
                   (cents !== null && cents <= subtotal) ||
-                  'Introdu o reducere valida, cel mult egala cu subtotalul.'
+                  (mode === 'final'
+                    ? 'Suma convenita nu poate depasi subtotalul.'
+                    : 'Introdu o reducere valida, cel mult egala cu subtotalul.')
                 );
               },
             })}

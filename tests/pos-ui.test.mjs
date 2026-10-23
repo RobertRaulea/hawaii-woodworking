@@ -6,6 +6,7 @@ import { OrderPanel } from '../src/pages/Admin/PointOfSale/OrderPanel.tsx';
 import { ProductPicker } from '../src/pages/Admin/PointOfSale/ProductPicker.tsx';
 import { PaymentDialog } from '../src/pages/Admin/PointOfSale/PaymentDialog.tsx';
 import {
+  computeDiscountCents,
   formatMoney,
   parseMoney,
   readCheckpoint,
@@ -237,4 +238,25 @@ test('recovered unpaid attempts instruct the seller to verify any earlier extern
   );
   assert.ok(html.includes('Operatiune recuperata'));
   assert.ok(html.includes('Nu solicita automat o noua plata.'));
+});
+
+test('computeDiscountCents supports fixed amounts, percentages, and negotiated totals', () => {
+  // Fixed amount in lei, clamped to the subtotal.
+  assert.equal(computeDiscountCents('fixed', '20', 10000), 2000);
+  assert.equal(computeDiscountCents('fixed', '20,50', 10000), 2050);
+  assert.equal(computeDiscountCents('fixed', '150', 10000), 10000);
+  assert.equal(computeDiscountCents('fixed', 'abc', 10000), 0);
+  assert.equal(computeDiscountCents('fixed', '', 10000), 0);
+
+  // Percentage discounts, comma decimal included.
+  assert.equal(computeDiscountCents('percent', '10', 10000), 1000);
+  assert.equal(computeDiscountCents('percent', '12,5', 9999), 1250);
+  assert.equal(computeDiscountCents('percent', '100', 10000), 10000);
+  assert.equal(computeDiscountCents('percent', '0', 10000), 0);
+  assert.equal(computeDiscountCents('percent', '150', 10000), 0);
+
+  // Negotiated final totals convert to the implied discount.
+  assert.equal(computeDiscountCents('final', '80', 10000), 2000);
+  assert.equal(computeDiscountCents('final', '100', 10000), 0);
+  assert.equal(computeDiscountCents('final', '150', 10000), 0);
 });

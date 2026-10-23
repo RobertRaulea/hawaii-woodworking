@@ -150,7 +150,7 @@ export const Shipping: React.FC = () => {
   const { setShippingData, shippingData } = useShipping();
   const { state: cartState } = useCart();
   const { customer } = useCustomerProfile();
-  const { isSignedIn, userId } = useAuth();
+  const { isSignedIn } = useAuth();
   const { signUp, isLoaded: isSignUpLoaded, setActive } = useSignUp();
   const upsertCustomerFromShipping = useMutation(api.customers.upsertFromShipping);
   const hasPreFilled = useRef(false);
@@ -255,12 +255,10 @@ export const Shipping: React.FC = () => {
   };
 
   const persistCustomerFromShipping = async (
-    data: ShippingFormData,
-    clerkUserId?: string
+    data: ShippingFormData
   ) => {
     try {
       await upsertCustomerFromShipping({
-        clerkUserId,
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -358,14 +356,13 @@ export const Shipping: React.FC = () => {
         return;
       }
 
-      const newUserId = result.createdUserId ?? undefined;
       const newSessionId = result.createdSessionId;
-
-      await persistCustomerFromShipping(pendingFormData, newUserId);
 
       if (newSessionId) {
         await setActive({ session: newSessionId });
       }
+
+      await persistCustomerFromShipping(pendingFormData);
 
       setShowVerification(false);
       proceedToCheckout(pendingFormData);
@@ -394,7 +391,7 @@ export const Shipping: React.FC = () => {
         return;
       }
 
-      await persistCustomerFromShipping(preparedData, userId ?? undefined);
+      await persistCustomerFromShipping(preparedData);
       proceedToCheckout(preparedData);
     } catch (error) {
       console.error('Shipping form submission error:', error);

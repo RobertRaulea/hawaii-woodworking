@@ -22,6 +22,21 @@ const payment = {
 mock.module('@clerk/clerk-react', {
   namedExports: { useUser: () => ({ user: { id: 'admin-1' } }) },
 });
+mock.module(
+  new URL('../../src/hooks/useStaffAccess.ts', import.meta.url).href,
+  {
+    namedExports: {
+      useStaffAccess: () => ({
+        isLoading: false,
+        isAuthenticated: true,
+        role: 'admin',
+        userId: 'admin-1',
+        homePath: '/admin/products',
+        can: () => true,
+      }),
+    },
+  },
+);
 mock.module('convex/react', { namedExports: { useQuery: query } });
 mock.module(
   new URL('../../src/pages/Admin/PointOfSale/usePosPayment.ts', import.meta.url)

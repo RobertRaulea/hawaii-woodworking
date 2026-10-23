@@ -7,11 +7,11 @@ import { api } from '../../convex/_generated/api';
  * Returns null when not signed in or when no customer record exists yet.
  */
 export const useCustomerProfile = () => {
-  const { userId, isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
 
   const customer = useQuery(
     api.customers.getByClerkUserId,
-    isSignedIn && userId ? { clerkUserId: userId } : 'skip'
+    isSignedIn ? {} : 'skip'
   );
 
   return {

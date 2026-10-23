@@ -2,23 +2,36 @@ import type React from 'react';
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { UserButton } from '@clerk/clerk-react';
-import { CalculatorIcon, CircleStackIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { useQuery } from 'convex/react';
+import { ArrowsRightLeftIcon, CalculatorIcon, CircleStackIcon, MapPinIcon, TruckIcon } from '@heroicons/react/24/outline';
 import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, Menu, FolderTree, Hammer } from 'lucide-react';
+import { api } from '../../../convex/_generated/api';
+import { useStaffAccess } from '../../hooks/useStaffAccess';
+import type { Permission } from '../../../convex/lib/permissions';
 
-const NAV_ITEMS = [
-  { to: '/admin/pos', label: 'Vanzari la targ', icon: CalculatorIcon },
-  { to: '/admin/fairs', label: 'Târguri', icon: MapPinIcon },
-  { to: '/admin/inventory', label: 'Stocuri', icon: CircleStackIcon },
-  { to: '/admin/products', label: 'Products', icon: Package },
-  { to: '/admin/categories', label: 'Categories', icon: FolderTree },
-  { to: '/admin/custom-works', label: 'La comandă', icon: Hammer },
-  { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-  { to: '/admin/customers', label: 'Customers', icon: Users },
-] as const;
+const NAV_ITEMS: readonly { to: string; label: string; icon: React.ElementType; permission: Permission }[] = [
+  { to: '/admin/pos', label: 'Vânzări la târg', icon: CalculatorIcon, permission: 'pos.sell' },
+  { to: '/admin/fairs', label: 'Târguri', icon: MapPinIcon, permission: 'fairs.manage' },
+  { to: '/admin/inventory', label: 'Stocuri', icon: CircleStackIcon, permission: 'inventory.read' },
+  { to: '/admin/transfers', label: 'Transferuri', icon: ArrowsRightLeftIcon, permission: 'transfers.view' },
+  { to: '/admin/products', label: 'Produse', icon: Package, permission: 'catalog.manage' },
+  { to: '/admin/categories', label: 'Categorii', icon: FolderTree, permission: 'catalog.manage' },
+  { to: '/admin/custom-works', label: 'La comandă', icon: Hammer, permission: 'catalog.manage' },
+  { to: '/admin/fulfillment', label: 'Pregătire comenzi', icon: TruckIcon, permission: 'orders.fulfill' },
+  { to: '/admin/orders', label: 'Comenzi', icon: ShoppingBag, permission: 'orders.manage' },
+  { to: '/admin/customers', label: 'Clienți', icon: Users, permission: 'customers.manage' },
+  { to: '/admin/staff', label: 'Echipă', icon: Users, permission: 'staff.manage' },
+];
 
 export const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const { role, can } = useStaffAccess();
+  const title = role === 'admin' ? 'Administrare' : 'Operațiuni';
+  const pendingRequests = useQuery(
+    api.transfers.pendingRequestCount,
+    can('transfers.execute') ? {} : 'skip',
+  );
 
   return (
     <div className="flex min-h-screen bg-stone-100">
@@ -45,17 +58,17 @@ export const AdminLayout: React.FC = () => {
             className="flex items-center gap-2 text-sm font-medium text-stone-300 hover:text-white transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to Store
+            Înapoi la magazin
           </button>
         </div>
 
         <div className="flex items-center gap-3 px-4 py-4 border-b border-stone-700">
           <LayoutDashboard className="h-5 w-5 text-amber-400" />
-          <span className="text-lg font-bold">Admin Panel</span>
+          <span className="text-lg font-bold">{title}</span>
         </div>
 
         <nav className="mt-4 space-y-1 px-2">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          {NAV_ITEMS.filter(({ permission }) => can(permission)).map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -69,7 +82,15 @@ export const AdminLayout: React.FC = () => {
               }
             >
               <Icon className="h-4 w-4" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {to === '/admin/transfers' && pendingRequests ? (
+                <span
+                  className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white"
+                  aria-label={`${pendingRequests} solicitări de transfer în așteptare`}
+                >
+                  {pendingRequests}
+                </span>
+              ) : null}
             </NavLink>
           ))}
         </nav>
@@ -77,7 +98,7 @@ export const AdminLayout: React.FC = () => {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-stone-700">
           <div className="flex items-center gap-3">
             <UserButton afterSignOutUrl="/" />
-            <span className="text-sm text-stone-300">Account</span>
+            <span className="text-sm text-stone-300">Cont</span>
           </div>
         </div>
       </aside>
@@ -89,11 +110,11 @@ export const AdminLayout: React.FC = () => {
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 -ml-2 rounded-lg hover:bg-stone-100 transition-colors"
-            aria-label="Open sidebar"
+            aria-label="Deschide meniul"
           >
             <Menu className="h-5 w-5 text-stone-700" />
           </button>
-          <span className="ml-3 text-lg font-bold text-stone-900">Admin</span>
+          <span className="ml-3 text-lg font-bold text-stone-900">{title}</span>
           <div className="ml-auto">
             <UserButton afterSignOutUrl="/" />
           </div>

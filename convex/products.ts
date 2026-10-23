@@ -1,8 +1,19 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
-import { requireAdmin } from "./lib/auth";
+import type { Id } from "./_generated/dataModel";
+import { requireAdmin, requirePermission } from "./lib/auth";
 import { resolveImageUrls } from "./lib/storage";
-import { catalogAvailableStock, onlineReviewClaims } from "./lib/inventory.utils";
+import {
+  catalogAvailableStock,
+  onlineReviewClaims,
+} from "./lib/inventory.utils";
+import {
+  generateSku,
+  isSellable,
+  nextSku,
+  productStatus,
+  validateSku,
+} from "./lib/products.utils";
 
 // Fetch all products
 export const getAll = query({
@@ -14,7 +25,7 @@ export const getAll = query({
     ]);
 
     return await Promise.all(
-      products.map(async (product) => {
+      products.filter(isSellable).map(async (product) => {
         const imageUrls = await resolveImageUrls(ctx, product.imageStorageIds);
         return {
           ...product,
@@ -22,6 +33,21 @@ export const getAll = query({
           availableStock: catalogAvailableStock(product, claims),
         };
       })
+    );
+  },
+});
+
+export const listAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    await requirePermission(ctx, "catalog.manage");
+    const products = await ctx.db.query("products").collect();
+    return await Promise.all(
+      products.map(async (product) => ({
+        ...product,
+        status: productStatus(product),
+        imageUrls: await resolveImageUrls(ctx, product.imageStorageIds),
+      }))
     );
   },
 });
@@ -164,7 +190,7 @@ export const getById = query({
   args: { id: v.id("products") },
   handler: async (ctx, { id }) => {
     const product = await ctx.db.get(id);
-    if (!product) {
+    if (!product || !isSellable(product)) {
       return null;
     }
 
@@ -193,9 +219,15 @@ export const createProduct = mutation({
     stock: v.optional(v.number()),
     lowStockThreshold: v.optional(v.number()),
     trackStock: v.optional(v.boolean()),
+    sku: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
+    if (args.stock !== undefined && args.stock !== 0) {
+      throw new ConvexError(
+        "Stocul nu se modifică din produs. Folosește Stocuri.",
+      );
+    }
     const id = await ctx.db.insert("products", {
       name: args.name,
       price: args.price,
@@ -208,9 +240,13 @@ export const createProduct = mutation({
       description_ro: args.description_ro,
       description_en: args.description_en,
       description_de: args.description_de,
-      stock: args.stock ?? 0,
+      stock: 0,
       lowStockThreshold: args.lowStockThreshold ?? 5,
       trackStock: args.trackStock ?? true,
+      sku:
+        args.sku === undefined || !args.sku.trim()
+          ? await generateSku(ctx, args.name)
+          : await validateSku(ctx, undefined, args.sku),
     });
     return id;
   },
@@ -233,9 +269,15 @@ export const updateProduct = mutation({
     stock: v.optional(v.number()),
     lowStockThreshold: v.optional(v.number()),
     trackStock: v.optional(v.boolean()),
+    sku: v.optional(v.string()),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);
+    if (fields.stock !== undefined) {
+      throw new ConvexError(
+        "Stocul nu se modifică din produs. Folosește Stocuri.",
+      );
+    }
     const product = await ctx.db.get(id);
     if (!product) {
       throw new Error("Product not found");
@@ -253,11 +295,92 @@ export const updateProduct = mutation({
     if (fields.description_en !== undefined) update.description_en = fields.description_en;
     if (fields.description_de !== undefined) update.description_de = fields.description_de;
     if (fields.imageStorageIds !== undefined) update.imageStorageIds = fields.imageStorageIds;
-    if (fields.stock !== undefined) update.stock = fields.stock;
     if (fields.lowStockThreshold !== undefined) update.lowStockThreshold = fields.lowStockThreshold;
     if (fields.trackStock !== undefined) update.trackStock = fields.trackStock;
+    if (fields.sku !== undefined) update.sku = await validateSku(ctx, id, fields.sku);
 
     await ctx.db.patch(id, update);
+    return id;
+  },
+});
+
+export const setProductActive = mutation({
+  args: { id: v.id("products"), active: v.boolean() },
+  handler: async (ctx, { id, active }) => {
+    await requirePermission(ctx, "catalog.manage");
+    const product = await ctx.db.get(id);
+    if (!product) throw new ConvexError("Produsul nu mai există.");
+    if (product.archivedAt)
+      throw new ConvexError("Restaurează produsul înainte.");
+    await ctx.db.patch(id, { active });
+    return id;
+  },
+});
+
+const OPEN_TRANSFER_STATUSES = [
+  "requested",
+  "draft",
+  "in_transit",
+  "partially_received",
+];
+
+export const archiveProduct = mutation({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    const staff = await requirePermission(ctx, "catalog.manage");
+    const product = await ctx.db.get(id);
+    if (!product) throw new ConvexError("Produsul nu mai există.");
+    if (product.archivedAt) return id;
+    const balances = await ctx.db
+      .query("fairInventory")
+      .withIndex("by_product", (q) => q.eq("productId", id))
+      .collect();
+    if (balances.some((balance) => balance.quantity > 0))
+      throw new ConvexError(
+        "Produsul are stoc la târg. Transferă stocul în Atelier înainte de arhivare.",
+      );
+    const transfers = await ctx.db.query("transfers").collect();
+    if (
+      transfers.some(
+        (transfer) =>
+          OPEN_TRANSFER_STATUSES.includes(transfer.status) &&
+          transfer.lines.some((line) => line.productId === id),
+      )
+    )
+      throw new ConvexError(
+        "Produsul face parte din transferuri deschise. Finalizează-le sau anulează-le înainte de arhivare.",
+      );
+    const prepared = await ctx.db.query("posAttempts").collect();
+    if (
+      prepared.some(
+        (attempt) =>
+          attempt.status === "prepared" &&
+          attempt.items.some((item) => item.productId === id),
+      )
+    )
+      throw new ConvexError(
+        "Există o vânzare în curs la un târg pentru acest produs. Finalizeaz-o sau anuleaz-o înainte de arhivare.",
+      );
+    await ctx.db.patch(id, {
+      archivedAt: Date.now(),
+      archivedBy: staff.identity.subject,
+      active: false,
+    });
+    return id;
+  },
+});
+
+export const restoreProduct = mutation({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    await requirePermission(ctx, "catalog.manage");
+    const product = await ctx.db.get(id);
+    if (!product) throw new ConvexError("Produsul nu mai există.");
+    await ctx.db.patch(id, {
+      archivedAt: undefined,
+      archivedBy: undefined,
+      active: false,
+    });
     return id;
   },
 });
@@ -270,31 +393,69 @@ export const deleteProduct = mutation({
     if (!product) {
       throw new Error("Product not found");
     }
-    const balances = await ctx.db.query("fairInventory").withIndex("by_product", (q) => q.eq("productId", id)).collect();
-    if (balances.some((balance) => balance.quantity !== 0)) {
-      throw new ConvexError("Produsul are stoc la târg. Transferă stocul înainte de ștergere.");
-    }
+    const historyError = () =>
+      new ConvexError(
+        "Produsul are istoric (comenzi, vânzări sau mișcări de stoc). Arhivează-l în loc să-l ștergi.",
+      );
+    const [
+      movements,
+      orders,
+      sales,
+      attempts,
+      transfers,
+      stockOps,
+      inventoryOps,
+      balances,
+    ] = await Promise.all([
+      ctx.db
+        .query("stockMovements")
+        .withIndex("by_product_location", (q) => q.eq("productId", id))
+        .collect(),
+      ctx.db.query("orders").collect(),
+      ctx.db.query("posSales").collect(),
+      ctx.db.query("posAttempts").collect(),
+      ctx.db.query("transfers").collect(),
+      ctx.db.query("stockOperations").collect(),
+      ctx.db.query("inventoryOperations").collect(),
+      ctx.db
+        .query("fairInventory")
+        .withIndex("by_product", (q) => q.eq("productId", id))
+        .collect(),
+    ]);
+    const hasHistory =
+      movements.length > 0 ||
+      orders.some((order) => order.items.some((item) => item.productId === id)) ||
+      sales.some((sale) => sale.items.some((item) => item.productId === id)) ||
+      attempts.some((attempt) => attempt.items.some((item) => item.productId === id)) ||
+      transfers.some((transfer) => transfer.lines.some((line) => line.productId === id)) ||
+      stockOps.some((op) => op.productId === id) ||
+      inventoryOps.some((op) => op.productId === id) ||
+      (product.stock ?? 0) !== 0 ||
+      balances.some((balance) => balance.quantity !== 0);
+    if (hasHistory) throw historyError();
     await ctx.db.delete(id);
     return { deleted: true };
   },
 });
 
-export const updateStock = mutation({
-  args: {
-    id: v.id("products"),
-    stock: v.number(),
-  },
-  handler: async (ctx, { id, stock }) => {
-    await requireAdmin(ctx);
-    const product = await ctx.db.get(id);
-    if (!product) {
-      throw new Error("Product not found");
+export const backfillSkus = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    const taken = new Set(
+      products
+        .map((product) => product.sku?.toUpperCase())
+        .filter((sku): sku is string => Boolean(sku)),
+    );
+    const updated: { id: Id<"products">; sku: string }[] = [];
+    for (const product of products) {
+      if (product.sku?.trim()) continue;
+      const sku = nextSku(product.name, taken);
+      taken.add(sku);
+      await ctx.db.patch(product._id, { sku });
+      updated.push({ id: product._id, sku });
     }
-    if (stock < 0) {
-      throw new Error("Stock cannot be negative");
-    }
-    await ctx.db.patch(id, { stock });
-    return { stock };
+    return { updated: updated.length, items: updated };
   },
 });
 

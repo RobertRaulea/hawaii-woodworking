@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useQuery } from 'convex/react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
@@ -11,6 +11,7 @@ import {
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { businessDate } from '../../../../convex/lib/pos.utils';
+import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { OrderPanel } from './OrderPanel';
 import { PaymentDialog } from './PaymentDialog';
 import { ProductPicker } from './ProductPicker';
@@ -23,7 +24,11 @@ interface SellerWorkspaceProps {
 }
 
 const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
+  const { can } = useStaffAccess();
   const fairs = useQuery(api.pos.listFairs, {});
+  const [searchParams] = useSearchParams();
+  const paramFair = searchParams.get('fairId') as Id<'fairs'> | null;
+  const initialized = useRef(false);
   const [selectedFair, setSelectedFair] = useState<Id<'fairs'> | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [orderVersion, setOrderVersion] = useState(0);
@@ -50,6 +55,13 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
     api.pos.dailySummary,
     fairId ? { fairId, date } : 'skip',
   );
+  useEffect(() => {
+    if (initialized.current || !fairs) return;
+    initialized.current = true;
+    if (paramFair && fairs.some((entry) => entry._id === paramFair)) {
+      setSelectedFair(paramFair);
+    }
+  }, [fairs, paramFair]);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(timer);
@@ -114,7 +126,7 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
-              to="/admin"
+              to={can('catalog.manage') ? '/admin' : '/admin/inventory'}
               aria-label="Inapoi la administrare"
               className="flex h-11 w-11 items-center justify-center rounded-xl border border-stone-200 hover:bg-stone-100"
             >
@@ -254,16 +266,24 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
         ) : !fairId ? (
           <section className="mx-auto max-w-lg rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center">
             <h2 className="text-xl font-semibold">Nu există târguri active</h2>
-            <p className="mt-3 text-sm leading-6 text-stone-500">
-              Crearea și pregătirea târgurilor se fac în Admin. Aici rămâne doar
-              ecranul de vânzare.
-            </p>
-            <Link
-              to="/admin/fairs"
-              className="mt-5 inline-flex min-h-11 items-center rounded-lg bg-stone-900 px-4 text-sm font-semibold text-white"
-            >
-              Administrează târgurile
-            </Link>
+            {can('fairs.manage') ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-stone-500">
+                  Crearea și pregătirea târgurilor se fac în Admin. Aici rămâne
+                  doar ecranul de vânzare.
+                </p>
+                <Link
+                  to="/admin/fairs"
+                  className="mt-5 inline-flex min-h-11 items-center rounded-lg bg-stone-900 px-4 text-sm font-semibold text-white"
+                >
+                  Administrează târgurile
+                </Link>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-stone-500">
+                Nu ai târguri active alocate. Cere administratorului alocarea.
+              </p>
+            )}
           </section>
         ) : (
           <>

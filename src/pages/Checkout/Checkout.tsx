@@ -2,7 +2,6 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAction } from 'convex/react';
-import { useAuth } from '@clerk/clerk-react';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { api } from '../../../convex/_generated/api';
 import type { CartItem } from '../../context/CartContext';
@@ -12,7 +11,6 @@ import { useShipping } from '../../context/ShippingContext';
 export const Checkout: React.FC = () => {
   const { state } = useCart();
   const { shippingData } = useShipping();
-  const { userId } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const createCheckoutSession = useAction(api.checkout.createCheckoutSession);
@@ -47,7 +45,6 @@ export const Checkout: React.FC = () => {
         origin: window.location.origin,
         items,
         customer: {
-          clerkUserId: userId ?? undefined,
           email: shippingData.email,
           firstName: shippingData.firstName,
           lastName: shippingData.lastName,

@@ -1,29 +1,38 @@
 import type React from 'react';
-import { SignIn, useAuth } from '@clerk/clerk-react';
+import { SignIn } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
-import { useAdmin } from '../../hooks/useAdmin';
+import { useStaffAccess } from '../../hooks/useStaffAccess';
 
 export const AdminLogin: React.FC = () => {
-  const { isSignedIn } = useAuth();
-  const { isAdmin, isLoaded } = useAdmin();
+  const { isLoading, isAuthenticated, role, homePath } = useStaffAccess();
 
-  if (isLoaded && isSignedIn && isAdmin) {
-    return <Navigate to="/admin/products" replace />;
+  if (isLoading) {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-stone-50">
+        <p className="text-stone-500">Se încarcă...</p>
+      </main>
+    );
+  }
+
+  if (isAuthenticated && role && homePath) {
+    return <Navigate to={homePath} replace />;
   }
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-stone-50 px-4">
-      <h1 className="text-2xl font-bold text-stone-900 mb-6">Admin Login</h1>
+      <h1 className="text-2xl font-bold text-stone-900 mb-6">
+        Autentificare personal
+      </h1>
 
-      {isLoaded && isSignedIn && !isAdmin && (
+      {isAuthenticated && !role && (
         <p className="mb-4 text-sm text-red-600 max-w-sm text-center">
-          Your account does not have admin access. Please sign in with an admin account.
+          Contul tău nu are un rol intern. Autentifică-te cu un cont de personal.
         </p>
       )}
 
       <SignIn
         routing="hash"
-        afterSignInUrl="/admin/products"
+        afterSignInUrl="/admin"
         appearance={{
           elements: {
             rootBox: 'mx-auto',

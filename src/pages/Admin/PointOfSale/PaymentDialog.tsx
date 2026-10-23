@@ -77,7 +77,7 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
           {paid
             ? 'Plata a fost confirmata de vanzator. Verifica salvarea aceleiasi operatiuni, fara a solicita clientului o noua plata. Cosul ramane blocat pana la confirmarea vanzarii.'
             : isCash
-              ? 'Introdu suma primita, verifica restul si confirma numai dupa ce ai primit banii.'
+              ? 'Confirma numai dupa ce ai primit banii. Suma primita este optionala; completeaz-o doar daca vrei calculul restului.'
               : 'Aplicatia nu debiteaza cardul. Introdu suma pe terminalul bancar separat. Confirma aici numai dupa aprobarea terminalului.'}
         </p>
         {payment.recovered && !paid ? (
@@ -151,18 +151,18 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
                   htmlFor="pos-cash-received"
                   className="mb-2 block text-sm font-medium"
                 >
-                  Suma primita (lei)
+                  Suma primita (lei) — optional
                 </label>
                 <input
                   id="pos-cash-received"
-                  autoFocus
                   inputMode="decimal"
                   disabled={busy}
-                  placeholder="De exemplu, 150"
+                  placeholder="Gol = suma exacta"
                   className="w-full rounded-xl border border-stone-300 px-4 py-3 text-xl outline-none focus:ring-2 focus:ring-amber-600"
                   {...register('received', {
                     validate: (value) => {
-                      const cents = parseMoney(value || '');
+                      if (!value.trim()) return true;
+                      const cents = parseMoney(value);
                       return (
                         (cents !== null && cents >= total) ||
                         'Suma primita trebuie sa acopere totalul.'

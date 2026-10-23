@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
 
@@ -73,6 +73,17 @@ export const update = mutation({
       throw new Error("Category not found");
     }
 
+    if (trimmedName !== category.name) {
+      const usedByProduct = (await ctx.db.query("products").collect()).find(
+        (product) => product.category === category.name,
+      );
+      if (usedByProduct) {
+        throw new ConvexError(
+          "Categoria este folosită de produse; poți modifica doar traducerile.",
+        );
+      }
+    }
+
     const existing = await ctx.db
       .query("categories")
       .withIndex("by_name", (q) => q.eq("name", trimmedName))
@@ -102,14 +113,13 @@ export const remove = mutation({
       throw new Error("Category not found");
     }
 
-    const productsUsingCategory = await ctx.db
-      .query("products")
-      .filter((q) => q.eq(q.field("category"), category.name))
-      .first();
+    const productsUsingCategory = (await ctx.db.query("products").collect()).find(
+      (product) => product.category === category.name,
+    );
 
     if (productsUsingCategory) {
-      throw new Error(
-        "Cannot delete category: it is being used by one or more products"
+      throw new ConvexError(
+        "Categoria este folosită de produse și nu poate fi ștearsă.",
       );
     }
 

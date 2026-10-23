@@ -49,7 +49,7 @@ export const AdminCustomers: React.FC = () => {
   if (customers === undefined) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-stone-500">Loading customers...</p>
+        <p className="text-stone-500">Se încarcă clienții...</p>
       </div>
     );
   }
@@ -62,19 +62,19 @@ export const AdminCustomers: React.FC = () => {
     if (!newsletterSubscribers) return;
     const emails = newsletterSubscribers.map((sub) => sub.email).join(', ');
     navigator.clipboard.writeText(emails);
-    alert(`${newsletterSubscribers.length} email addresses copied to clipboard!`);
+    alert(`${newsletterSubscribers.length} adrese de email copiate în clipboard!`);
   };
 
   const handleDownloadCSV = () => {
     if (!newsletterSubscribers) return;
     const csvContent = [
-      ['Email', 'First Name', 'Last Name', 'Type', 'Joined Date'].join(','),
+      ['Email', 'Prenume', 'Nume', 'Tip', 'Data înscrierii'].join(','),
       ...newsletterSubscribers.map((sub) =>
         [
           sub.email,
           sub.firstName,
           sub.lastName,
-          sub.isRegistered ? 'Registered' : 'Guest',
+          sub.isRegistered ? 'Înregistrat' : 'Vizitator',
           new Date(sub.createdAt).toLocaleDateString('ro-RO'),
         ].join(',')
       ),
@@ -94,19 +94,19 @@ export const AdminCustomers: React.FC = () => {
   return (
     <section className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-stone-900 mb-4">Customers</h1>
+        <h1 className="text-2xl font-bold text-stone-900 mb-4">Clienți</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg border border-stone-200 p-5">
-            <p className="text-sm text-stone-500 mb-1">Total Customers</p>
+            <p className="text-sm text-stone-500 mb-1">Total clienți</p>
             <p className="text-2xl font-bold text-stone-900">{customers.length}</p>
           </div>
           <div className="bg-white rounded-lg border border-stone-200 p-5">
-            <p className="text-sm text-stone-500 mb-1">Registered</p>
+            <p className="text-sm text-stone-500 mb-1">Înregistrați</p>
             <p className="text-2xl font-bold text-stone-900">{registeredCount}</p>
           </div>
           <div className="bg-white rounded-lg border border-stone-200 p-5">
-            <p className="text-sm text-stone-500 mb-1">Guests</p>
+            <p className="text-sm text-stone-500 mb-1">Vizitatori</p>
             <p className="text-2xl font-bold text-stone-900">{guestCount}</p>
           </div>
           <div 
@@ -118,7 +118,7 @@ export const AdminCustomers: React.FC = () => {
               <Mail className="h-4 w-4 text-amber-600" />
             </div>
             <p className="text-2xl font-bold text-amber-900">{newsletterCount}</p>
-            <p className="text-xs text-amber-600 mt-1">Click to export</p>
+            <p className="text-xs text-amber-600 mt-1">Apasă pentru export</p>
           </div>
         </div>
       </div>
@@ -129,7 +129,7 @@ export const AdminCustomers: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Caută după nume sau email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-stone-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -137,7 +137,7 @@ export const AdminCustomers: React.FC = () => {
         </div>
         <div className="flex items-center gap-2">
           <label htmlFor="typeFilter" className="text-sm text-stone-500">
-            Type:
+            Tip:
           </label>
           <select
             id="typeFilter"
@@ -145,9 +145,9 @@ export const AdminCustomers: React.FC = () => {
             onChange={(e) => setTypeFilter(e.target.value as 'all' | 'registered' | 'guest')}
             className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
-            <option value="all">All</option>
-            <option value="registered">Registered</option>
-            <option value="guest">Guest</option>
+            <option value="all">Toți</option>
+            <option value="registered">Înregistrați</option>
+            <option value="guest">Vizitatori</option>
           </select>
         </div>
       </div>
@@ -156,20 +156,20 @@ export const AdminCustomers: React.FC = () => {
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed border-stone-300 bg-white p-12 text-center">
           <Users className="h-10 w-10 text-stone-300 mx-auto mb-3" />
-          <p className="text-stone-500">No customers found.</p>
+          <p className="text-stone-500">Niciun client găsit.</p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-50">
-                <th className="px-4 py-3 text-left font-medium text-stone-600">Name</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-600">Nume</th>
                 <th className="px-4 py-3 text-left font-medium text-stone-600 hidden md:table-cell">Email</th>
-                <th className="px-4 py-3 text-center font-medium text-stone-600">Type</th>
-                <th className="px-4 py-3 text-right font-medium text-stone-600">Orders</th>
-                <th className="px-4 py-3 text-right font-medium text-stone-600 hidden lg:table-cell">Total Spent</th>
-                <th className="px-4 py-3 text-left font-medium text-stone-600 hidden lg:table-cell">Joined</th>
-                <th className="px-4 py-3 text-right font-medium text-stone-600">Actions</th>
+                <th className="px-4 py-3 text-center font-medium text-stone-600">Tip</th>
+                <th className="px-4 py-3 text-right font-medium text-stone-600">Comenzi</th>
+                <th className="px-4 py-3 text-right font-medium text-stone-600 hidden lg:table-cell">Total cheltuit</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-600 hidden lg:table-cell">Înscris</th>
+                <th className="px-4 py-3 text-right font-medium text-stone-600">Acțiuni</th>
               </tr>
             </thead>
             <tbody>
@@ -192,7 +192,7 @@ export const AdminCustomers: React.FC = () => {
                           : 'bg-stone-100 text-stone-600'
                       }`}
                     >
-                      {customer.isRegistered ? 'Registered' : 'Guest'}
+                      {customer.isRegistered ? 'Înregistrat' : 'Vizitator'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right text-stone-700">
@@ -210,7 +210,7 @@ export const AdminCustomers: React.FC = () => {
                       className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-100 transition-colors"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      View
+                      Vezi
                     </Link>
                   </td>
                 </tr>
@@ -230,8 +230,8 @@ export const AdminCustomers: React.FC = () => {
                   <Mail className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Newsletter Subscribers</h2>
-                  <p className="text-sm text-amber-100">{newsletterSubscribers.length} total subscribers</p>
+                  <h2 className="text-xl font-bold text-white">Abonați la newsletter</h2>
+                  <p className="text-sm text-amber-100">{newsletterSubscribers.length} abonați în total</p>
                 </div>
               </div>
               <button
@@ -249,28 +249,28 @@ export const AdminCustomers: React.FC = () => {
                   className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 transition-colors"
                 >
                   <Mail className="h-4 w-4" />
-                  Copy All Emails
+                  Copiază toate emailurile
                 </button>
                 <button
                   onClick={handleDownloadCSV}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
                 >
                   <Download className="h-4 w-4" />
-                  Download CSV
+                  Descarcă CSV
                 </button>
               </div>
 
               <div className="rounded-lg border border-stone-200 bg-stone-50 p-4">
-                <h3 className="text-sm font-semibold text-stone-700 mb-2">How to send promotional emails:</h3>
+                <h3 className="text-sm font-semibold text-stone-700 mb-2">Cum trimiți emailuri promoționale:</h3>
                 <ol className="text-sm text-stone-600 space-y-1.5 list-decimal list-inside">
-                  <li>Click "Copy All Emails" to copy subscriber emails to clipboard</li>
-                  <li>Open your email client (Gmail, Outlook, etc.)</li>
-                  <li>Paste the emails in the BCC field to protect privacy</li>
-                  <li>Compose your promotional message</li>
-                  <li>Send to all subscribers at once</li>
+                  <li>Apasă „Copiază toate emailurile" ca să copiezi adresele abonaților</li>
+                  <li>Deschide clientul tău de email (Gmail, Outlook etc.)</li>
+                  <li>Lipește adresele în câmpul BCC pentru a le păstra private</li>
+                  <li>Scrie mesajul promoțional</li>
+                  <li>Trimite o dată către toți abonații</li>
                 </ol>
                 <p className="text-xs text-stone-500 mt-3 italic">
-                  💡 Tip: Use BCC (Blind Carbon Copy) to keep subscriber emails private from each other.
+                  💡 Sfat: Folosește BCC (copie oarbă) ca abonații să nu-și vadă adresele între ei.
                 </p>
               </div>
             </div>
@@ -281,8 +281,8 @@ export const AdminCustomers: React.FC = () => {
                   <thead>
                     <tr className="border-b border-stone-200 bg-stone-50">
                       <th className="px-4 py-3 text-left font-medium text-stone-600">Email</th>
-                      <th className="px-4 py-3 text-left font-medium text-stone-600 hidden md:table-cell">Name</th>
-                      <th className="px-4 py-3 text-center font-medium text-stone-600 hidden sm:table-cell">Type</th>
+                      <th className="px-4 py-3 text-left font-medium text-stone-600 hidden md:table-cell">Nume</th>
+                      <th className="px-4 py-3 text-center font-medium text-stone-600 hidden sm:table-cell">Tip</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
@@ -305,7 +305,7 @@ export const AdminCustomers: React.FC = () => {
                                 : 'bg-stone-100 text-stone-600'
                             }`}
                           >
-                            {sub.isRegistered ? 'Registered' : 'Guest'}
+                            {sub.isRegistered ? 'Înregistrat' : 'Vizitator'}
                           </span>
                         </td>
                       </tr>

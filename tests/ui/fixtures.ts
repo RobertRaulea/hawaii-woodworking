@@ -29,7 +29,10 @@ export const product: InventoryProduct = {
   onlineHeldOrders: 0,
   fairsStock: 34,
   totalStock: 134,
+  inTransitStock: 0,
+  status: 'active',
   invalidStock: false,
+  lowStockThreshold: null,
   fairs: [{ fairId, name: fair.name, quantity: 34 }],
 };
 export const receipt: InventoryReceipt = {

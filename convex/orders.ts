@@ -7,14 +7,24 @@ import {
 } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { requireAdmin } from "./lib/auth";
+import { requireAdmin, requirePermission } from "./lib/auth";
+import { hasPermission } from "./lib/permissions";
 import { internal } from "./_generated/api";
-import { checkoutSnapshot, onlineDeductions } from "./lib/inventory.utils";
+import {
+  checkoutSnapshot,
+  onlineDeductions,
+  requestIdIsValid,
+  stockQuantity,
+} from "./lib/inventory.utils";
 import type { CheckoutSnapshotLine } from "./lib/inventory.utils";
+import {
+  fulfillmentState,
+  paymentStatus,
+} from "./lib/orders.utils";
 
 interface PaymentResult {
   orderId: Id<"orders">;
-  inventoryStatus: "pending" | "applied" | "needs_review" | "legacy";
+  inventoryStatus: "pending" | "applied" | "needs_review" | "released" | "legacy";
   alreadyProcessed: boolean;
 }
 
@@ -154,6 +164,19 @@ export const createPendingOrder = internalMutation({
     ),
     total: v.number(),
     stripeSessionId: v.string(),
+    shipping: v.optional(
+      v.object({
+        firstName: v.string(),
+        lastName: v.string(),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          county: v.string(),
+          postalCode: v.string(),
+          country: v.string(),
+        }),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("orders", {
@@ -163,6 +186,7 @@ export const createPendingOrder = internalMutation({
       status: "pending",
       inventoryStatus: "pending",
       stripeSessionId: args.stripeSessionId,
+      shipping: args.shipping,
       createdAt: Date.now(),
     });
   },
@@ -196,7 +220,9 @@ export const markOrderPaid = internalMutation({
     if (
       legacyPaid ||
       order.paymentConfirmedAt !== undefined ||
-      order.inventoryStatus === "applied"
+      order.inventoryStatus === "applied" ||
+      // Only paid orders are released on cancel; a redelivered webhook must not re-hold stock.
+      order.inventoryStatus === "released"
     ) {
       return {
         orderId: order._id,
@@ -224,10 +250,45 @@ export const markOrderPaid = internalMutation({
   },
 });
 
+const FULFILLABLE_STATUSES = new Set(["paid", "shipped", "delivered"]);
+
+// Same keys as the admin view, with money, payment and customer
+// identifiers removed for fulfillment staff.
+const redactOrder = (
+  order: Doc<"orders">,
+  customer: Doc<"customers"> | null,
+  detail = false,
+) => ({
+  ...order,
+  items: order.items.map((item) => ({ ...item, price: null })),
+  total: null,
+  stripeSessionId: null,
+  stripePaymentIntentId: undefined,
+  invoiceId: undefined,
+  invoicePdfUrl: undefined,
+  postPaymentScheduledAt: undefined,
+  customer: customer
+    ? detail
+      ? {
+          _id: customer._id,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          shippingAddress: customer.shippingAddress,
+          email: null,
+          billingAddress: null,
+        }
+      : {
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: null,
+        }
+    : null,
+});
+
 export const reconcileStock = mutation({
   args: { orderId: v.id("orders") },
   handler: async (ctx, { orderId }): Promise<PaymentResult> => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "inventory.reconcile");
     const order = await ctx.db.get(orderId);
     if (!order) throw new ConvexError("Comanda nu există.");
     if (order.inventoryStatus === "applied")
@@ -247,7 +308,7 @@ export const reconcileStock = mutation({
 export const getInventoryIssues = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    await requirePermission(ctx, "inventory.reconcile");
     const orders = await ctx.db
       .query("orders")
       .withIndex("by_inventoryStatus", (q) =>
@@ -304,18 +365,14 @@ export const updateStatus = mutation({
     ),
   },
   handler: async (ctx, { orderId, status }) => {
-    await requireAdmin(ctx);
+    await requirePermission(ctx, "orders.fulfill");
     const order = await ctx.db.get(orderId);
     if (!order) {
-      throw new Error("Order not found");
+      throw new ConvexError("Comanda nu există.");
     }
-    if (
-      ["shipped", "delivered"].includes(status) &&
-      order.inventoryStatus !== undefined &&
-      order.inventoryStatus !== "applied"
-    ) {
+    if (!(order.status === "shipped" && status === "delivered")) {
       throw new ConvexError(
-        "Inventarul comenzii trebuie reconciliat înainte de expediere.",
+        "Folosește acțiunile dedicate (Fulfillment sau Anulează). Plata se confirmă doar din Stripe.",
       );
     }
     await ctx.db.patch(orderId, { status });
@@ -323,20 +380,224 @@ export const updateStatus = mutation({
   },
 });
 
+export const cancel = mutation({
+  args: {
+    requestId: v.string(),
+    orderId: v.id("orders"),
+    reason: v.string(),
+  },
+  handler: async (ctx, { requestId, orderId, reason }) => {
+    const { identity } = await requirePermission(ctx, "orders.manage");
+    if (!requestIdIsValid(requestId)) {
+      throw new ConvexError("Identificator de operațiune invalid.");
+    }
+    const previous = await ctx.db
+      .query("orderEvents")
+      .withIndex("by_request", (q) => q.eq("requestId", requestId))
+      .unique();
+    if (previous) {
+      if (
+        previous.actorId !== identity.subject ||
+        previous.orderId !== orderId ||
+        previous.kind !== "cancelled"
+      ) {
+        throw new ConvexError(
+          "Identificator deja utilizat pentru alta operațiune.",
+        );
+      }
+      return ctx.db.get(orderId);
+    }
+    const trimmed = reason.trim();
+    if (trimmed.length < 3 || trimmed.length > 300) {
+      throw new ConvexError(
+        "Motivul anulării trebuie să aibă între 3 și 300 de caractere.",
+      );
+    }
+    const order = await ctx.db.get(orderId);
+    if (!order) throw new ConvexError("Comanda nu există.");
+    if (order.status === "shipped" || order.status === "delivered") {
+      throw new ConvexError(
+        "Comanda expediată nu mai poate fi anulată.",
+      );
+    }
+    const now = Date.now();
+    const actorId = identity.subject;
+    let eventNote = trimmed;
+
+    if (order.status === "cancelled") {
+      if (order.inventoryStatus !== "needs_review") {
+        throw new ConvexError("Comanda este deja anulată.");
+      }
+      // Paid after cancel: release the held claims only.
+      await ctx.db.patch(orderId, {
+        inventoryStatus: "released",
+        refundStatus: "manual_required",
+        cancelReason: trimmed,
+      });
+      await ctx.db.insert("orderEvents", {
+        orderId,
+        requestId,
+        actorId: identity.subject,
+        kind: "cancelled",
+        note: trimmed,
+        createdAt: now,
+      });
+      return ctx.db.get(orderId);
+    }
+
+    const paid = paymentStatus(order) === "paid";
+    const notes: string[] = [];
+    const patch: Record<string, unknown> = {
+      status: "cancelled",
+      cancelledAt: now,
+      cancelledBy: actorId,
+      cancelReason: trimmed,
+      assignedTo: undefined,
+      assignedAt: undefined,
+    };
+    if (paid) {
+      const applied = order.inventoryAppliedItems ?? [];
+      if (applied.length > 0) {
+        for (const item of applied) {
+          const product = await ctx.db.get(item.productId);
+          if (!product) {
+            notes.push(
+              `${item.name}: produsul nu mai există, stocul nu a fost restabilit.`,
+            );
+            continue;
+          }
+          const after = stockQuantity((product.stock ?? 0) + item.quantity);
+          await ctx.db.patch(item.productId, { stock: after });
+          await ctx.db.insert("stockMovements", {
+            requestId,
+            productId: item.productId,
+            location: "workshop",
+            kind: "online_cancel",
+            quantity: item.quantity,
+            balanceAfter: after,
+            actorId,
+            orderId,
+            createdAt: now,
+          });
+        }
+        patch.inventoryRestockedAt = now;
+      } else {
+        notes.push(
+          "Stoc neverificat (comandă veche) — ajustează manual în Stocuri dacă e cazul.",
+        );
+      }
+      patch.inventoryStatus = "released";
+      patch.refundStatus = "manual_required";
+    }
+    if (notes.length > 0) eventNote = `${trimmed} — ${notes.join(" ")}`;
+    await ctx.db.patch(orderId, patch);
+    await ctx.db.insert("orderEvents", {
+      orderId,
+      requestId,
+      actorId,
+      kind: "cancelled",
+      note: eventNote,
+      createdAt: now,
+    });
+    return ctx.db.get(orderId);
+  },
+});
+
+export const listAdmin = query({
+  args: {
+    from: v.optional(v.number()),
+    to: v.optional(v.number()),
+  },
+  handler: async (ctx, { from, to }) => {
+    await requirePermission(ctx, "orders.manage");
+    const orders = await ctx.db
+      .query("orders")
+      .withIndex("by_createdAt")
+      .order("desc")
+      .collect();
+    const filtered = orders
+      .filter(
+        (order) =>
+          (from === undefined || order.createdAt >= from) &&
+          (to === undefined || order.createdAt <= to),
+      )
+      .slice(0, 1000);
+    return await Promise.all(
+      filtered.map(async (order) => {
+        const customer = await ctx.db.get(order.customerId);
+        return {
+          ...order,
+          shortNumber: order._id.slice(-8).toUpperCase(),
+          paymentStatus: paymentStatus(order),
+          fulfillmentState: fulfillmentState(order),
+          customer: customer
+            ? {
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email,
+              }
+            : null,
+          itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
+        };
+      }),
+    );
+  },
+});
+
+export const getAdmin = query({
+  args: { orderId: v.id("orders") },
+  handler: async (ctx, { orderId }) => {
+    await requirePermission(ctx, "orders.manage");
+    const order = await ctx.db.get(orderId);
+    if (!order) return null;
+    const [customer, events] = await Promise.all([
+      ctx.db.get(order.customerId),
+      ctx.db
+        .query("orderEvents")
+        .withIndex("by_order", (q) => q.eq("orderId", orderId))
+        .collect(),
+    ]);
+    return {
+      ...order,
+      shortNumber: order._id.slice(-8).toUpperCase(),
+      paymentStatus: paymentStatus(order),
+      fulfillmentState: fulfillmentState(order),
+      customer,
+      shipping:
+        order.shipping ??
+        (customer
+          ? {
+              firstName: customer.firstName,
+              lastName: customer.lastName,
+              address: customer.shippingAddress,
+            }
+          : undefined),
+      shippingSource: order.shipping ? "snapshot" : "customer",
+      events: events.sort((a, b) => a.createdAt - b.createdAt),
+    };
+  },
+});
+
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    const staff = await requirePermission(ctx, "orders.fulfill");
+    const manage = hasPermission(staff.role, "orders.manage");
     const orders = await ctx.db
       .query("orders")
       .withIndex("by_createdAt")
       .order("desc")
       .collect();
 
+    const visible = manage
+      ? orders
+      : orders.filter((order) => FULFILLABLE_STATUSES.has(order.status));
+
     // Attach customer info to each order
     return await Promise.all(
-      orders.map(async (order) => {
+      visible.map(async (order) => {
         const customer = await ctx.db.get(order.customerId);
+        if (!manage) return redactOrder(order, customer);
         return {
           ...order,
           customer: customer
@@ -358,7 +619,8 @@ export const getByDateRange = query({
     endTime: v.number(),
   },
   handler: async (ctx, { startTime, endTime }) => {
-    await requireAdmin(ctx);
+    const staff = await requirePermission(ctx, "orders.fulfill");
+    const manage = hasPermission(staff.role, "orders.manage");
     const orders = await ctx.db
       .query("orders")
       .withIndex("by_createdAt")
@@ -367,12 +629,16 @@ export const getByDateRange = query({
 
     // Filter by date range in-memory (Convex doesn't support range on non-first index field)
     const filtered = orders.filter(
-      (o) => o.createdAt >= startTime && o.createdAt <= endTime,
+      (o) =>
+        o.createdAt >= startTime &&
+        o.createdAt <= endTime &&
+        (manage || FULFILLABLE_STATUSES.has(o.status)),
     );
 
     return await Promise.all(
       filtered.map(async (order) => {
         const customer = await ctx.db.get(order.customerId);
+        if (!manage) return redactOrder(order, customer);
         return {
           ...order,
           customer: customer
@@ -391,11 +657,15 @@ export const getByDateRange = query({
 export const getById = query({
   args: { orderId: v.id("orders") },
   handler: async (ctx, { orderId }) => {
-    await requireAdmin(ctx);
+    const staff = await requirePermission(ctx, "orders.fulfill");
     const order = await ctx.db.get(orderId);
     if (!order) return null;
 
     const customer = await ctx.db.get(order.customerId);
+    if (!hasPermission(staff.role, "orders.manage")) {
+      if (!FULFILLABLE_STATUSES.has(order.status)) return null;
+      return redactOrder(order, customer, true);
+    }
     return { ...order, customer };
   },
 });
@@ -403,6 +673,7 @@ export const getById = query({
 export const getByCustomerId = query({
   args: { customerId: v.id("customers") },
   handler: async (ctx, { customerId }) => {
+    await requireAdmin(ctx);
     return await ctx.db
       .query("orders")
       .withIndex("by_customerId", (q) => q.eq("customerId", customerId))

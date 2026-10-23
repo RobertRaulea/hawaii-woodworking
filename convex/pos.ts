@@ -2,7 +2,12 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { requireAdmin } from "./lib/auth";
+import {
+  authorizedFairIds,
+  requireAdmin,
+  requireFairAccess,
+  requirePermission,
+} from "./lib/auth";
 import {
   buildSale,
   businessDate,
@@ -10,13 +15,16 @@ import {
   toCents,
 } from "./lib/pos.utils";
 import { resolveImageUrls } from "./lib/storage";
+import { isSellable, productStatus, validateSku } from "./lib/products.utils";
 import {
   availableOnlineQuantity,
   findInventoryOperation,
   getFairBalance,
+  inTransitByProduct,
   isStockQuantity,
   onlineHeldQuantity,
   onlineReviewClaims,
+  openTransfersForFair,
   stockQuantity,
   transferInventory,
 } from "./lib/inventory.utils";
@@ -62,6 +70,7 @@ const resolveLines = async (
   ctx: QueryCtx,
   fairId: Id<"fairs">,
   lines: { productId: Id<"products"> }[],
+  sellableOnly = false,
 ) =>
   Promise.all(
     lines.map(async ({ productId }) => {
@@ -70,6 +79,8 @@ const resolveLines = async (
         balanceFor(ctx, fairId, productId),
       ]);
       if (!product) throw new ConvexError("Un produs nu mai exista.");
+      if (sellableOnly && !isSellable(product))
+        throw new ConvexError("Produsul nu mai este disponibil.");
       return {
         productId,
         name: product.name_ro || product.name,
@@ -82,31 +93,79 @@ const resolveLines = async (
 export const listFairs = query({
   args: { includeArchived: v.optional(v.boolean()) },
   handler: async (ctx, { includeArchived }) => {
-    await requireAdmin(ctx);
-    return (await ctx.db.query("fairs").collect()).filter(
-      (fair) => includeArchived || fair.active,
-    );
+    const staff = await requirePermission(ctx, "inventory.read");
+    const fairs = await ctx.db.query("fairs").collect();
+    const authorized = await authorizedFairIds(ctx, staff);
+    if (authorized === "all") {
+      return fairs.filter((fair) => includeArchived || fair.active);
+    }
+    return fairs.filter((fair) => fair.active && authorized.has(fair._id));
   },
 });
 
+const validFairDate = (value: string) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+
+const validateFairDates = (startsOn?: string, endsOn?: string) => {
+  if (startsOn !== undefined && !validFairDate(startsOn))
+    throw new ConvexError("Data de început este invalidă.");
+  if (endsOn !== undefined && !validFairDate(endsOn))
+    throw new ConvexError("Data de sfârșit este invalidă.");
+  if (startsOn && endsOn && endsOn < startsOn)
+    throw new ConvexError("Data de sfârșit trebuie să fie după data de început.");
+};
+
 export const createFair = mutation({
-  args: { name: v.string() },
-  handler: async (ctx, { name }) => {
+  args: {
+    name: v.string(),
+    startsOn: v.optional(v.string()),
+    endsOn: v.optional(v.string()),
+  },
+  handler: async (ctx, { name, startsOn, endsOn }) => {
     const identity = await requireAdmin(ctx);
     if (!name.trim() || name.trim().length > 100)
       throw new ConvexError("Nume de targ invalid.");
+    validateFairDates(startsOn, endsOn);
     return ctx.db.insert("fairs", {
       name: name.trim(),
       active: true,
       createdBy: identity.subject,
+      startsOn,
+      endsOn,
     });
+  },
+});
+
+export const updateFair = mutation({
+  args: {
+    fairId: v.id("fairs"),
+    name: v.string(),
+    startsOn: v.optional(v.string()),
+    endsOn: v.optional(v.string()),
+  },
+  handler: async (ctx, { fairId, name, startsOn, endsOn }) => {
+    await requirePermission(ctx, "fairs.manage");
+    const fair = await ctx.db.get(fairId);
+    if (!fair) throw new ConvexError("Târgul nu mai există.");
+    if (!fair.active) throw new ConvexError("Târgul este arhivat.");
+    if (!name.trim() || name.trim().length > 100)
+      throw new ConvexError("Nume de targ invalid.");
+    validateFairDates(startsOn, endsOn);
+    await ctx.db.patch(fairId, {
+      name: name.trim(),
+      startsOn,
+      endsOn,
+    });
+    return fairId;
   },
 });
 
 export const workspace = query({
   args: { fairId: v.id("fairs") },
   handler: async (ctx, { fairId }) => {
-    await requireAdmin(ctx);
+    const staff = await requirePermission(ctx, "pos.sell");
+    await requireFairAccess(ctx, staff, fairId);
     if (!(await ctx.db.get(fairId)))
       throw new ConvexError("Târgul nu mai există.");
     const [products, balances] = await Promise.all([
@@ -120,7 +179,7 @@ export const workspace = query({
       balances.map((balance) => [balance.productId, balance.quantity]),
     );
     return Promise.all(
-      products.map(async (product) => ({
+      products.filter(isSellable).map(async (product) => ({
         id: product._id,
         name: product.name_ro || product.name,
         category: product.category || "Altele",
@@ -128,8 +187,6 @@ export const workspace = query({
         favorite: product.posFavorite ?? false,
         unitPriceCents: toCents(product.price),
         stock: quantities.get(product._id) ?? 0,
-        workshopStock: product.stock ?? 0,
-        onlineStock: product.stock ?? 0,
         trackStock: product.trackStock ?? true,
         image:
           (await resolveImageUrls(ctx, product.imageStorageIds))[0] ||
@@ -143,23 +200,10 @@ export const workspace = query({
 export const setProductOptions = mutation({
   args: { productId: v.id("products"), sku: v.string(), favorite: v.boolean() },
   handler: async (ctx, { productId, sku, favorite }) => {
-    await requireAdmin(ctx);
+    await requirePermission(ctx, "products.posOptions");
     if (!(await ctx.db.get(productId)))
       throw new ConvexError("Produsul nu mai exista.");
-    const normalizedSku = sku.trim().toUpperCase();
-    if (normalizedSku.length > 80) throw new ConvexError("SKU prea lung.");
-    if (normalizedSku) {
-      const products = await ctx.db.query("products").collect();
-      if (
-        products.some(
-          (product) =>
-            product._id !== productId &&
-            product.sku?.toUpperCase() === normalizedSku,
-        )
-      ) {
-        throw new ConvexError("SKU deja utilizat.");
-      }
-    }
+    const normalizedSku = await validateSku(ctx, productId, sku);
     await ctx.db.patch(productId, {
       sku: normalizedSku,
       posFavorite: favorite,
@@ -178,7 +222,20 @@ export const transfer = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "inventory.transfer");
+    validateRequest(args.requestId);
+    const previous = await findInventoryOperation(ctx, args.requestId);
+    const legacy = previous
+      ? []
+      : await ctx.db
+          .query("stockMovements")
+          .withIndex("by_request", (q) => q.eq("requestId", args.requestId))
+          .collect();
+    if (!previous && !legacy.length) {
+      throw new ConvexError(
+        "Transferurile directe au fost înlocuite de modulul Transferuri.",
+      );
+    }
     return transferInventory(
       ctx,
       { ...args, direction: args.direction ?? "to_fair" },
@@ -190,7 +247,7 @@ export const transfer = mutation({
 export const getInventoryOperation = query({
   args: { requestId: v.string() },
   handler: async (ctx, { requestId }) => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "inventory.transfer");
     validateRequest(requestId);
     const operation = await findInventoryOperation(ctx, requestId);
     if (operation && operation.actorId !== identity.subject)
@@ -202,12 +259,14 @@ export const getInventoryOperation = query({
 export const getStockOverview = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
-    const [products, balances, fairs, claims] = await Promise.all([
+    const staff = await requirePermission(ctx, "inventory.read");
+    const authorized = await authorizedFairIds(ctx, staff);
+    const [products, balances, allFairs, claims, inTransit] = await Promise.all([
       ctx.db.query("products").collect(),
       ctx.db.query("fairInventory").collect(),
       ctx.db.query("fairs").collect(),
       onlineReviewClaims(ctx),
+      authorized === "all" ? inTransitByProduct(ctx) : Promise.resolve(null),
     ]);
     const byProduct = new Map<Id<"products">, typeof balances>();
     for (const balance of balances) {
@@ -215,35 +274,54 @@ export const getStockOverview = query({
       rows.push(balance);
       byProduct.set(balance.productId, rows);
     }
+    const fairs =
+      authorized === "all"
+        ? allFairs
+        : allFairs.filter(
+            (fair) => fair.active && authorized.has(fair._id),
+          );
     const fairNames = new Map(fairs.map((fair) => [fair._id, fair.name]));
     const activeFairs = new Set(
       fairs.filter((fair) => fair.active).map((fair) => fair._id),
     );
     const knownIds = new Set(products.map((product) => product._id));
     return {
+      scope: authorized === "all" ? ("all" as const) : ("assigned" as const),
       fairs,
-      issues: balances
-        .filter(
-          (balance) =>
-            balance.quantity !== 0 &&
-            (!knownIds.has(balance.productId) ||
-              !activeFairs.has(balance.fairId)),
-        )
-        .map(
-          (balance) =>
-            `Balanță de verificat ${balance.productId}: ${balance.quantity} buc. la ${fairNames.get(balance.fairId) ?? "târg necunoscut"}. Produsul sau târgul nu mai este disponibil; necesită reconciliere.`,
-        ),
+      issues:
+        authorized === "all"
+          ? balances
+              .filter(
+                (balance) =>
+                  balance.quantity !== 0 &&
+                  (!knownIds.has(balance.productId) ||
+                    !activeFairs.has(balance.fairId)),
+              )
+              .map(
+                (balance) =>
+                  `Balanță de verificat ${balance.productId}: ${balance.quantity} buc. la ${fairNames.get(balance.fairId) ?? "târg necunoscut"}. Produsul sau târgul nu mai este disponibil; necesită reconciliere.`,
+              )
+          : [],
       products: products.map((product) => {
-        const rows = byProduct.get(product._id) ?? [];
+        const rows = (byProduct.get(product._id) ?? []).filter(
+          (row) => authorized === "all" || authorized.has(row.fairId),
+        );
         const sum = rows.reduce((total, row) => total + row.quantity, 0);
         const valid =
-          rows.every((row) => isStockQuantity(row.quantity)) &&
-          isStockQuantity(product.stock ?? 0) &&
-          isStockQuantity(sum) &&
-          isStockQuantity(sum + (product.stock ?? 0));
+          authorized === "all"
+            ? rows.every((row) => isStockQuantity(row.quantity)) &&
+              isStockQuantity(product.stock ?? 0) &&
+              isStockQuantity(sum) &&
+              isStockQuantity(sum + (product.stock ?? 0))
+            : rows.every((row) => isStockQuantity(row.quantity)) &&
+              isStockQuantity(sum);
         const fairsStock = valid ? sum : null;
         const onlinePhysicalStock =
-          valid && product.trackStock !== false ? (product.stock ?? 0) : null;
+          authorized === "all" &&
+          valid &&
+          product.trackStock !== false
+            ? (product.stock ?? 0)
+            : null;
         const onlineHeldOrders =
           onlinePhysicalStock === null
             ? null
@@ -255,9 +333,11 @@ export const getStockOverview = query({
           onlinePhysicalStock === null
             ? null
             : onlinePhysicalStock - onlineHeldOrders!;
+        const inTransitStock =
+          inTransit === null ? null : (inTransit.get(product._id) ?? 0);
         const total =
           onlinePhysicalStock !== null && fairsStock !== null
-            ? onlinePhysicalStock + fairsStock
+            ? onlinePhysicalStock + fairsStock + (inTransitStock ?? 0)
             : null;
         return {
           id: product._id,
@@ -273,8 +353,11 @@ export const getStockOverview = query({
             fairsStock !== null && isStockQuantity(fairsStock)
               ? fairsStock
               : null,
+          inTransitStock: inTransitStock ?? null,
+          status: productStatus(product),
           totalStock: total !== null && isStockQuantity(total) ? total : null,
           invalidStock: !valid,
+          lowStockThreshold: product.lowStockThreshold ?? null,
           fairs: rows.map((row) => ({
             fairId: row.fairId,
             name: fairNames.get(row.fairId) ?? "Târg indisponibil",
@@ -292,6 +375,10 @@ export const getArchivePreview = query({
     await requireAdmin(ctx);
     const fair = await ctx.db.get(fairId);
     if (!fair) throw new ConvexError("Târgul nu mai există.");
+    if (await openTransfersForFair(ctx, fairId))
+      throw new ConvexError(
+        "Există transferuri deschise pentru acest târg. Finalizează-le sau anulează-le înainte de arhivare.",
+      );
     const [balances, attempts, claims] = await Promise.all([
       ctx.db
         .query("fairInventory")
@@ -398,6 +485,10 @@ export const archiveFair = mutation({
       throw new ConvexError("Identificator utilizat pentru altă operațiune.");
     }
     const fair = await activeFair(ctx, args.fairId);
+    if (await openTransfersForFair(ctx, fair._id))
+      throw new ConvexError(
+        "Există transferuri deschise pentru acest târg. Finalizează-le sau anulează-le înainte de arhivare.",
+      );
     const pending = await ctx.db
       .query("posAttempts")
       .withIndex("by_fair_status", (q) =>
@@ -502,7 +593,9 @@ export const prepare = mutation({
     discountReason: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await requireAdmin(ctx);
+    const staff = await requirePermission(ctx, "pos.sell");
+    await requireFairAccess(ctx, staff, args.fairId);
+    const { identity } = staff;
     const existing = await getAttempt(ctx, args.requestId, identity.subject);
     if (existing) {
       const sameLines =
@@ -541,7 +634,7 @@ export const prepare = mutation({
     await activeFair(ctx, args.fairId);
     const sale = buildSale(
       args.items,
-      await resolveLines(ctx, args.fairId, args.items),
+      await resolveLines(ctx, args.fairId, args.items, true),
       args.discountCents,
       args.discountReason,
     );
@@ -560,7 +653,7 @@ export const prepare = mutation({
 export const openAttempts = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "pos.sell");
     return ctx.db
       .query("posAttempts")
       .withIndex("by_seller_status", (q) =>
@@ -573,7 +666,7 @@ export const openAttempts = query({
 export const lookup = query({
   args: { requestId: v.string() },
   handler: async (ctx, { requestId }) => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "pos.sell");
     const attempt = await getAttempt(ctx, requestId, identity.subject);
     const sale =
       attempt?.status === "completed"
@@ -589,7 +682,7 @@ export const lookup = query({
 export const cancel = mutation({
   args: { requestId: v.string() },
   handler: async (ctx, { requestId }) => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "pos.sell");
     const attempt = await getAttempt(ctx, requestId, identity.subject);
     if (!attempt || attempt.status === "cancelled") return;
     if (attempt.status === "completed")
@@ -601,7 +694,7 @@ export const cancel = mutation({
 export const complete = mutation({
   args: { requestId: v.string(), receivedCents: v.optional(v.number()) },
   handler: async (ctx, { requestId, receivedCents }) => {
-    const identity = await requireAdmin(ctx);
+    const { identity } = await requirePermission(ctx, "pos.sell");
     const attempt = await getAttempt(ctx, requestId, identity.subject);
     if (!attempt || attempt.status === "cancelled")
       throw new ConvexError("Operatiune inexistenta sau anulata.");
@@ -630,13 +723,15 @@ export const complete = mutation({
     let changeCents = 0;
     if (attempt.paymentMethod === "cash") {
       if (
-        receivedCents === undefined ||
-        !Number.isSafeInteger(receivedCents) ||
-        receivedCents < sale.totalCents
+        receivedCents !== undefined &&
+        (!Number.isSafeInteger(receivedCents) ||
+          receivedCents < sale.totalCents)
       ) {
         throw new ConvexError("Suma primita nu acopera totalul.");
       }
-      changeCents = receivedCents - sale.totalCents;
+      if (receivedCents !== undefined) {
+        changeCents = receivedCents - sale.totalCents;
+      }
     } else if (receivedCents !== undefined) {
       throw new ConvexError("Plata cu cardul nu are suma numerar.");
     }
@@ -678,7 +773,8 @@ export const complete = mutation({
 export const dailySummary = query({
   args: { fairId: v.id("fairs"), date: v.string() },
   handler: async (ctx, { fairId, date }) => {
-    await requireAdmin(ctx);
+    const staff = await requirePermission(ctx, "pos.sell");
+    await requireFairAccess(ctx, staff, fairId);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
       throw new ConvexError("Data invalida.");
     const sales = await ctx.db

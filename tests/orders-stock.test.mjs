@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import * as orders from '../convex/orders.ts';
 import * as products from '../convex/products.ts';
 import * as pos from '../convex/pos.ts';
+import * as transfers from '../convex/transfers.ts';
 import { fixture } from './helpers/convexFixture.mjs';
 import { handleStripeWebhook } from '../convex/stripeWebhook.ts';
 import { getFunctionName } from 'convex/server';
@@ -262,19 +263,43 @@ test('paid claims reduce checkout, public availability and transfers, not physic
     )[0].quantity,
     1,
   );
-  const transfer = {
+  const tooMuch = await db.run(transfers.create, {
     requestId: 'held-stock-transfer-001',
-    fairId: 'fair-1',
-    productId: 'magnet',
-    quantity: 2,
-    direction: 'to_fair',
-  };
-  await assert.rejects(db.run(pos.transfer, transfer));
-  const receipt = await db.run(pos.transfer, { ...transfer, quantity: 1 });
-  assert.equal(receipt.stockAfter.onlineStock, 0);
-  assert.equal(receipt.stockAfter.onlinePhysicalStock, 3);
-  assert.equal(receipt.stockAfter.onlineHeldOrders, 3);
-  assert.equal(receipt.stockAfter.totalStock, 38);
+    from: { location: 'workshop' },
+    to: { location: 'fair', fairId: 'fair-1' },
+    lines: [{ productId: 'magnet', quantity: 2 }],
+  });
+  await assert.rejects(
+    db.run(transfers.ship, {
+      requestId: 'held-stock-ship-001',
+      transferId: tooMuch._id,
+    }),
+  );
+  await db.run(transfers.cancel, {
+    requestId: 'held-stock-cancel-001',
+    transferId: tooMuch._id,
+    reason: 'cantitate prea mare',
+  });
+  const draft = await db.run(transfers.create, {
+    requestId: 'held-stock-transfer-002',
+    from: { location: 'workshop' },
+    to: { location: 'fair', fairId: 'fair-1' },
+    lines: [{ productId: 'magnet', quantity: 1 }],
+  });
+  await db.run(transfers.ship, {
+    requestId: 'held-stock-ship-002',
+    transferId: draft._id,
+  });
+  await db.run(transfers.receive, {
+    requestId: 'held-stock-recv-001',
+    transferId: draft._id,
+    lines: [{ productId: 'magnet', quantity: 1 }],
+  });
+  const afterTransfer = (await db.run(pos.getStockOverview)).products[0];
+  assert.equal(afterTransfer.onlineStock, 0);
+  assert.equal(afterTransfer.onlinePhysicalStock, 3);
+  assert.equal(afterTransfer.onlineHeldOrders, 3);
+  assert.equal(afterTransfer.totalStock, 38);
   const preview = await db.run(pos.getArchivePreview, { fairId: 'fair-1' });
   assert.equal(preview.items[0].onlineAfter, 35);
   await db.run(pos.archiveFair, {

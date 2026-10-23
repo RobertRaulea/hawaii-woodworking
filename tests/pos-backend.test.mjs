@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import * as pos from '../convex/pos.ts';
+import * as transfers from '../convex/transfers.ts';
 import { businessDate } from '../convex/lib/pos.utils.ts';
 import { fixture } from './helpers/convexFixture.mjs';
 
@@ -65,6 +66,20 @@ test('cash completion atomically records sale, change, fair stock, audit, and da
     units: 4,
     count: 1,
   });
+});
+
+test('cash completion works without a received amount and reports no change', async () => {
+  const db = fixture();
+  const args = example();
+  await db.run(pos.prepare, args);
+  const result = await db.run(pos.complete, { requestId: args.requestId });
+  assert.equal(result.changeCents, 0);
+  const sale = db.all('posSales')[0];
+  assert.equal(sale.receivedCents, undefined);
+  assert.equal(sale.changeCents, 0);
+  assert.equal(sale.totalCents, 10000);
+  assert.equal(sale.paymentMethod, 'cash');
+  assert.equal(db.all('stockMovements').length, 3);
 });
 
 test('repeated confirmations and preparation retries record exactly one sale', async () => {
@@ -213,15 +228,21 @@ test('card confirmation records only the external payment acknowledgement and ap
 
 test('workshop transfer is idempotent and has both sides of the inventory audit', async () => {
   const db = fixture();
-  const args = {
+  const draft = await db.run(transfers.create, {
     requestId: 'request-transfer-001',
-    fairId: 'fair-1',
-    productId: 'magnet',
-    quantity: 10,
-  };
-  await db.run(pos.transfer, args);
-  await db.run(pos.transfer, args);
+    from: { location: 'workshop' },
+    to: { location: 'fair', fairId: 'fair-1' },
+    lines: [{ productId: 'magnet', quantity: 10 }],
+  });
+  const shipArgs = { requestId: 'request-transfer-002', transferId: draft._id };
+  await db.run(transfers.ship, shipArgs);
+  await db.run(transfers.ship, shipArgs);
   assert.equal(db.all('products')[0].stock, 90);
+  await db.run(transfers.receive, {
+    requestId: 'request-transfer-003',
+    transferId: draft._id,
+    lines: [{ productId: 'magnet', quantity: 10 }],
+  });
   assert.equal(db.all('fairInventory')[0].quantity, 44);
   assert.equal(db.all('stockMovements').length, 2);
   assert.equal(
@@ -229,14 +250,23 @@ test('workshop transfer is idempotent and has both sides of the inventory audit'
     0,
   );
   await assert.rejects(
-    db.run(pos.transfer, { ...args, quantity: 11 }),
-    /alta operatiune/,
-  );
-  await assert.rejects(
-    db.run(pos.transfer, {
-      ...args,
+    db.run(transfers.receive, {
       requestId: 'request-transfer-002',
-      quantity: 101,
+      transferId: draft._id,
+      lines: [{ productId: 'magnet', quantity: 10 }],
+    }),
+    /alta operațiune/i,
+  );
+  const tooMuch = await db.run(transfers.create, {
+    requestId: 'request-transfer-004',
+    from: { location: 'workshop' },
+    to: { location: 'fair', fairId: 'fair-1' },
+    lines: [{ productId: 'magnet', quantity: 91 }],
+  });
+  await assert.rejects(
+    db.run(transfers.ship, {
+      requestId: 'request-transfer-005',
+      transferId: tooMuch._id,
     }),
     /Stoc insuficient/,
   );
@@ -282,7 +312,6 @@ test('SKU codes are unique and favorite changes do not alter stock', async () =>
   assert.equal(products[0].sku, 'MAG-01');
   assert.equal(products[0].favorite, true);
   assert.equal(products[0].stock, 34);
-  assert.equal(products[0].workshopStock, 100);
 });
 
 test('summary excludes other locations, prior trading days, and prepared or cancelled attempts', async () => {

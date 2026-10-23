@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useConvexConnectionState, useMutation } from 'convex/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { api } from '../../../../convex/_generated/api';
-import type { Doc } from '../../../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { inventoryError } from '../../../utils/inventory.utils';
 import { withTimeout } from '../PointOfSale/pos.utils';
@@ -14,9 +14,15 @@ interface OrderInventoryReviewProps {
     | 'inventoryStatus'
     | 'inventoryError'
     | 'inventoryReviewReason'
-    | 'items'
     | 'inventoryUnfulfilledItems'
-  >;
+  > & {
+    items: {
+      productId: Id<'products'>;
+      name: string;
+      quantity: number;
+      price: number | null;
+    }[];
+  };
 }
 
 export const OrderInventoryReview = ({ order }: OrderInventoryReviewProps) => {

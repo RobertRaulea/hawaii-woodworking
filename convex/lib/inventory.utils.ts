@@ -3,6 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { positiveInteger, toCents } from "./pos.utils";
 import { resolveImageUrls } from "./storage";
+import { isSellable } from "./products.utils";
 
 export interface InventoryLine {
   productId: Id<"products">;
@@ -147,6 +148,99 @@ export const findInventoryOperation = (ctx: QueryCtx, requestId: string) =>
     .query("inventoryOperations")
     .withIndex("by_request", (q) => q.eq("requestId", requestId))
     .unique();
+
+export const findStockOperation = (ctx: QueryCtx, requestId: string) =>
+  ctx.db
+    .query("stockOperations")
+    .withIndex("by_request", (q) => q.eq("requestId", requestId))
+    .unique();
+
+export const POS_SALE_IN_PROGRESS =
+  "Există o vânzare POS în curs pentru acest produs. Finalizeaz-o înainte.";
+
+export const insufficientAvailableError = (held: number) =>
+  new ConvexError(
+    held > 0
+      ? `Stoc disponibil insuficient: ${held} buc. sunt ținute pentru comenzi plătite. Reconciliază comenzile înainte.`
+      : "Stoc insuficient.",
+  );
+
+export const inTransitByProduct = async (ctx: QueryCtx) => {
+  const open = await ctx.db
+    .query("transfers")
+    .collect()
+    .then((rows) =>
+      rows.filter(
+        (row) =>
+          row.status === "in_transit" || row.status === "partially_received",
+      ),
+    );
+  const totals = new Map<Id<"products">, number>();
+  for (const transfer of open) {
+    for (const line of transfer.lines) {
+      totals.set(
+        line.productId,
+        (totals.get(line.productId) ?? 0) +
+          Math.max(0, line.shippedQuantity - line.receivedQuantity),
+      );
+    }
+  }
+  return totals;
+};
+
+export const openTransfersForFair = async (
+  ctx: QueryCtx,
+  fairId: Id<"fairs">,
+) => {
+  const open = await ctx.db.query("transfers").collect();
+  return open.some(
+    (row) =>
+      (row.status === "requested" ||
+        row.status === "draft" ||
+        row.status === "in_transit" ||
+        row.status === "partially_received") &&
+      (row.fromFairId === fairId || row.toFairId === fairId),
+  );
+};
+
+export const fairPosInProgress = async (
+  ctx: QueryCtx,
+  fairId: Id<"fairs">,
+  productId: Id<"products">,
+): Promise<boolean> => {
+  const attempts = await ctx.db
+    .query("posAttempts")
+    .withIndex("by_fair_status", (q) =>
+      q.eq("fairId", fairId).eq("status", "prepared"),
+    )
+    .collect();
+  return attempts.some((attempt) =>
+    attempt.items.some((item) => item.productId === productId),
+  );
+};
+
+/**
+ * Latest ledger movement for one product at one location.
+ * Atelier uses the product+location prefix only: transfer/archive rows
+ * carry a fairId, so constraining fairId would miss them.
+ */
+export const latestMovement = (
+  ctx: QueryCtx,
+  productId: Id<"products">,
+  fairId?: Id<"fairs">,
+) =>
+  ctx.db
+    .query("stockMovements")
+    .withIndex("by_product_location", (q) =>
+      fairId === undefined
+        ? q.eq("productId", productId).eq("location", "workshop")
+        : q
+            .eq("productId", productId)
+            .eq("location", "fair")
+            .eq("fairId", fairId),
+    )
+    .order("desc")
+    .first();
 
 export const transferInventory = async (
   ctx: MutationCtx,
@@ -413,6 +507,8 @@ export const checkoutSnapshot = async (
   const snapshot = await Promise.all(
     (await onlineDeductions(ctx, items)).map(async ({ product, quantity }) => {
       if (!product) throw new ConvexError("Produsul nu mai există.");
+      if (!isSellable(product))
+        throw new ConvexError("Produsul nu mai este disponibil.");
       toCents(product.price);
       return {
         productId: product._id,

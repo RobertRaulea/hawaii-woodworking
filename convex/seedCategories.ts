@@ -1,12 +1,13 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin } from "./lib/auth";
 
-// Public mutation for seeding (no auth required for seed scripts)
 export const seedCategories = mutation({
   args: {
     force: v.optional(v.boolean()),
   },
   handler: async (ctx, { force }) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db.query("categories").collect();
 
     if (!force && existing.length > 0) {

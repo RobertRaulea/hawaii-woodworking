@@ -1,356 +1,455 @@
 import { useMemo, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { Link, useSearchParams } from 'react-router-dom';
-import {
-  ArrowsRightLeftIcon,
-  AdjustmentsHorizontalIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../../../../convex/_generated/api';
+import type { Id } from '../../../../convex/_generated/dataModel';
+import { Link } from 'react-router-dom';
+import { formatStock } from '../../../utils/inventory.utils';
+import {
+  filterStockRows,
+  locationFairId,
+  locationStock,
+} from '../../../utils/inventory.utils';
+import type { StockAvailability, StockLocation } from '../../../utils/inventory.utils';
+import type {
+  InventoryFair,
+  InventoryProduct,
+} from '../../../types/inventory.types';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { useInventoryOperation } from '../../../hooks/useInventoryOperation';
-import { formatStock } from '../../../utils/inventory.utils';
-import { searchText } from '../PointOfSale/pos.utils';
-import { StockTransferDialog } from './StockTransferDialog';
-import { ProductPosOptionsDialog } from './ProductPosOptionsDialog';
+import { useStaffAccess } from '../../../hooks/useStaffAccess';
+import { useStockOperation } from '../../../hooks/useStockOperation';
 import { InventoryFeedback } from './InventoryFeedback';
+import { StockOperationFeedback } from './StockOperationFeedback';
 import { InventoryReviewSummary } from '../Orders/InventoryReviewSummary';
+import { ProductPosOptionsDialog } from './ProductPosOptionsDialog';
+import { StockOperationDialog } from './StockOperationDialog';
+import { StockMovementsHistory } from './StockMovementsHistory';
+import { AssignedFairStock } from './AssignedFairStock';
 
-interface InventoryWorkspaceProps {
-  actorId: string;
+const formatDate = (timestamp: number) =>
+  new Date(timestamp).toLocaleString('ro-RO', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
+export const AdminInventory = () => {
+  const { can, userId } = useStaffAccess();
+  const canReadAll = can('inventory.readAll');
+  const fairIdParam = useSearchParams()[0].get('fairId') as Id<'fairs'> | null;
+  const overview = useAdminQuery(api.pos.getStockOverview, {});
+  const archivedPreview = useAdminQuery(
+    api.pos.getArchivePreview,
+    canReadAll && fairIdParam ? { fairId: fairIdParam } : 'skip',
+  );
+  const operation = useInventoryOperation(userId ?? '');
+  const stockOperation = useStockOperation(userId);
+  if (!canReadAll) return <AssignedFairStock overview={overview.data} />;
+  return (
+    <InventoryWorkspace
+      overview={overview.data}
+      archivedPreview={archivedPreview.data}
+      operation={operation}
+      stockOperation={stockOperation}
+      archivedFairId={fairIdParam}
+    />
+  );
+};
+
+interface WorkspaceProps {
+  overview:
+    | {
+        scope: 'all' | 'assigned';
+        issues: string[];
+        fairs: InventoryFair[];
+        products: InventoryProduct[];
+      }
+    | null
+    | undefined;
+  archivedPreview:
+    | { fair: InventoryFair & { archivedAt?: number } }
+    | null
+    | undefined;
+  operation: ReturnType<typeof useInventoryOperation>;
+  stockOperation: ReturnType<typeof useStockOperation>;
+  archivedFairId: Id<'fairs'> | null;
 }
 
-const InventoryWorkspace = ({ actorId }: InventoryWorkspaceProps) => {
-  const { data, error } = useAdminQuery(api.pos.getStockOverview, {});
-  const operation = useInventoryOperation(actorId);
-  const [params, setParams] = useSearchParams();
+const InventoryWorkspace = ({
+  overview,
+  archivedPreview,
+  operation,
+  stockOperation,
+  archivedFairId,
+}: WorkspaceProps) => {
+  const { can } = useStaffAccess();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [transferProduct, setTransferProduct] = useState<string | null>(null);
-  const [optionsProduct, setOptionsProduct] = useState<string | null>(null);
-  const selectedFairId = params.get('fairId') ?? '';
-  const selectedFair = data?.fairs.find((fair) => fair._id === selectedFairId);
-  const visible = useMemo(() => {
-    const term = searchText(search.trim());
-    return (
-      data?.products.filter(
-        (product) =>
-          !term || searchText(`${product.name} ${product.sku}`).includes(term),
-      ) ?? []
-    );
-  }, [data, search]);
-  const totals = useMemo(
+  const [category, setCategory] = useState('');
+  const [availability, setAvailability] = useState<StockAvailability>('all');
+  const [stockDialogProduct, setStockDialogProduct] =
+    useState<InventoryProduct | null>(null);
+  const [optionsDialogProduct, setOptionsDialogProduct] =
+    useState<InventoryProduct | null>(null);
+  const [historyProduct, setHistoryProduct] = useState<Id<'products'> | null>(
+    null,
+  );
+
+  const location: StockLocation = archivedFairId
+    ? `fairs:${archivedFairId}`
+    : searchParams.get('location') === 'workshop'
+      ? 'workshop'
+      : 'all';
+  const setLocation = (value: StockLocation) => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('fairId');
+    next.delete('location');
+    if (value === 'workshop') next.set('location', 'workshop');
+    else if (locationFairId(value)) next.set('fairId', locationFairId(value)!);
+    setSearchParams(next);
+  };
+
+  const categories = useMemo(
     () =>
-      (data?.products ?? []).reduce(
-        (sum, product) => {
-          if (
-            product.totalStock === null ||
-            product.onlineStock === null ||
-            product.fairsStock === null
-          )
-            return { ...sum, excluded: sum.excluded + 1 };
-          return {
-            total: sum.total + product.totalStock,
-            online: sum.online + product.onlineStock,
-            held: sum.held + (product.onlineHeldOrders ?? 0),
-            fairs: sum.fairs + product.fairsStock,
-            excluded: sum.excluded,
-          };
-        },
-        { total: 0, online: 0, fairs: 0, held: 0, excluded: 0 },
-      ),
-    [data],
+      [
+        ...new Set(
+          (overview?.products ?? [])
+            .map((product) => product.category)
+            .filter(Boolean),
+        ),
+      ].sort(),
+    [overview],
   );
-  const options = data?.products.find(
-    (product) => product.id === optionsProduct,
+  const filtered = useMemo(
+    () =>
+      filterStockRows(overview?.products ?? [], {
+        term: search,
+        location,
+        category,
+        availability,
+      }),
+    [overview, search, location, category, availability],
   );
-  const hasActiveFairs = data?.fairs.some((fair) => fair.active) ?? false;
+  const selectedFair = locationFairId(location);
+  const totalProducts = overview?.products.length ?? 0;
+  const lowCount =
+    overview?.products.filter((product) => {
+      const atelier = locationStock(product, 'workshop');
+      return (
+        atelier.available !== null &&
+        atelier.available <= (product.lowStockThreshold ?? 5)
+      );
+    }).length ?? 0;
+  const invalidCount =
+    overview?.products.filter((product) => product.invalidStock).length ?? 0;
+
+  if (!overview)
+    return <p className="text-sm text-stone-500">Se încarcă stocurile...</p>;
+  const fairs = overview.fairs;
 
   return (
-    <section className="mx-auto max-w-7xl space-y-6">
-      <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
-            O singură evidență
-          </p>
-          <h1 className="text-3xl font-semibold text-stone-900">Stocuri</h1>
-          <p className="mt-2 text-sm leading-6 text-stone-500">
-            Totalul fizic este stocul online fizic plus cantitățile de la toate
-            târgurile. Disponibilul online exclude unitățile ținute pentru
-            comenzi deja plătite. Transferurile nu schimbă totalul.
-          </p>
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-stone-900">Stocuri</h1>
+        <div className="flex gap-2">
+          {can('products.posOptions') ? (
+            <Link
+              to="/admin/pos"
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Deschide POS
+            </Link>
+          ) : null}
+          {can('fairs.manage') ? (
+            <Link
+              to="/admin/fairs"
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Gestionează târgurile
+            </Link>
+          ) : null}
+          {can('catalog.manage') ? (
+            <Link
+              to="/admin/products/new"
+              className="rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-800"
+            >
+              Produs nou
+            </Link>
+          ) : null}
         </div>
-        <Link
-          to="/admin/fairs"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-stone-300 bg-white px-4 text-sm font-medium text-stone-700"
-        >
-          Administrează târgurile
-        </Link>
-      </header>
+      </div>
+      {archivedFairId && archivedPreview?.fair ? (
+        <section className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <h2 className="text-sm font-semibold text-amber-900">
+            {archivedPreview.fair.name} este arhivat. Stocul de mai jos este
+            istoric
+            {archivedPreview.fair.archivedAt
+              ? `, citit din chitanța de arhivare din ${formatDate(archivedPreview.fair.archivedAt)}.`
+              : '.'}
+          </h2>
+          <p className="mt-1 text-xs text-amber-800">
+            Stocul rămas a fost returnat online la arhivare.
+          </p>
+        </section>
+      ) : null}
       {!operation.online ? (
         <p
           role="status"
-          className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900"
+          className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"
         >
-          Fără conexiune la server. Transferurile sunt blocate până la
+          Fără conexiune la server. Operațiunile pe stoc sunt blocate până la
           reconectare.
         </p>
       ) : null}
-      <InventoryFeedback
-        operation={
-          transferProduct !== null
-            ? { ...operation, pending: null, error: '' }
-            : operation
-        }
-      />
-      {error ? (
-        <p
-          role="alert"
-          className="rounded-xl bg-red-50 p-4 text-sm text-red-800"
-        >
-          {error}
-        </p>
-      ) : !data ? (
-        <p role="status" className="py-12 text-center text-stone-500">
-          Se încarcă evidența stocurilor...
-        </p>
-      ) : (
-        <>
-          <InventoryReviewSummary />
-          {data.issues.length ? (
-            <section
-              aria-label="Probleme în evidență"
-              className="rounded-xl bg-red-50 p-4 text-sm text-red-800"
-            >
-              {data.issues.map((issue) => (
-                <p key={issue} role="alert">
-                  {issue}
-                </p>
-              ))}
-            </section>
-          ) : null}
-          <dl className="grid gap-3 md:grid-cols-3">
-            {[
-              ['Total înregistrat', totals.total],
-              ['Disponibil online', totals.online],
-              ['La toate târgurile', totals.fairs],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="rounded-2xl border border-stone-200 bg-white p-5"
-              >
-                <dt className="text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  {label}
-                </dt>
-                <dd className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-stone-900">
-                  {formatStock(Number(value))}
-                  <span className="ml-2 text-sm font-normal text-stone-400">
-                    buc.
-                  </span>
-                </dd>
-              </div>
+      {overview.issues.length ? (
+        <section className="mt-4 rounded-lg border border-red-300 bg-red-50 p-4">
+          <h2 className="text-sm font-semibold text-red-900">
+            Probleme de inventar ({overview.issues.length})
+          </h2>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-800">
+            {overview.issues.map((issue) => (
+              <li key={issue}>{issue}</li>
             ))}
-          </dl>
-          {totals.held > 0 ? (
-            <p className="text-sm text-amber-900">
-              {formatStock(totals.held)} buc. din stocul fizic online sunt
-              ținute pentru comenzi plătite, încă nealocate. Sunt incluse în
-              totalul fizic, nu în disponibil.
-            </p>
-          ) : null}
-          {totals.excluded ? (
-            <p className="text-xs text-amber-800">
-              Totalurile de mai sus includ numai produsele cu evidență completă.{' '}
-              {totals.excluded} produse neevidențiate sau cu date invalide sunt
-              afișate separat în tabel.
-            </p>
-          ) : null}
-          <div className="flex flex-col gap-3 md:flex-row">
-            <div className="relative flex-1">
-              <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-stone-400" />
-              <label htmlFor="admin-stock-search" className="sr-only">
-                Caută produs sau SKU
-              </label>
-              <input
-                id="admin-stock-search"
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Caută produs sau SKU..."
-                className="min-h-12 w-full rounded-xl border border-stone-300 bg-white py-3 pl-10 pr-4"
-              />
-            </div>
-            <div className="md:w-64">
-              <label htmlFor="admin-stock-fair" className="sr-only">
-                Defalcare pe târg
-              </label>
-              <select
-                id="admin-stock-fair"
-                value={selectedFair?._id ?? ''}
-                onChange={(event) =>
-                  setParams(
-                    event.target.value ? { fairId: event.target.value } : {},
-                  )
-                }
-                className="min-h-12 w-full rounded-xl border border-stone-300 bg-white p-3 text-sm"
-              >
-                <option value="">Toate târgurile</option>
-                {data.fairs.map((fair) => (
-                  <option key={fair._id} value={fair._id}>
-                    {fair.name}
-                    {fair.active ? '' : ' (arhivat)'}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          {!data.products.length ? (
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
-              <p className="text-stone-600">Nu există încă produse.</p>
-              <Link
-                to="/admin/products/new"
-                className="mt-3 inline-block text-sm font-semibold text-amber-800 underline"
-              >
-                Adaugă un produs
-              </Link>
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
-              <table className="w-full text-sm">
-                <caption className="sr-only">
-                  Stoc total, online și pe târg pentru fiecare produs
-                </caption>
-                <thead className="border-b border-stone-200 bg-stone-50 text-xs text-stone-500">
-                  <tr>
-                    <th className="p-4 text-left">Produs / SKU</th>
-                    <th className="p-4 text-right">Total</th>
-                    <th className="p-4 text-right">Online disponibil</th>
-                    <th className="p-4 text-right">La târguri</th>
-                    {selectedFair ? (
-                      <th className="p-4 text-right">{selectedFair.name}</th>
-                    ) : null}
-                    <th className="p-4 text-right">Acțiuni</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visible.map((product) => (
-                    <tr
-                      key={product.id}
-                      className="border-b border-stone-100 last:border-0"
-                    >
-                      <td className="min-w-44 p-4">
-                        <p className="font-semibold text-stone-900">
-                          {product.name}
-                        </p>
-                        <p className="mt-1 text-xs text-stone-400">
-                          {product.sku || 'Fără SKU'}
-                          {product.category ? ` · ${product.category}` : ''}
-                        </p>
-                        {product.fairs.length ? (
-                          <details className="mt-2 text-xs text-stone-500">
-                            <summary className="cursor-pointer py-1">
-                              Defalcare pe târguri
-                            </summary>
-                            <ul className="mt-1 space-y-1">
-                              {product.fairs.map((fair) => (
-                                <li key={fair.fairId}>
-                                  {fair.name}: {formatStock(fair.quantity)} buc.
-                                </li>
-                              ))}
-                            </ul>
-                          </details>
-                        ) : null}
-                        {product.invalidStock ? (
-                          <p className="mt-1 text-xs font-medium text-red-700">
-                            Stoc invalid — necesită verificare
-                          </p>
-                        ) : null}
-                      </td>
-                      <td className="p-4 text-right font-semibold tabular-nums">
-                        {formatStock(product.totalStock)}
-                      </td>
-                      <td className="p-4 text-right tabular-nums">
-                        {formatStock(product.onlineStock)}
-                        {(product.onlineHeldOrders ?? 0) > 0 ? (
-                          <p className="mt-1 text-xs text-amber-900">
-                            Fizic: {formatStock(product.onlinePhysicalStock)} ·
-                            Ținute: {formatStock(product.onlineHeldOrders)}
-                          </p>
-                        ) : null}
-                      </td>
-                      <td className="p-4 text-right tabular-nums">
-                        {formatStock(product.fairsStock)}
-                      </td>
-                      {selectedFair ? (
-                        <td className="p-4 text-right font-medium tabular-nums text-amber-900">
-                          {formatStock(
-                            product.fairs.find(
-                              (fair) => fair.fairId === selectedFair._id,
-                            )?.quantity ?? 0,
-                          )}
-                        </td>
-                      ) : null}
-                      <td className="p-4">
-                        <div className="flex justify-end gap-1">
-                          <button
-                            type="button"
-                            aria-label={`Transferă ${product.name}`}
-                            disabled={
-                              !operation.online ||
-                              operation.blocked ||
-                              product.invalidStock ||
-                              !hasActiveFairs
-                            }
-                            onClick={() => setTransferProduct(product.id)}
-                            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-stone-200 px-3 text-xs font-semibold text-amber-900 hover:bg-amber-50 disabled:opacity-40"
-                          >
-                            <ArrowsRightLeftIcon className="h-4 w-4" /> Transfer
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Opțiuni POS ${product.name}`}
-                            disabled={!operation.online || operation.blocked}
-                            onClick={() => setOptionsProduct(product.id)}
-                            className="flex h-11 w-11 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100 disabled:opacity-40"
-                          >
-                            <AdjustmentsHorizontalIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {!visible.length ? (
-                <p className="p-8 text-center text-stone-500">
-                  Niciun produs nu corespunde căutării.
-                </p>
+          </ul>
+          <p className="mt-2 text-xs text-red-700">
+            Corectează aceste evidențe înainte să te bazezi pe alte operațiuni.
+          </p>
+        </section>
+      ) : null}
+      <InventoryReviewSummary />
+      <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <dl className="rounded-lg border border-stone-200 bg-white p-4">
+          <dt className="text-sm text-stone-500">Produse</dt>
+          <dd className="mt-1 text-xl font-semibold">{totalProducts}</dd>
+        </dl>
+        <dl className="rounded-lg border border-stone-200 bg-white p-4">
+          <dt className="text-sm text-stone-500">Stoc scăzut</dt>
+          <dd className="mt-1 text-xl font-semibold">{lowCount}</dd>
+        </dl>
+        <dl className="rounded-lg border border-stone-200 bg-white p-4">
+          <dt className="text-sm text-stone-500">Stocuri invalide</dt>
+          <dd className="mt-1 text-xl font-semibold">{invalidCount}</dd>
+        </dl>
+      </div>
+      <div className="mt-6 grid gap-3 md:grid-cols-4">
+        <input
+          type="search"
+          placeholder="Caută după nume sau SKU…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+          aria-label="Caută produse"
+        />
+        <select
+          value={location}
+          onChange={(event) => setLocation(event.target.value as StockLocation)}
+          className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+          aria-label="Locație"
+        >
+          <option value="all">Toate locațiile</option>
+          <option value="workshop">Atelier</option>
+          {fairs.map((fair) => (
+            <option key={fair._id} value={`fairs:${fair._id}`}>
+              {fair.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+          className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+          aria-label="Categorie"
+        >
+          <option value="">Toate categoriile</option>
+          {categories.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        <select
+          value={availability}
+          onChange={(event) =>
+            setAvailability(event.target.value as StockAvailability)
+          }
+          className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+          aria-label="Disponibilitate"
+        >
+          <option value="all">Orice disponibilitate</option>
+          <option value="available">Disponibil</option>
+          <option value="low">Stoc scăzut</option>
+          <option value="out">Fără stoc</option>
+          <option value="reserved">Cu rezervări</option>
+        </select>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="min-w-full divide-y divide-stone-200 rounded-lg border border-stone-200 bg-white text-sm">
+          <thead className="bg-stone-50">
+            <tr>
+              <th className="px-3 py-2 text-left font-medium text-stone-600">
+                Produs
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-stone-600">
+                Fizic
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-stone-600">
+                Rezervat
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-stone-600">
+                Disponibil
+              </th>
+              {location === 'all' ? (
+                <th className="px-3 py-2 text-right font-medium text-stone-600">
+                  În tranzit
+                </th>
               ) : null}
-            </div>
-          )}
-        </>
-      )}
-      {transferProduct !== null && data ? (
-        <StockTransferDialog
-          products={data.products}
-          fairs={data.fairs}
-          initialProductId={transferProduct}
-          initialFairId={selectedFair?._id}
-          operation={operation}
-          onClose={() => setTransferProduct(null)}
+              <th className="px-3 py-2 text-right font-medium text-stone-600">
+                Prag minim (Atelier)
+              </th>
+              <th className="px-3 py-2 text-left font-medium text-stone-600">
+                Stare
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-stone-600">
+                Acțiuni
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-stone-100">
+            {filtered.map((product) => {
+              const rowStock = locationStock(product, location);
+              const low =
+                !product.invalidStock &&
+                product.onlineStock !== null &&
+                product.onlineStock <= (product.lowStockThreshold ?? 5);
+              return (
+                <tr key={product.id}>
+                  <td className="px-3 py-2">
+                    <p className="font-medium text-stone-900">
+                      {product.name}
+                      {product.status === 'archived' ? (
+                        <span className="ml-2 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-medium uppercase text-stone-600">
+                          Arhivat
+                        </span>
+                      ) : product.status === 'inactive' ? (
+                        <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-800">
+                          Inactiv
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="text-xs text-stone-500">
+                      {product.sku || 'Fără SKU'}
+                      {product.category ? ` · ${product.category}` : ''}
+                    </p>
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {formatStock(rowStock.physical)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {formatStock(rowStock.reserved)}
+                  </td>
+                  <td
+                    className={`px-3 py-2 text-right tabular-nums ${
+                      low && !selectedFair ? 'font-semibold text-amber-700' : ''
+                    }`}
+                  >
+                    {formatStock(rowStock.available)}
+                  </td>
+                  {location === 'all' ? (
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {formatStock(product.inTransitStock)}
+                    </td>
+                  ) : null}
+                  <td className="px-3 py-2 text-right tabular-nums text-stone-600">
+                    {product.lowStockThreshold ?? (
+                      <span>
+                        5 <span className="text-xs">(implicit)</span>
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {product.invalidStock ? (
+                      <span className="text-xs font-medium text-red-700">
+                        Stoc invalid
+                      </span>
+                    ) : !product.trackStock ? (
+                      <span className="text-xs font-medium text-stone-500">
+                        Stoc neurmărit
+                      </span>
+                    ) : low ? (
+                      <span className="text-xs font-medium text-amber-700">
+                        Stoc scăzut
+                      </span>
+                    ) : (
+                      <span className="text-xs text-stone-500">OK</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {can('inventory.adjust') ? (
+                        <button
+                          type="button"
+                          onClick={() => setStockDialogProduct(product)}
+                          disabled={product.invalidStock || !operation.online}
+                          className="rounded border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                        >
+                          Stoc
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => setHistoryProduct(product.id)}
+                        className="rounded border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                      >
+                        Istoric
+                      </button>
+                      {can('transfers.execute') ? (
+                        <Link
+                          to={`/admin/transfers/new?productId=${product.id}&from=${selectedFair ?? 'workshop'}`}
+                          className="rounded border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                        >
+                          Transfer
+                        </Link>
+                      ) : null}
+                      {can('products.posOptions') ? (
+                        <button
+                          type="button"
+                          onClick={() => setOptionsDialogProduct(product)}
+                          className="rounded border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                        >
+                          Opțiuni POS
+                        </button>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {filtered.length === 0 ? (
+        <p className="mt-3 text-sm text-stone-500">
+          Niciun produs nu corespunde căutării.
+        </p>
+      ) : null}
+      {stockDialogProduct ? (
+        <StockOperationDialog
+          product={stockDialogProduct}
+          fairs={fairs}
+          operation={stockOperation}
+          onClose={() => setStockDialogProduct(null)}
         />
       ) : null}
-      {options ? (
+      {optionsDialogProduct ? (
         <ProductPosOptionsDialog
-          product={options}
+          product={optionsDialogProduct}
           online={operation.online}
-          onClose={() => setOptionsProduct(null)}
+          onClose={() => setOptionsDialogProduct(null)}
         />
       ) : null}
-    </section>
+      <InventoryFeedback operation={operation} />
+      <StockOperationFeedback operation={stockOperation} />
+      <StockMovementsHistory location={location} productId={historyProduct} />
+    </div>
   );
 };
 
-export const AdminInventory = () => {
-  const { user } = useUser();
-  return user ? <InventoryWorkspace key={user.id} actorId={user.id} /> : null;
-};

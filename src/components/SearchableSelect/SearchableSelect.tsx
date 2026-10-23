@@ -58,7 +58,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   useEffect(() => {
     if (highlightedIndex >= 0 && listRef.current) {
       const item = listRef.current.children[highlightedIndex] as HTMLElement | undefined;
-      item?.scrollIntoView({ block: 'nearest' });
+      item?.scrollIntoView?.({ block: 'nearest' });
     }
   }, [highlightedIndex]);
 

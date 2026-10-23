@@ -11,12 +11,59 @@ let operation: InventoryController = operationMock();
 mock.module('@clerk/clerk-react', {
   namedExports: { useUser: () => ({ user: { id: 'admin-1' } }) },
 });
+mock.module(
+  new URL('../../src/hooks/useStaffAccess.ts', import.meta.url).href,
+  {
+    namedExports: {
+      useStaffAccess: () => ({
+        isLoading: false,
+        isAuthenticated: true,
+        role: 'admin',
+        userId: 'admin-1',
+        homePath: '/admin/products',
+        can: () => true,
+      }),
+    },
+  },
+);
+mock.module('convex/react', {
+  namedExports: {
+    usePaginatedQuery: () => ({
+      results: [],
+      status: 'Exhausted',
+      loadMore: () => {},
+    }),
+    useConvex: () => ({ query: async () => null, mutation: async () => ({}) }),
+    useMutation: () => async () => ({}),
+    useQuery: () => undefined,
+    useConvexAuth: () => ({ isLoading: false, isAuthenticated: true }),
+    useConvexConnectionState: () => ({ isWebSocketConnected: true }),
+  },
+});
 mock.module(new URL('../../src/hooks/useAdminQuery.ts', import.meta.url).href, {
   namedExports: { useAdminQuery: query },
 });
 mock.module(
   new URL('../../src/hooks/useInventoryOperation.ts', import.meta.url).href,
   { namedExports: { useInventoryOperation: () => operation } },
+);
+mock.module(
+  new URL('../../src/hooks/useStockOperation.ts', import.meta.url).href,
+  {
+    namedExports: {
+      useStockOperation: () => ({
+        pending: null,
+        completed: null,
+        busy: false,
+        online: true,
+        blocked: false,
+        error: '',
+        start: async () => {},
+        retry: async () => {},
+        dismissCompleted: () => {},
+      }),
+    },
+  },
 );
 mock.module(
   new URL(
@@ -36,7 +83,7 @@ beforeEach(() => {
   operation = operationMock();
 });
 
-it('afișează cele trei stocuri și filtrarea după SKU', async () => {
+it('afișează stocul pe locația „toate” și filtrarea după SKU', async () => {
   render(
     <MemoryRouter>
       <AdminInventory />
@@ -45,26 +92,26 @@ it('afișează cele trei stocuri și filtrarea după SKU', async () => {
   const row = screen.getByRole('row', { name: /Magnet Sibiu/ });
   const cells = within(row).getAllByRole('cell');
   assert.equal(cells[1].textContent, '134');
-  assert.equal(cells[2].textContent, '100');
-  assert.equal(cells[3].textContent, '34');
+  assert.equal(cells[2].textContent, '0');
+  assert.equal(cells[3].textContent, '134');
   await userEvent
     .setup()
-    .type(screen.getByLabelText('Caută produs sau SKU'), 'absent');
+    .type(screen.getByLabelText('Caută produse'), 'absent');
   assert.equal(screen.queryByRole('row', { name: /Magnet Sibiu/ }), null);
   assert.ok(screen.getByText('Niciun produs nu corespunde căutării.'));
 });
 
-it('deschide transferul numai în Admin și oferă direcția inversă', async () => {
+it('transferul navighează către modulul Transferuri cu produs și sursă', () => {
   render(
     <MemoryRouter>
       <AdminInventory />
     </MemoryRouter>,
   );
-  await userEvent
-    .setup()
-    .click(screen.getByRole('button', { name: 'Transferă Magnet Sibiu' }));
-  assert.ok(screen.getByRole('dialog', { name: 'Transfer de stoc' }));
-  assert.ok(screen.getByRole('option', { name: 'Târg → online' }));
+  const link = screen.getByRole('link', { name: 'Transfer' });
+  const href = link.getAttribute('href') ?? '';
+  assert.match(href, /\/admin\/transfers\/new/);
+  assert.match(href, new RegExp(`productId=${product.id}`));
+  assert.match(href, /from=workshop/);
 });
 
 it('confirmarea stocului poate fi închisă manual', async () => {
@@ -82,7 +129,7 @@ it('confirmarea stocului poate fi închisă manual', async () => {
   assert.equal(controller.dismissCompleted.mock.callCount(), 1);
 });
 
-it('filtrarea pe un târg nu ascunde celelalte alocări din total', () => {
+it('selectarea unui târg arată stocul acelui târg', () => {
   query.mock.mockImplementation(() => ({
     data: {
       fairs: [fair, { ...fair, _id: 'other-fair', name: 'Alt târg' }],
@@ -109,28 +156,30 @@ it('filtrarea pe un târg nu ascunde celelalte alocări din total', () => {
   const cells = within(
     screen.getByRole('row', { name: /Magnet Sibiu/ }),
   ).getAllByRole('cell');
-  assert.equal(cells[1].textContent, '140');
-  assert.equal(cells[3].textContent, '40');
-  assert.equal(cells[4].textContent, '6');
+  assert.equal(cells[1].textContent, '6');
+  assert.equal(cells[2].textContent, '0');
+  assert.equal(cells[3].textContent, '6');
 });
 
-it('fără conexiune explică de ce transferurile sunt blocate', () => {
+it('fără conexiune explică de ce operațiunile sunt blocate', () => {
   operation = { ...operationMock(), online: false };
   render(
     <MemoryRouter>
       <AdminInventory />
     </MemoryRouter>,
   );
-  assert.ok(screen.getByRole('status').textContent?.includes('Fără conexiune'));
+  assert.ok(
+    screen.getAllByRole('status').some((el) => el.textContent?.includes('Fără conexiune')),
+  );
   assert.equal(
     screen
-      .getByRole('button', { name: 'Transferă Magnet Sibiu' })
+      .getByRole('button', { name: 'Stoc' })
       .hasAttribute('disabled'),
     true,
   );
 });
 
-it('separă disponibilul de stocul fizic ținut fără a dubla totalul', () => {
+it('separă disponibilul de rezervările pentru comenzi plătite', () => {
   query.mock.mockImplementation(() => ({
     data: {
       fairs: [fair],
@@ -155,8 +204,6 @@ it('separă disponibilul de stocul fizic ținut fără a dubla totalul', () => {
     screen.getByRole('row', { name: /Magnet Sibiu/ }),
   ).getAllByRole('cell');
   assert.equal(cells[1].textContent, '134');
-  assert.ok(cells[2].textContent?.startsWith('70'));
-  assert.ok(cells[2].textContent?.includes('Fizic: 100'));
-  assert.ok(cells[2].textContent?.includes('Ținute: 30'));
-  assert.ok(screen.getByText(/30 buc. din stocul fizic online/));
+  assert.equal(cells[2].textContent, '30');
+  assert.equal(cells[3].textContent, '104');
 });

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 export const fixture = () => {
   let tables = new Map();
   let sequence = 0;
+  let tick = 0;
   let identity = { subject: 'seller-1', role: 'admin' };
   let queue = Promise.resolve();
   let jobs = [];
@@ -11,7 +12,7 @@ export const fixture = () => {
     return tables.get(name);
   };
   const seed = (name, id, value) => {
-    table(name).set(id, { ...value, _id: id, _creationTime: Date.now() });
+    table(name).set(id, { ...value, _id: id, _creationTime: ++tick });
   };
   const ctx = {
     auth: { getUserIdentity: async () => identity },
@@ -40,7 +41,7 @@ export const fixture = () => {
                 return range;
               },
             };
-            callback(range);
+            callback?.(range);
             return builder;
           },
           order: (direction) => {
@@ -65,6 +66,17 @@ export const fixture = () => {
             return values[0] ?? null;
           },
           first: async () => (await builder.collect())[0] ?? null,
+          paginate: async (options) => {
+            const rows = await builder.collect();
+            const offset = options.cursor ? Number(options.cursor) : 0;
+            const page = rows.slice(offset, offset + options.numItems);
+            const end = offset + options.numItems;
+            return {
+              page,
+              isDone: end >= rows.length,
+              continueCursor: String(end),
+            };
+          },
         };
         return builder;
       },

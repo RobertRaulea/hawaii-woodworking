@@ -15,6 +15,33 @@ export const parseMoney = (value: string): number | null => {
   return Number.isSafeInteger(cents) ? cents : null;
 };
 
+export type PosDiscountMode = 'fixed' | 'percent' | 'final';
+
+export const computeDiscountCents = (
+  mode: PosDiscountMode,
+  raw: string,
+  subtotalCents: number,
+): number => {
+  const value = raw.trim();
+  if (!value || !Number.isSafeInteger(subtotalCents) || subtotalCents <= 0) {
+    return 0;
+  }
+  if (mode === 'percent') {
+    const percent = Number(value.replace(',', '.'));
+    if (!Number.isFinite(percent) || percent <= 0 || percent > 100) return 0;
+    return Math.min(
+      subtotalCents,
+      Math.round((subtotalCents * percent) / 100),
+    );
+  }
+  const cents = parseMoney(value);
+  if (cents === null) return 0;
+  if (mode === 'final') {
+    return Math.max(0, Math.min(subtotalCents, subtotalCents - cents));
+  }
+  return Math.min(subtotalCents, cents);
+};
+
 export const errorMessage = (error: unknown) =>
   error instanceof ConvexError && typeof error.data === 'string'
     ? error.data

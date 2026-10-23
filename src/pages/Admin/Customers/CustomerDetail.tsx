@@ -17,11 +17,11 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: 'Pending',
-  paid: 'Paid',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
+  pending: 'În așteptare',
+  paid: 'Plătită',
+  shipped: 'Expediată',
+  delivered: 'Livrată',
+  cancelled: 'Anulată',
 };
 
 const formatDate = (timestamp: number): string => {
@@ -98,7 +98,7 @@ export const CustomerDetail: React.FC = () => {
   if (customer === undefined) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-stone-500">Loading customer...</p>
+        <p className="text-stone-500">Se încarcă clientul...</p>
       </div>
     );
   }
@@ -106,12 +106,12 @@ export const CustomerDetail: React.FC = () => {
   if (customer === null) {
     return (
       <div className="text-center py-20">
-        <p className="text-stone-500 mb-4">Customer not found.</p>
+        <p className="text-stone-500 mb-4">Clientul nu a fost găsit.</p>
         <Link
           to="/admin/customers"
           className="text-amber-600 hover:text-amber-700 font-medium text-sm"
         >
-          ← Back to Customers
+          ← Înapoi la clienți
         </Link>
       </div>
     );
@@ -145,7 +145,7 @@ export const CustomerDetail: React.FC = () => {
       });
       setIsEditing(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update customer');
+      setError(err instanceof Error ? err.message : 'Actualizarea clientului a eșuat.');
     }
   };
 
@@ -155,7 +155,7 @@ export const CustomerDetail: React.FC = () => {
       await deleteCustomer({ customerId: customer._id });
       navigate('/admin/customers');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete customer');
+      setError(err instanceof Error ? err.message : 'Ștergerea clientului a eșuat.');
       setShowDeleteModal(false);
     }
   };
@@ -173,7 +173,7 @@ export const CustomerDetail: React.FC = () => {
           className="inline-flex items-center gap-1 text-sm text-stone-500 hover:text-stone-700 mb-2 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Customers
+          Înapoi la clienți
         </Link>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
@@ -190,21 +190,21 @@ export const CustomerDetail: React.FC = () => {
                   : 'bg-stone-100 text-stone-600'
               }`}
             >
-              {customer.isRegistered ? 'Registered' : 'Guest'}
+              {customer.isRegistered ? 'Înregistrat' : 'Vizitator'}
             </span>
             <button
               onClick={handleEdit}
               className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-stone-700 bg-white border border-stone-300 hover:bg-stone-50 transition-colors"
             >
               <Edit className="h-4 w-4" />
-              Edit
+              Editează
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
               className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-300 hover:bg-red-50 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              Șterge
             </button>
           </div>
         </div>
@@ -217,18 +217,18 @@ export const CustomerDetail: React.FC = () => {
 
       {/* Customer Info */}
       <div className="bg-white rounded-lg border border-stone-200 p-5">
-        <h3 className="text-lg font-semibold text-stone-800 mb-4">Customer Information</h3>
+        <h3 className="text-lg font-semibold text-stone-800 mb-4">Informații client</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-medium text-stone-500 mb-1">Member Since</h4>
+            <h4 className="text-sm font-medium text-stone-500 mb-1">Client din</h4>
             <p className="text-sm text-stone-900">{formatDate(customer.createdAt)}</p>
           </div>
           <div>
             <h4 className="text-sm font-medium text-stone-500 mb-1">Newsletter</h4>
-            <p className="text-sm text-stone-900">{customer.newsletter ? 'Subscribed' : 'Not subscribed'}</p>
+            <p className="text-sm text-stone-900">{customer.newsletter ? 'Abonat' : 'Neabonat'}</p>
           </div>
-          <AddressDisplay label="Shipping Address" address={customer.shippingAddress} />
-          <AddressDisplay label="Billing Address" address={customer.billingAddress} />
+          <AddressDisplay label="Adresă de livrare" address={customer.shippingAddress} />
+          <AddressDisplay label="Adresă de facturare" address={customer.billingAddress} />
           {customer.stripeCustomerId && (
             <div>
               <h4 className="text-sm font-medium text-stone-500 mb-1">Stripe Customer</h4>
@@ -245,7 +245,7 @@ export const CustomerDetail: React.FC = () => {
           )}
           {customer.clerkUserId && (
             <div>
-              <h4 className="text-sm font-medium text-stone-500 mb-1">Clerk User ID</h4>
+              <h4 className="text-sm font-medium text-stone-500 mb-1">ID utilizator Clerk</h4>
               <p className="text-sm font-mono text-stone-700">{customer.clerkUserId}</p>
             </div>
           )}
@@ -255,30 +255,30 @@ export const CustomerDetail: React.FC = () => {
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg border border-stone-200 p-5">
-          <p className="text-sm text-stone-500 mb-1">Total Orders</p>
+          <p className="text-sm text-stone-500 mb-1">Total comenzi</p>
           <p className="text-2xl font-bold text-stone-900">{customer.orders.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-stone-200 p-5">
-          <p className="text-sm text-stone-500 mb-1">Total Spent</p>
+          <p className="text-sm text-stone-500 mb-1">Total cheltuit</p>
           <p className="text-2xl font-bold text-stone-900">{formatPrice(totalSpent)}</p>
         </div>
       </div>
 
       {/* Order History */}
       <div className="bg-white rounded-lg border border-stone-200 p-5">
-        <h3 className="text-lg font-semibold text-stone-800 mb-4">Order History</h3>
+        <h3 className="text-lg font-semibold text-stone-800 mb-4">Istoric comenzi</h3>
         {customer.orders.length === 0 ? (
-          <p className="text-stone-500 text-sm">No orders yet.</p>
+          <p className="text-stone-500 text-sm">Nicio comandă încă.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-200">
-                  <th className="pb-2 text-left font-medium text-stone-600">Order</th>
+                  <th className="pb-2 text-left font-medium text-stone-600">Comandă</th>
                   <th className="pb-2 text-right font-medium text-stone-600">Total</th>
-                  <th className="pb-2 text-center font-medium text-stone-600">Status</th>
-                  <th className="pb-2 text-left font-medium text-stone-600 hidden md:table-cell">Date</th>
-                  <th className="pb-2 text-right font-medium text-stone-600">Actions</th>
+                  <th className="pb-2 text-center font-medium text-stone-600">Stare</th>
+                  <th className="pb-2 text-left font-medium text-stone-600 hidden md:table-cell">Data</th>
+                  <th className="pb-2 text-right font-medium text-stone-600">Acțiuni</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,7 +309,7 @@ export const CustomerDetail: React.FC = () => {
                         className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-100 transition-colors"
                       >
                         <Eye className="h-3.5 w-3.5" />
-                        View
+                        Vezi
                       </Link>
                     </td>
                   </tr>
@@ -325,7 +325,7 @@ export const CustomerDetail: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-stone-900">Edit Customer</h2>
+              <h2 className="text-xl font-bold text-stone-900">Editează clientul</h2>
               <button
                 onClick={() => setIsEditing(false)}
                 className="text-stone-400 hover:text-stone-600"
@@ -336,7 +336,7 @@ export const CustomerDetail: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">First Name</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Prenume</label>
                   <input
                     type="text"
                     value={editForm.firstName}
@@ -345,7 +345,7 @@ export const CustomerDetail: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Last Name</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Nume</label>
                   <input
                     type="text"
                     value={editForm.lastName}
@@ -371,14 +371,14 @@ export const CustomerDetail: React.FC = () => {
                   onChange={(e) => setEditForm({ ...editForm, newsletter: e.target.checked })}
                   className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
                 />
-                <label htmlFor="newsletter" className="text-sm text-stone-700">Newsletter subscription</label>
+                <label htmlFor="newsletter" className="text-sm text-stone-700">Abonare la newsletter</label>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-stone-800 mb-2">Shipping Address</h3>
+                <h3 className="text-sm font-semibold text-stone-800 mb-2">Adresă de livrare</h3>
                 <div className="space-y-3">
                   <input
                     type="text"
-                    placeholder="Street"
+                    placeholder="Stradă"
                     value={editForm.shippingAddress.street}
                     onChange={(e) => setEditForm({ ...editForm, shippingAddress: { ...editForm.shippingAddress, street: e.target.value } })}
                     className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -386,14 +386,14 @@ export const CustomerDetail: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="City"
+                      placeholder="Oraș"
                       value={editForm.shippingAddress.city}
                       onChange={(e) => setEditForm({ ...editForm, shippingAddress: { ...editForm.shippingAddress, city: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                     <input
                       type="text"
-                      placeholder="County"
+                      placeholder="Județ"
                       value={editForm.shippingAddress.county}
                       onChange={(e) => setEditForm({ ...editForm, shippingAddress: { ...editForm.shippingAddress, county: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -402,14 +402,14 @@ export const CustomerDetail: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="Postal Code"
+                      placeholder="Cod poștal"
                       value={editForm.shippingAddress.postalCode}
                       onChange={(e) => setEditForm({ ...editForm, shippingAddress: { ...editForm.shippingAddress, postalCode: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                     <input
                       type="text"
-                      placeholder="Country"
+                      placeholder="Țară"
                       value={editForm.shippingAddress.country}
                       onChange={(e) => setEditForm({ ...editForm, shippingAddress: { ...editForm.shippingAddress, country: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -418,11 +418,11 @@ export const CustomerDetail: React.FC = () => {
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-stone-800 mb-2">Billing Address</h3>
+                <h3 className="text-sm font-semibold text-stone-800 mb-2">Adresă de facturare</h3>
                 <div className="space-y-3">
                   <input
                     type="text"
-                    placeholder="Street"
+                    placeholder="Stradă"
                     value={editForm.billingAddress.street}
                     onChange={(e) => setEditForm({ ...editForm, billingAddress: { ...editForm.billingAddress, street: e.target.value } })}
                     className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -430,14 +430,14 @@ export const CustomerDetail: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="City"
+                      placeholder="Oraș"
                       value={editForm.billingAddress.city}
                       onChange={(e) => setEditForm({ ...editForm, billingAddress: { ...editForm.billingAddress, city: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                     <input
                       type="text"
-                      placeholder="County"
+                      placeholder="Județ"
                       value={editForm.billingAddress.county}
                       onChange={(e) => setEditForm({ ...editForm, billingAddress: { ...editForm.billingAddress, county: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -446,14 +446,14 @@ export const CustomerDetail: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="Postal Code"
+                      placeholder="Cod poștal"
                       value={editForm.billingAddress.postalCode}
                       onChange={(e) => setEditForm({ ...editForm, billingAddress: { ...editForm.billingAddress, postalCode: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                     <input
                       type="text"
-                      placeholder="Country"
+                      placeholder="Țară"
                       value={editForm.billingAddress.country}
                       onChange={(e) => setEditForm({ ...editForm, billingAddress: { ...editForm.billingAddress, country: e.target.value } })}
                       className="w-full px-3 py-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -467,14 +467,14 @@ export const CustomerDetail: React.FC = () => {
                 onClick={() => setIsEditing(false)}
                 className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-stone-900"
               >
-                Cancel
+                Anulează
               </button>
               <button
                 onClick={handleSave}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 transition-colors"
               >
                 <Save className="h-4 w-4" />
-                Save Changes
+                Salvează modificările
               </button>
             </div>
           </div>
@@ -490,14 +490,14 @@ export const CustomerDetail: React.FC = () => {
                 <Trash2 className="h-5 w-5 text-red-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-stone-900 mb-1">Delete Customer</h3>
+                <h3 className="text-lg font-semibold text-stone-900 mb-1">Șterge clientul</h3>
                 <p className="text-sm text-stone-600 mb-4">
-                  Are you sure you want to delete {customer.firstName} {customer.lastName}? This action cannot be undone.
+                  Sigur ștergi clientul {customer.firstName} {customer.lastName}? Acțiunea nu poate fi anulată.
                 </p>
                 {customer.orders && customer.orders.length > 0 && (
                   <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 mb-4">
                     <p className="text-sm text-yellow-800">
-                      This customer has {customer.orders.length} order(s). Customers with orders cannot be deleted.
+                      Acest client are {customer.orders.length} comenzi. Clienții cu comenzi nu pot fi șterși.
                     </p>
                   </div>
                 )}
@@ -506,14 +506,14 @@ export const CustomerDetail: React.FC = () => {
                     onClick={() => setShowDeleteModal(false)}
                     className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-stone-900"
                   >
-                    Cancel
+                    Anulează
                   </button>
                   <button
                     onClick={handleDelete}
                     disabled={customer.orders && customer.orders.length > 0}
                     className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-stone-300 disabled:cursor-not-allowed transition-colors"
                   >
-                    Delete
+                    Șterge
                   </button>
                 </div>
               </div>

@@ -1,5 +1,7 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./lib/auth";
 
 const addressValidator = v.object({
@@ -10,9 +12,82 @@ const addressValidator = v.object({
   country: v.string(),
 });
 
+interface CustomerProfile {
+  email: string;
+  firstName: string;
+  lastName: string;
+  shippingAddress: {
+    street: string;
+    city: string;
+    county: string;
+    postalCode: string;
+    country: string;
+  };
+  billingAddress: {
+    street: string;
+    city: string;
+    county: string;
+    postalCode: string;
+    country: string;
+  };
+  newsletter: boolean;
+}
+
+// Links a customer record to a Clerk account only when the account's
+// verified email matches the profile email; never trusts client ids.
+const saveCustomer = async (
+  ctx: MutationCtx,
+  args: CustomerProfile,
+  callerId: string | undefined,
+  callerEmail: string | undefined,
+): Promise<Id<"customers">> => {
+  const linkId =
+    callerId &&
+    callerEmail &&
+    callerEmail.toLowerCase() === args.email.toLowerCase()
+      ? callerId
+      : undefined;
+  const existing = await ctx.db
+    .query("customers")
+    .withIndex("by_email", (q) => q.eq("email", args.email))
+    .first();
+
+  if (existing) {
+    if (existing.clerkUserId && existing.clerkUserId !== callerId) {
+      throw new ConvexError(
+        "Adresa de email aparține unui cont existent. Autentifică-te cu acel cont.",
+      );
+    }
+    await ctx.db.patch(existing._id, {
+      firstName: args.firstName,
+      lastName: args.lastName,
+      shippingAddress: args.shippingAddress,
+      billingAddress: args.billingAddress,
+      newsletter: args.newsletter,
+      isRegistered: Boolean(callerId) || existing.isRegistered,
+      ...(linkId ? { clerkUserId: linkId } : {}),
+    });
+    return existing._id;
+  }
+
+  return await ctx.db.insert("customers", {
+    clerkUserId: linkId,
+    isRegistered: Boolean(callerId),
+    email: args.email,
+    firstName: args.firstName,
+    lastName: args.lastName,
+    shippingAddress: args.shippingAddress,
+    billingAddress: args.billingAddress,
+    newsletter: args.newsletter,
+    createdAt: Date.now(),
+  });
+};
+
 export const upsertCustomer = internalMutation({
   args: {
     clerkUserId: v.optional(v.string()),
+    callerId: v.optional(v.string()),
+    callerEmail: v.optional(v.string()),
     email: v.string(),
     firstName: v.string(),
     lastName: v.string(),
@@ -20,41 +95,8 @@ export const upsertCustomer = internalMutation({
     billingAddress: addressValidator,
     newsletter: v.boolean(),
   },
-  handler: async (ctx, args) => {
-    const isRegistered = !!args.clerkUserId;
-
-    // Try to find existing customer by email
-    const existing = await ctx.db
-      .query("customers")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        firstName: args.firstName,
-        lastName: args.lastName,
-        shippingAddress: args.shippingAddress,
-        billingAddress: args.billingAddress,
-        newsletter: args.newsletter,
-        isRegistered: isRegistered || existing.isRegistered,
-        ...(args.clerkUserId ? { clerkUserId: args.clerkUserId } : {}),
-      });
-      return existing._id;
-    }
-
-    // Create new customer
-    return await ctx.db.insert("customers", {
-      clerkUserId: args.clerkUserId,
-      isRegistered,
-      email: args.email,
-      firstName: args.firstName,
-      lastName: args.lastName,
-      shippingAddress: args.shippingAddress,
-      billingAddress: args.billingAddress,
-      newsletter: args.newsletter,
-      createdAt: Date.now(),
-    });
-  },
+  handler: async (ctx, args) =>
+    saveCustomer(ctx, args, args.callerId, args.callerEmail),
 });
 
 export const upsertFromShipping = mutation({
@@ -68,37 +110,13 @@ export const upsertFromShipping = mutation({
     newsletter: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const isRegistered = !!args.clerkUserId;
-
-    const existing = await ctx.db
-      .query("customers")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        firstName: args.firstName,
-        lastName: args.lastName,
-        shippingAddress: args.shippingAddress,
-        billingAddress: args.billingAddress,
-        newsletter: args.newsletter,
-        isRegistered: isRegistered || existing.isRegistered,
-        ...(args.clerkUserId ? { clerkUserId: args.clerkUserId } : {}),
-      });
-      return existing._id;
-    }
-
-    return await ctx.db.insert("customers", {
-      clerkUserId: args.clerkUserId,
-      isRegistered,
-      email: args.email,
-      firstName: args.firstName,
-      lastName: args.lastName,
-      shippingAddress: args.shippingAddress,
-      billingAddress: args.billingAddress,
-      newsletter: args.newsletter,
-      createdAt: Date.now(),
-    });
+    const identity = await ctx.auth.getUserIdentity();
+    const callerId = identity?.subject;
+    const callerEmail =
+      identity && identity.emailVerified === true
+        ? (identity.email as string | undefined)
+        : undefined;
+    return saveCustomer(ctx, args, callerId, callerEmail);
   },
 });
 
@@ -121,11 +139,15 @@ export const setStripeCustomerId = internalMutation({
 });
 
 export const getByClerkUserId = query({
-  args: { clerkUserId: v.string() },
-  handler: async (ctx, { clerkUserId }) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
     return await ctx.db
       .query("customers")
-      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+      .withIndex("by_clerkUserId", (q) =>
+        q.eq("clerkUserId", identity.subject),
+      )
       .first();
   },
 });

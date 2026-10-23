@@ -91,11 +91,16 @@ export const createCheckoutSession = action({
 
     const stripe = new Stripe(stripeSecretKey);
 
-    // 1. Upsert customer in Convex
+    // 1. Upsert customer in Convex (identity comes from auth, never the client)
+    const identity = await ctx.auth.getUserIdentity();
     const customerId: Id<'customers'> = await ctx.runMutation(
       internal.customers.upsertCustomer,
       {
-        clerkUserId: customer.clerkUserId,
+        callerId: identity?.subject,
+        callerEmail:
+          identity && identity.emailVerified === true
+            ? (identity.email as string | undefined)
+            : undefined,
         email: customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
@@ -204,6 +209,11 @@ export const createCheckoutSession = action({
       items: orderItems,
       total,
       stripeSessionId: session.id,
+      shipping: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        address: customer.shippingAddress,
+      },
     });
 
     return { url: session.url ?? null };

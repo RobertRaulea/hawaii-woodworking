@@ -32,3 +32,36 @@ export interface InventoryController {
   retry: () => Promise<void>;
   dismissCompleted: () => void;
 }
+
+export type StockOperationReceipt = NonNullable<
+  FunctionReturnType<typeof api.inventory.getStockOperation>
+>;
+export type StockOperationRequest =
+  | (FunctionArgs<typeof api.inventory.receive> & { kind: 'receipt' })
+  | (FunctionArgs<typeof api.inventory.adjust> & { kind: 'adjustment' })
+  | (FunctionArgs<typeof api.inventory.count> & { kind: 'count' });
+export type NewStockOperationRequest =
+  | (Omit<FunctionArgs<typeof api.inventory.receive>, 'requestId'> & {
+      kind: 'receipt';
+      requestId?: string;
+    })
+  | (Omit<FunctionArgs<typeof api.inventory.adjust>, 'requestId'> & {
+      kind: 'adjustment';
+      requestId?: string;
+    })
+  | (Omit<FunctionArgs<typeof api.inventory.count>, 'requestId'> & {
+      kind: 'count';
+      requestId?: string;
+    });
+
+export interface StockOperationController {
+  pending: StockOperationRequest | null;
+  completed: StockOperationReceipt | null;
+  busy: boolean;
+  online: boolean;
+  blocked: boolean;
+  error: string;
+  start: (request: NewStockOperationRequest) => Promise<void>;
+  retry: () => Promise<void>;
+  dismissCompleted: () => void;
+}

@@ -44,7 +44,7 @@ test('the app resolves frontend aliases without the deprecated baseUrl option', 
   assert.equal(config.options.noEmit, true);
   for (const [specifier, expected] of [
     ['@/types/product.types', 'src/types/product.types.ts'],
-    ['@hooks/useAdmin', 'src/hooks/useAdmin.ts'],
+    ['@hooks/useStaffAccess', 'src/hooks/useStaffAccess.ts'],
     ['@context/CartContext', 'src/context/CartContext.tsx'],
   ]) {
     const { resolvedModule } = ts.resolveModuleName(

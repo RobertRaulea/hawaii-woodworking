@@ -2,31 +2,54 @@ import { useRef, useState } from 'react';
 import { useMutation } from 'convex/react';
 import { useForm } from 'react-hook-form';
 import { api } from '../../../../convex/_generated/api';
-import type { Id } from '../../../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 import { inventoryError } from '../../../utils/inventory.utils';
+
+interface FairFormValues {
+  name: string;
+  startsOn: string;
+  endsOn: string;
+}
 
 interface FairFormProps {
   disabled: boolean;
   onCreated: (id: Id<'fairs'>) => void;
+  fair?: Doc<'fairs'>;
 }
 
-export const FairForm = ({ disabled, onCreated }: FairFormProps) => {
+export const FairForm = ({ disabled, onCreated, fair }: FairFormProps) => {
   const createFair = useMutation(api.pos.createFair);
+  const updateFair = useMutation(api.pos.updateFair);
   const lock = useRef(false);
   const [error, setError] = useState('');
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<{ name: string }>({ defaultValues: { name: '' } });
+  } = useForm<FairFormValues>({
+    defaultValues: {
+      name: fair?.name ?? '',
+      startsOn: fair?.startsOn ?? '',
+      endsOn: fair?.endsOn ?? '',
+    },
+  });
   return (
     <form
-      onSubmit={handleSubmit(async ({ name }) => {
+      onSubmit={handleSubmit(async ({ name, startsOn, endsOn }) => {
         if (lock.current || disabled) return;
         lock.current = true;
         setError('');
         try {
-          onCreated(await createFair({ name }));
+          const args = {
+            name,
+            ...(startsOn ? { startsOn } : {}),
+            ...(endsOn ? { endsOn } : {}),
+          };
+          if (fair) {
+            onCreated(await updateFair({ fairId: fair._id, ...args }));
+          } else {
+            onCreated(await createFair(args));
+          }
         } catch (cause) {
           setError(inventoryError(cause));
         } finally {
@@ -35,14 +58,14 @@ export const FairForm = ({ disabled, onCreated }: FairFormProps) => {
       })}
     >
       <p className="mb-5 text-sm leading-6 text-stone-500">
-        Fiecare târg are propriul stoc. Crearea unui târg nu mută automat
-        produse din online.
+        Fiecare târg are propriul stoc. {fair ? 'Modificarea' : 'Crearea'} unui
+        târg nu mută automat produse din online.
       </p>
-      <label htmlFor="new-fair-name" className="block text-sm font-medium">
+      <label htmlFor="fair-name" className="block text-sm font-medium">
         Numele târgului
       </label>
       <input
-        id="new-fair-name"
+        id="fair-name"
         autoFocus
         disabled={disabled || isSubmitting}
         placeholder="De exemplu, Târg Crăciun 2026"
@@ -58,6 +81,32 @@ export const FairForm = ({ disabled, onCreated }: FairFormProps) => {
           {errors.name.message}
         </p>
       ) : null}
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="fair-starts-on" className="block text-sm font-medium">
+            Început
+          </label>
+          <input
+            id="fair-starts-on"
+            type="date"
+            disabled={disabled || isSubmitting}
+            className="mt-2 w-full rounded-lg border border-stone-300 p-3"
+            {...register('startsOn')}
+          />
+        </div>
+        <div>
+          <label htmlFor="fair-ends-on" className="block text-sm font-medium">
+            Sfârșit
+          </label>
+          <input
+            id="fair-ends-on"
+            type="date"
+            disabled={disabled || isSubmitting}
+            className="mt-2 w-full rounded-lg border border-stone-300 p-3"
+            {...register('endsOn')}
+          />
+        </div>
+      </div>
       {error ? (
         <p role="alert" className="mt-2 text-sm text-red-700">
           {error}
@@ -67,7 +116,11 @@ export const FairForm = ({ disabled, onCreated }: FairFormProps) => {
         disabled={disabled || isSubmitting}
         className="mt-5 min-h-12 w-full rounded-xl bg-stone-900 px-4 py-3 font-semibold text-white disabled:opacity-40"
       >
-        {isSubmitting ? 'Se creează...' : 'Creează târg'}
+        {isSubmitting
+          ? 'Se salvează...'
+          : fair
+            ? 'Salvează târg'
+            : 'Creează târg'}
       </button>
     </form>
   );
