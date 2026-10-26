@@ -23,6 +23,7 @@ import type * as orders from "../orders.js";
 import type * as pos from "../pos.js";
 import type * as postPayment from "../postPayment.js";
 import type * as products from "../products.js";
+import type * as reports from "../reports.js";
 import type * as seedCategories from "../seedCategories.js";
 import type * as siteAssets from "../siteAssets.js";
 import type * as staff from "../staff.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   pos: typeof pos;
   postPayment: typeof postPayment;
   products: typeof products;
+  reports: typeof reports;
   seedCategories: typeof seedCategories;
   siteAssets: typeof siteAssets;
   staff: typeof staff;

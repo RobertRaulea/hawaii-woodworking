@@ -455,7 +455,11 @@ export const queue = query({
 export const get = query({
   args: { orderId: v.id("orders") },
   handler: async (ctx, { orderId }) => {
-    const { identity } = await requirePermission(ctx, "orders.fulfill");
+    const staff = await requirePermission(ctx, "orders.fulfill");
+    const { identity } = staff;
+    // The printed packing slip includes unit prices and the total, but only
+    // for order managers; atelier staff get the spec-compliant redacted view.
+    const includeMoney = hasPermission(staff.role, "orders.manage");
     const order = await ctx.db.get(orderId);
     if (!order) return null;
     const state = fulfillmentState(order);
@@ -483,10 +487,10 @@ export const get = query({
       items: order.items.map((item) => ({
         productId: item.productId,
         name: item.name,
-        price: item.price,
         quantity: item.quantity,
+        ...(includeMoney ? { price: item.price } : {}),
       })),
-      total: order.total,
+      ...(includeMoney ? { total: order.total } : {}),
       checklist: order.checklist ?? [],
       recipient: shipping,
       awb: order.awb,

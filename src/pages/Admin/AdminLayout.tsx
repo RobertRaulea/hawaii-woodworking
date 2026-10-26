@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { UserButton } from '@clerk/clerk-react';
 import { useQuery } from 'convex/react';
-import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, Menu, FolderTree, Hammer, Calculator, MapPin, Database, ArrowLeftRight, Truck } from 'lucide-react';
+import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, Menu, FolderTree, Hammer, Calculator, MapPin, Database, ArrowLeftRight, Truck, BarChart3 } from 'lucide-react';
 import { api } from '../../../convex/_generated/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { ThemeToggle } from '../../components/ThemeToggle';
 import type { Permission } from '../../../convex/lib/permissions';
 
 const NAV_ITEMS: readonly { to: string; label: string; icon: React.ElementType; permission: Permission }[] = [
+ { to: '/admin/dashboard', label: 'Panou', icon: LayoutDashboard, permission: 'dashboard.view' },
  { to: '/admin/pos', label: 'Vânzări la târg', icon: Calculator, permission: 'pos.sell' },
  { to: '/admin/fairs', label: 'Târguri', icon: MapPin, permission: 'fairs.manage' },
  { to: '/admin/inventory', label: 'Stocuri', icon: Database, permission: 'inventory.read' },
@@ -21,6 +22,7 @@ const NAV_ITEMS: readonly { to: string; label: string; icon: React.ElementType; 
  { to: '/admin/custom-works', label: 'La comandă', icon: Hammer, permission: 'catalog.manage' },
  { to: '/admin/fulfillment', label: 'Pregătire comenzi', icon: Truck, permission: 'orders.fulfill' },
  { to: '/admin/orders', label: 'Comenzi', icon: ShoppingBag, permission: 'orders.manage' },
+ { to: '/admin/reports', label: 'Rapoarte', icon: BarChart3, permission: 'reports.view' },
  { to: '/admin/customers', label: 'Clienți', icon: Users, permission: 'customers.manage' },
  { to: '/admin/staff', label: 'Echipă', icon: Users, permission: 'staff.manage' },
 ];

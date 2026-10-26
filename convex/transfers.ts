@@ -142,7 +142,7 @@ const addEvent = (
     createdAt: Date.now(),
   });
 
-const fairLocationName = async (
+export const fairLocationName = async (
   ctx: QueryCtx,
   location: "workshop" | "fair" | undefined,
   fairId: Id<"fairs"> | undefined,

@@ -101,7 +101,15 @@ const InventoryWorkspace = ({
  const [searchParams, setSearchParams] = useSearchParams();
  const [search, setSearch] = useState('');
  const [category, setCategory] = useState('');
- const [availability, setAvailability] = useState<StockAvailability>('all');
+ const [availability, setAvailability] = useState<StockAvailability>(() => {
+   const value = searchParams.get('availability');
+   return value === 'available' ||
+     value === 'low' ||
+     value === 'out' ||
+     value === 'reserved'
+     ? value
+     : 'all';
+ });
  const [stockDialogProduct, setStockDialogProduct] =
  useState<InventoryProduct | null>(null);
  const [optionsDialogProduct, setOptionsDialogProduct] =

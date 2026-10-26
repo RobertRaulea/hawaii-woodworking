@@ -28,6 +28,8 @@ Toate rutele de backoffice sunt în `src/App.tsx`, sub `admin` + `<AdminRoute />
 | La comandă | `/admin/custom-works` | `CustomWorks/AdminCustomWorks.tsx` | `siteAssets.getByCategory('catalog')/generateAssetUploadUrl/saveSiteAsset` |
 | Comenzi (Admin) | `/admin/orders`, `/orders/:id` | `Orders/AdminOrders.tsx`, `OrderDetail`, `OrderInventoryReview`, `InventoryReviewSummary`, `useOrderAction` | `orders.listAdmin/getAdmin/cancel/reconcileStock/getInventoryIssues`, `fulfillment.addNote/reassign` (vechile `getAll/getByDateRange/getById` păstrate pentru compatibilitate) |
 | Fulfillment | `/admin/fulfillment`, `/fulfillment/:id` | `Fulfillment/FulfillmentQueue.tsx`, `FulfillmentDetail.tsx` | `fulfillment.queue/get/getEvent/claim/release/reassign/setChecked/addNote/markPacked/ship/markDelivered`, `transfers.list({status:'requested'})` |
+| Panou | `/admin/dashboard` | `Dashboard/Dashboard.tsx` | `reports.dashboard({today})` (secțiuni după permisiune) |
+| Rapoarte (Admin) | `/admin/reports` (filtre în URL: `from`, `to`, `channel`, `fairId`) | `Reports/Reports.tsx`, `src/utils/csv.utils.ts`, `src/utils/date.utils.ts` | `reports.summary`, `pos.listFairs`; Târguri refolosește `reports.summary` pentru „Azi” + link „Raport” |
 | Customers | `/admin/customers`, `/customers/:id` | `Customers/AdminCustomers.tsx`, `CustomerDetail` | `customers.getAll/getById/updateCustomer/deleteCustomer/getNewsletterSubscribers` |
 
 Shop public: `/`, `/products`, `/catalog`, `/product/:id`, `/cart`, `/shipping`, `/checkout`, `/thank-you`, `/my-orders(/:id)`, `/login`, pagini legale (sub `Layout`, fără restricție de rol).
@@ -60,11 +62,13 @@ Shop public: `/`, `/products`, `/catalog`, `/product/:id`, `/cart`, `/shipping`,
 | `products.posOptions` | ✓ | ✓ | – | `pos.setProductOptions` (SKU/favorit, nu preț) |
 | `orders.fulfill` | ✓ | ✓ (redactat) | – | `/admin/fulfillment*`; `fulfillment.*` (fără `reassign`), `orders.updateStatus` doar `shipped→delivered`. Atelier vede: număr scurt, produse/cantități, checklist, destinatar + adresă, AWB, factura existentă; fără email/billing/prețuri/totaluri/Stripe |
 | `orders.manage` | ✓ | – | – | `/admin/orders*`; `orders.listAdmin/getAdmin/cancel`, `fulfillment.reassign`; date complete și totaluri |
+| `reports.view` | ✓ | – | – | `/admin/reports`; `reports.summary`; în `reports.dashboard` secțiunea `sales` și `exceptions.posPrepared` |
+| `dashboard.view` | ✓ | ✓ | ✓ | `/admin/dashboard`; `reports.dashboard` — fiecare secțiune cere propria permisiune (`orders.fulfill` → fulfillment, `inventory.readAll` → stoc redus, `transfers.view` → transferuri (Seller: doar proprii), `inventory.reconcile` → excepții, `pos.sell` fără `reports.view` → POS azi pe târgurile alocate); secțiune nepermisă = `null` |
 | `fairs.manage` | ✓ | – | – | `/admin/fairs`; `pos.createFair/updateFair/getArchivePreview/archiveFair`, `staff.*FairSeller*` |
 | `catalog.manage` | ✓ | – | – | `/admin/products*`, `/admin/categories`, `/admin/custom-works`; `products.*`, `categories.*`, `siteAssets.*`, `seedCategories` (prin `requireAdmin`) |
 | `customers.manage` | ✓ | – | – | `/admin/customers*`; `customers.getAll/getById/update/delete/newsletter`, `orders.getByCustomerId` |
 
-Destinații implicite: Admin → `/admin/products` (nu există dashboard), Seller → `/admin/pos`, Atelier → `/admin/inventory`. Fără rol intern → mesaj „Acces intern indisponibil” + link la magazin. Rol fără permisiune pe rută → refuz + link la pagina proprie.
+Destinații implicite: Admin → `/admin/dashboard`, Seller → `/admin/pos`, Atelier → `/admin/inventory`. Fără rol intern → mesaj „Acces intern indisponibil” + link la magazin. Rol fără permisiune pe rută → refuz + link la pagina proprie.
 
 Neverificat din mediu: configurația JWT template-ului Clerk (claim `role`, `email`, `email_verified`). Dacă `email_verified` lipsește din template, clienții noi nu se mai leagă automat de cont (comenzile lor nu apar în „Comenzile mele”).
 
@@ -106,6 +110,32 @@ Logica comună: `convex/lib/inventory.utils.ts`.
 - **Prag minim**: `products.lowStockThreshold` (implicit 5, folosit și de magazin pe disponibilul online). În Stocuri „stoc scăzut” = disponibil Atelier ≤ prag.
 - **Editarea directă a stocului a fost eliminată**: `updateProduct({stock})` și `createProduct({stock≠0})` aruncă eroare; `products.updateStock` șters; `ProductForm` arată stocul read-only cu link către Stocuri. Rămân în afara auditului: `seedProducts` (admin, seeding) și `decrementStock` (internal, nefolosit).
 
+### Rapoarte și Panou — definiții indicatori (`convex/lib/reports.utils.ts`, `convex/reports.ts`)
+
+Calcul server-side pe întregul set filtrat (nu pe pagină); browserul primește doar agregate. Fus orar Europe/Bucharest: datele sunt `YYYY-MM-DD` prin `businessDate()` (aceeași funcție ca POS), perioadă inclusivă, max. 366 zile. Bani în bani-întregi (`toCents` pe snapshot-ul de preț). Nicio valoare nu este „profit”; fără comparații procentuale. Peste 10000 comenzi/vânzări POS → eroare explicită, fără trunchiere.
+
+| Indicator | Înregistrări incluse | Data folosită | Anulări / retururi | Natură |
+|---|---|---|---|---|
+| Vânzări online brute / reduceri / net | comenzi cu `paymentStatus = paid` (confirmate Stripe sau stare veche `paid/shipped/delivered`); brut = Σ preț snapshot × cant.; reducere = max(0, brut − `total`) | `paymentConfirmedAt ?? createdAt` | net = brut − reduceri − anulări după plată | vânzări |
+| Anulări după plată („retururi” online) | comenzi plătite cu `status = cancelled` (inclusiv plătite după anulare) | max(`cancelledAt`, data vânzării) | scad netul perioadei anulării (netul poate fi negativ) | vânzări (corecție) |
+| Vânzări POS brute / reduceri / net | `posSales` (doar vânzări finalizate) — `subtotalCents` / `discountCents` / `totalCents` | `businessDate` | POS nu are flux de retur (`posReturnsTracked: false`); încercările anulate nu sunt vânzări | vânzări |
+| POS pe târg | aceleași `posSales`, grupate pe `fairId` (inclusiv arhivate) | `businessDate` | idem | vânzări + încasări numerar/card |
+| Încasări POS numerar / card | `totalCents` după `paymentMethod` (singurele metode reale: cash, card pe terminal separat) | `businessDate` | — | încasări |
+| Încasări online confirmate | Σ `total` al comenzilor cu `paymentConfirmedAt` (webhook Stripe) | `paymentConfirmedAt` | rămân încasate și după anulare (rambursarea nu e integrată) | încasări |
+| Online neconfirmat (stare veche) | comenzi considerate plătite fără `paymentConfirmedAt` | `createdAt` | — | **nu** e încasare; afișat separat |
+| Rambursări manuale | comenzi cu `refundStatus = manual_required` | data anulării | informativ, nu se scad din încasări | rambursări de efectuat |
+| Comenzi pe stări | toate comenzile (plată: pending/paid/cancelled cu valoare; fulfillment: cele 7 stări) | `createdAt` | anulatele apar ca stare | comenzi |
+| Produse vândute | articole online vândute − returnate + articole POS; valoare brută (înainte de reduceri la nivel de comandă) | ca la vânzări / retururi | unitățile returnate se scad | vânzări (cantități) |
+| Vânzări pe zile | net online + net POS pe fiecare zi a perioadei | ca mai sus | ca mai sus | vânzări |
+| Comenzi de pregătit | `fulfillmentState` `ready/preparing/packed` (aceeași regulă ca `fulfillment.queue`) | stare curentă | anulatele/neplătitele excluse | comenzi |
+| Stoc redus | produse active cu `trackStock`, disponibil Atelier (`stock − rezervat needs_review`) ≤ `lowStockThreshold ?? 5`; stoc invalid → marcat „Stoc invalid”, nu 0 | stare curentă | — | stoc |
+| Transferuri în tranzit | `in_transit` + `partially_received`, unități = expediat − recepționat (pe toate, listă top 10) | stare curentă | anulatele nu apar | stoc |
+| Excepții nerezolvate | comenzi `needs_review`; balanțe de târg de reconciliat (aceeași regulă ca `getStockOverview.issues`); POS `prepared` (doar Admin, prin `by_fair_status`) | stare curentă | — | operațional |
+
+Filtre Rapoarte: perioadă, canal (Toate/Online/POS), târg (implică POS). Canal exclus → secțiunile și câmpurile de încasări ale acelui canal sunt `null` („—”), nu 0. Export CSV per tabel cu toate rândurile filtrate: celule între ghilimele, `"` dublat, prefix `'` pentru celule text care încep cu `= + - @ \t \r`, CRLF, BOM UTF-8. Grafic: bare CSS simple (nu există bibliotecă de grafice; nu s-a adăugat). `pos.dailySummary`, `reports.summary.posByFair` și `reports.dashboard` folosesc același `posTotals`.
+
+Dev (MCP, 2026-10-26, doar numărători): 13 comenzi, 0 cu `paymentConfirmedAt`, 7 plătite în stare veche → în dev încasările online confirmate sunt 0 și cele 7 apar ca „neconfirmate”; 5 vânzări POS; 0 POS `prepared`; 0 transferuri deschise; 0 `needs_review`.
+
 ## 6. Componente și hook-uri reutilizabile
 
 - `AdminLayout` (sidebar responsive), `AdminRoute`, `AdminDialog` (wrapper peste `Dialog` din `src/components/ui/` — Radix; `title`, `locked`, `onClose`; `locked` blochează Escape/outside-click și dezactivează butonul de închidere), notificări prin `sonner` (`Toaster` montat în `App` sub `<Router>`), `SearchableSelect`.
@@ -143,6 +173,15 @@ După Catalog/Târguri (2026-10-22): `test:unit` 116/116, `test:ui` 59/59, `tsc`
 
 După Comenzi/Fulfillment (2026-10-22): `test:unit` 127/127, `test:ui` 67/67, `tsc` OK (backend strict + `fulfillment/orders/checkout`), `vite build` OK, lint identic cu baseline. Teste noi: `tests/fulfillment-backend.test.mjs` (anulare/restocare unică/plată după anulare, rezervări, preluare concurentă, comenzi neplătite, tranziții, acces + redactare, retry, regresie checkout/POS) și `tests/ui/OrdersFulfillment.test.tsx`. Dev sincronizat; MCP fără identitate: `fulfillment:queue` → „Unauthorized”; 7 comenzi vechi plătite sunt eligibile pentru pregătire.
 
+După Rapoarte/Panou (2026-10-26, branch `feat/reports-dashboard` din `main` @ `541a0a1`): `test:unit` 142/145 (cele 3 eșecuri sunt preexistente pe `main`: randări statice `PaymentDialog` în `tests/pos-ui.test.mjs` fără ConvexProvider), `test:ui` 99/99, `tsc` app + backend strict (`reports`, `reports.utils`, `pos`, `transfers`, `schema`) OK, lint 0 erori / 11 warnings, `vite build` OK. Teste noi: `tests/reports-backend.test.mjs` (fixture cu online, POS pe două târguri, anulare, retur, plată după anulare, comandă veche, limita de fus orar 21:30 UTC → ziua următoare; filtre; concordanță Rapoarte ↔ Panou ↔ `pos.dailySummary` ↔ `fulfillment.queue` ↔ `getStockOverview` ↔ `transfers.list`; acces pe roluri; validare) și `tests/ui/Reports.test.tsx`. Fixture-ul backend suportă `gte/lte` în index. Dev sincronizat; MCP fără identitate: `reports:summary` și `reports:dashboard` → „Unauthorized”.
+
+Integrare (2026-10-26, același branch): `test:unit` 146/146, `test:ui` 99/99, `tsc` app + backend strict OK, lint 0 erori / 11 warnings, `vite build` OK, dev sincronizat.
+- Test nou `tests/e2e-integration.test.mjs` (fixture, funcții reale, identități comutate): intrare Atelier → transfer creat/expediat → recepție parțială + completă la târg → Seller vede doar târgul alocat și vinde în POS → solicitare reaprovizionare (refuzată pentru târg nealocat) văzută de Atelier → comandă online (snapshot livrare, webhook dublu = o singură scădere) pregătită/ambalată/expediată cu AWB manual/livrată → anulare plătită (restocare unică; replay fără efect; ID nou refuzat) + ajustare cu motiv → audit: fără stoc negativ, Σ mișcări = sold pe fiecare produs×locație → replay al tuturor mutațiilor fără rânduri noi → vânzarea POS absentă din fulfillment → Rapoarte/Panou/`dailySummary` concordante → conflicte (inventariere vs. POS/transfer, POS în curs blochează expediere/ajustare, dublă preluare) → acces anonim/client refuzat pe fiecare modul. Rulează în dublul tranzacțional, nu în browser și nu cu utilizatori Clerk reali.
+- Defecte corectate: (1) `fulfillment.get` trimitea prețuri și total către Atelier → acum doar cu `orders.manage`; `PackingSlip` ascunde coloanele de bani când lipsesc. (2) 3 teste `pos-ui.test.mjs` picau din migrarea shadcn (`PaymentDialog` → `useProductThumbnails` → Convex): `test:unit` primește `--experimental-test-module-mocks` (doar script, fără versiuni) + mock în test.
+- Dev prin MCP `runOneoffQuery` (doar numărători): 0 stoc invalid/negativ, 0 balanțe orfane sau duplicate târg×produs, 0 `requestId` duplicate (`posSales`, `posAttempts`, `stockOperations`, `inventoryOperations`, `transferEvents`, `orderEvents`), 0 încercări `completed` fără vânzare, 0 vânzări fără mișcare, ultimul `balanceAfter` = soldul curent pe toate locațiile, 0 `prepared`, 0 transferuri deschise.
+- Temă: paginile admin noi au variante `dark:`; `PackingSlip` rămâne alb intenționat (document de imprimat).
+- Tabletă: capturi Chrome headless 1024×768 și 768×1024 doar pentru `/` și `/products` (randare corectă, temă întunecată). `/admin/login` rămâne la „Se încarcă…” în headless (Clerk) → **paginile admin nu au fost verificate vizual pe tabletă**; doar revizuire statică a claselor responsive (tabele în `overflow-auto`, filtre în grid, dialoguri cu lățime limitată).
+
 ## 8. Starea modulelor
 
 | Modul | Stare actuală | Ce lipsește |
@@ -158,6 +197,8 @@ După Comenzi/Fulfillment (2026-10-22): `test:unit` 127/127, `test:ui` 67/67, `t
 | Customers | Parțială: listă, detaliu, editare, ștergere, newsletter (admin) | UI în engleză; ștergerea nu verifică comenzile asociate |
 | Roluri Seller/Atelier | Completă (cod + teste, dev) | Setarea manuală a rolurilor în Clerk; commit/PR; deploy coordonat |
 | Reaprovizionare | Completă ca solicitare de transfer (`requested`) | — |
+| Panou (`/admin/dashboard`) | Completă: Admin — Azi/Luna curentă (vânzări separat de încasări), comenzi de pregătit, stoc redus, transferuri în tranzit, excepții, linkuri cu filtre; Atelier — operațional fără bani; Seller — POS azi pe târgurile alocate + solicitările proprii în tranzit | — |
+| Rapoarte (`/admin/reports`) | Completă (Admin): filtre perioadă/canal/târg, sumar vânzări, încasări, comenzi pe stări, POS pe târg, produse vândute, vânzări pe zile, CSV per tabel | Retururi POS (nu există flux); rambursări confirmate (nu există integrare) |
 | Fulfillment | Completă: coadă (De pregătit/În pregătire/Ambalate/Expediate recent), preluare, checklist, notițe, ambalare, expediere cu AWB manual, livrare, listă imprimabilă, secțiune separată de solicitări de reaprovizionare | Integrare curier (intenționat absentă) |
 
 ## 9. Blocaje și riscuri reale
@@ -172,6 +213,26 @@ După Comenzi/Fulfillment (2026-10-22): `test:unit` 127/127, `test:ui` 67/67, `t
 8. Catalog: `ProductForm` citește din `listAdmin` (produsele inactive rămân editabile); scripturile (`generate-sitemap`, `seedStripe`) folosesc `getAll` și văd doar produse active. Deploy coordonat: frontend-ul vechi din producție folosește `getAll` în Admin și n-ar mai vedea produsele inactive/arhivate.
 9. Comenzi: rambursările nu sunt integrate (se fac manual în Stripe; comanda arată „rambursare manuală necesară”); comenzile vechi anulate nu se restochează automat; `orders.updateStatus` mai permite doar `shipped→delivered` — frontend-ul vechi din producție (select liber de status) ar primi erori, deci deploy coordonat; lista admin e limitată la 1000 de comenzi recente.
 10. Transferuri: o diferență pierdută în tranzit rămâne deschisă (`partially_received`) — nu există încă închidere auditată; reluarea `create/request` cu același `requestId` returnează transferul inițial chiar dacă argumentele diferă (ID-urile sunt UUID per acțiune). Deploy coordonat: frontend-ul vechi apelează `pos.transfer` pentru transferuri noi, care acum sunt refuzate.
+
+11. Rapoarte: calculul citește toate comenzile la fiecare apel (fără agregate stocate; limită explicită 10000) — la volum mare va fi nevoie de agregate incrementale. Filtrul „stoc scăzut” din Stocuri include și produse inactive/arhivate, Panoul doar active → numărătorile pot diferi. Rambursările manuale nu au stare „efectuată”. Deploy coordonat: `HOME_PATH.admin` = `/admin/dashboard` cere frontend și backend noi împreună.
+
+12. Neverificat: fluxul real în browser cu conturi Clerk (Admin/Seller/Atelier), tabletă pe paginile admin, concurența OCC reală Convex (testele folosesc dublul tranzacțional), webhook Stripe real, Oblio/Resend (lipsesc variabilele în dev).
+
+### Pregătire producție — ordine
+
+1. Clerk (prod): JWT template `convex` cu claim-urile `role` (din `public_metadata.role`), `email`, `email_verified`; setează manual Public metadata `{"role":"admin|seller|atelier"}` pe conturile interne.
+2. Convex prod: verifică variabilele (`CLERK_JWT_ISSUER_DOMAIN`, `STRIPE_*`, `OBLIO_*`, `RESEND_API_KEY`, `ADMIN_EMAIL`, `RESEND_FROM_EMAIL`). Schema e doar aditivă (câmpuri opționale + tabele noi `fairAssignments`, `stockOperations`, `transfers`, `transferEvents`, `orderEvents`) → **nu e nevoie de migrare de date**; înainte de deploy rulează în prod (read-only) numărătorile de integritate de mai sus.
+3. Merge pe `main` după review; apoi deploy **simultan** Convex prod (`convex deploy`) și Vercel (frontend-ul vechi e incompatibil cu backend-ul nou: `getByClerkUserId`, `updateProduct({stock})`, `pos.transfer`, `updateStatus`, `getAll` în Admin).
+4. După deploy: alocă vânzătorii pe târguri în `/admin/fairs`; verifică un târg activ, o vânzare POS de test făcută de proprietar (fără date fictive persistente), o comandă reală Stripe.
+
+### Checklist înainte de producție
+
+- [ ] Review + commit pe branch, PR, merge (`docs/backoffice-context` e deja în `main`; `feat/reports-dashboard` necommitat).
+- [ ] Clerk JWT template + roluri setate manual.
+- [ ] Variabile Convex prod complete.
+- [ ] Test manual în browser pe dev cu câte un cont Admin/Seller/Atelier, inclusiv tabletă portrait/landscape (POS, Stocuri, Transferuri, Fulfillment, Rapoarte).
+- [ ] Integritate prod (read-only) fără stoc negativ / `prepared` / `needs_review` neașteptate.
+- [ ] Deploy coordonat Convex + Vercel, apoi verificare `/admin`, `/admin/pos`, checkout.
 
 ## 10. Reguli comune pentru etapele următoare
 

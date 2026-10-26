@@ -9,7 +9,7 @@ import type { StaffRole } from '../../convex/lib/permissions';
 import { fair, product } from './fixtures';
 
 const HOME: Record<StaffRole, string> = {
-  admin: '/admin/products',
+  admin: '/admin/dashboard',
   seller: '/admin/pos',
   atelier: '/admin/inventory',
 };
@@ -107,6 +107,9 @@ const tree = (
       </Route>
       <Route element={<AdminLayout />}>
         <Route index element={<StaffHome />} />
+        <Route element={<AdminRoute permission="dashboard.view" />}>
+          <Route path="dashboard" element={stub('PAGINA PANOU')()} />
+        </Route>
         <Route element={<AdminRoute permission="catalog.manage" />}>
           <Route path="products" element={stub('PAGINA CATALOG')()} />
         </Route>
@@ -161,7 +164,8 @@ it('seller este refuzat pe catalog și are meniu restrâns', () => {
   const labels = navLabels();
   assert.ok(labels.some((label) => label?.includes('Vânzări la târg')));
   assert.ok(labels.some((label) => label?.includes('Stocuri')));
-  for (const denied of ['Târguri', 'Produse', 'Categorii', 'La comandă', 'Comenzi', 'Pregătire comenzi', 'Clienți'])
+  assert.ok(labels.some((label) => label?.includes('Panou')));
+  for (const denied of ['Târguri', 'Produse', 'Categorii', 'La comandă', 'Comenzi', 'Pregătire comenzi', 'Rapoarte', 'Clienți'])
     assert.ok(!labels.some((label) => label?.includes(denied)), denied);
 });
 
@@ -172,23 +176,27 @@ it('atelier intră pe stocuri și nu vede POS sau catalog', () => {
   const labels = navLabels();
   assert.ok(labels.some((label) => label?.includes('Stocuri')));
   assert.ok(labels.some((label) => label?.includes('Pregătire comenzi')));
+  assert.ok(labels.some((label) => label?.includes('Panou')));
+  assert.ok(!labels.some((label) => label?.includes('Rapoarte')));
   assert.ok(!labels.some((label) => label?.includes('Comenzi')));
   assert.ok(!labels.some((label) => label?.includes('Vânzări la târg')));
   assert.ok(!labels.some((label) => label?.includes('Clienți')));
 });
 
-it('admin intră pe produse și vede întreg meniul', () => {
+it('admin intră pe panou și vede întreg meniul', () => {
   role = 'admin';
   renderAt('/admin');
-  assert.ok(screen.getByText('PAGINA CATALOG'));
+  assert.ok(screen.getByText('PAGINA PANOU'));
   const labels = navLabels();
   for (const expected of [
+    'Panou',
     'Vânzări la târg',
     'Târguri',
     'Stocuri',
     'Produse',
     'Categorii',
     'La comandă',
+    'Rapoarte',
     'Pregătire comenzi',
     'Comenzi',
     'Clienți',

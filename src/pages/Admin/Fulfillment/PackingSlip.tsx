@@ -32,6 +32,10 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
 }) => {
  const { assets } = useSiteAssets("logo");
  const thumbnails = useProductThumbnails();
+ // Prices are only present for order managers; atelier staff get a
+ // redacted slip without the money columns.
+ const showPrices = order.items.every((item) => item.price !== undefined);
+
  const logoSrc =
  assets.find((asset) => asset.name === "hawaii-logo.svg")?.url ??
  assets[0]?.url ??
@@ -153,6 +157,8 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  >
  Cant.
  </th>
+ {showPrices && (
+ <>
  <th
  scope="col"
  className="w-24 pb-2 text-right text-xs font-bold uppercase tracking-wide"
@@ -165,6 +171,8 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  >
  Total
  </th>
+ </>
+ )}
  </tr>
  </thead>
  <tbody>
@@ -192,15 +200,20 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  <td className="py-2.5 text-center font-semibold tabular-nums">
  {item.quantity}
  </td>
+ {item.price !== undefined && (
+ <>
  <td className="py-2.5 text-right tabular-nums">
  {formatPrice(item.price)}
  </td>
  <td className="py-2.5 text-right font-semibold tabular-nums">
  {formatPrice(item.price * item.quantity)}
  </td>
+ </>
+ )}
  </tr>
  ))}
  </tbody>
+ {order.total !== undefined && (
  <tfoot>
  <tr className="border-t-2 border-stone-900">
  <td
@@ -214,6 +227,7 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  </td>
  </tr>
  </tfoot>
+ )}
  </table>
 
  <footer className="mt-10">

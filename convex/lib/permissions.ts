@@ -21,6 +21,8 @@ export const PERMISSIONS = {
   'catalog.manage': ['admin'],
   'customers.manage': ['admin'],
   'staff.manage': ['admin'],
+  'reports.view': ['admin'],
+  'dashboard.view': ['admin', 'seller', 'atelier'],
 } as const satisfies Record<string, readonly StaffRole[]>;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -46,7 +48,7 @@ export const permissionsFor = (role: StaffRole | null): Permission[] =>
       );
 
 export const HOME_PATH: Record<StaffRole, string> = {
-  admin: '/admin/products',
+  admin: '/admin/dashboard',
   seller: '/admin/pos',
   atelier: '/admin/inventory',
 };

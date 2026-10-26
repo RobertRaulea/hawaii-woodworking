@@ -39,6 +39,16 @@ export const stockQuantity = (value: number) => {
   return value;
 };
 
+// Shared rule for fair balances that need reconciliation (missing product or
+// inactive fair with stock left). Used by getStockOverview issues and reports.
+export const balanceNeedsReconciliation = (
+  balance: Doc<"fairInventory">,
+  knownProducts: ReadonlySet<Id<"products">>,
+  activeFairs: ReadonlySet<Id<"fairs">>,
+) =>
+  balance.quantity !== 0 &&
+  (!knownProducts.has(balance.productId) || !activeFairs.has(balance.fairId));
+
 export const requestIdIsValid = (value: string) =>
   /^[a-zA-Z0-9-]{16,100}$/.test(value);
 

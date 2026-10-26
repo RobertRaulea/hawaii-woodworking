@@ -9,7 +9,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "npm run test:unit && npm run test:ui",
-    "test:unit": "node --import ./tests/register.mjs --test tests/*.test.mjs",
+    "test:unit": "node --experimental-test-module-mocks --import ./tests/register.mjs --test tests/*.test.mjs",
     "test:ui": "node --experimental-test-module-mocks --import ./tests/register.mjs --import ./tests/ui/setup.mjs --test tests/ui/*.test.tsx",
     "preview": "vite preview",
     "postinstall": "echo 'Remember to create a .env file with Convex credentials'",

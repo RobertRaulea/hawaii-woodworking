@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { mock, test } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { OrderPanel } from '../src/pages/Admin/PointOfSale/OrderPanel.tsx';
 import { ProductPicker } from '../src/pages/Admin/PointOfSale/ProductPicker.tsx';
-import { PaymentDialog } from '../src/pages/Admin/PointOfSale/PaymentDialog.tsx';
 import {
   computeDiscountCents,
   formatMoney,
@@ -13,6 +12,14 @@ import {
   searchText,
 } from '../src/pages/Admin/PointOfSale/pos.utils.ts';
 
+// PaymentDialog queries Convex for product thumbnails; the dialog stays a
+// real component in production, so this test suite mocks only that hook.
+mock.module(new URL('../src/hooks/useProductThumbnails.ts', import.meta.url).href, {
+  namedExports: { useProductThumbnails: () => new Map() },
+});
+const { PaymentDialog } = await import(
+  '../src/pages/Admin/PointOfSale/PaymentDialog.tsx'
+);
 const noop = () => {};
 const product = {
   id: 'magnet',

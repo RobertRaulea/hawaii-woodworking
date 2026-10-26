@@ -15,9 +15,11 @@ import {
   toCents,
 } from "./lib/pos.utils";
 import { resolveImageUrls } from "./lib/storage";
+import { posTotals } from "./lib/reports.utils";
 import { isSellable, productStatus, validateSku } from "./lib/products.utils";
 import {
   availableOnlineQuantity,
+  balanceNeedsReconciliation,
   findInventoryOperation,
   getFairBalance,
   inTransitByProduct,
@@ -291,11 +293,8 @@ export const getStockOverview = query({
       issues:
         authorized === "all"
           ? balances
-              .filter(
-                (balance) =>
-                  balance.quantity !== 0 &&
-                  (!knownIds.has(balance.productId) ||
-                    !activeFairs.has(balance.fairId)),
+              .filter((balance) =>
+                balanceNeedsReconciliation(balance, knownIds, activeFairs),
               )
               .map(
                 (balance) =>
@@ -783,21 +782,13 @@ export const dailySummary = query({
         q.eq("fairId", fairId).eq("businessDate", date),
       )
       .collect();
-    return sales.reduce(
-      (summary, sale) => ({
-        totalCents: summary.totalCents + sale.totalCents,
-        cashCents:
-          summary.cashCents +
-          (sale.paymentMethod === "cash" ? sale.totalCents : 0),
-        cardCents:
-          summary.cardCents +
-          (sale.paymentMethod === "card" ? sale.totalCents : 0),
-        units:
-          summary.units +
-          sale.items.reduce((sum, item) => sum + item.quantity, 0),
-        count: summary.count + 1,
-      }),
-      { totalCents: 0, cashCents: 0, cardCents: 0, units: 0, count: 0 },
-    );
+    const totals = posTotals(sales);
+    return {
+      totalCents: totals.netCents,
+      cashCents: totals.cashCents,
+      cardCents: totals.cardCents,
+      units: totals.units,
+      count: totals.count,
+    };
   },
 });

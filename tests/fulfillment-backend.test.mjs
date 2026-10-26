@@ -425,9 +425,9 @@ test("access control: roles denied/allowed correctly", async () => {
     }),
   );
 
-  // Atelier get view keeps customer PII redacted (email, Stripe session)
-  // but exposes item prices: the packing slip printed for the parcel
-  // needs unit prices and the order total.
+  // Atelier get view keeps customer PII and money redacted (email, Stripe
+  // session, prices, total); order managers still see prices because the
+  // packing slip printed for the parcel needs them.
   await db.run(fulfillment.claim, claimArgs("o-8", "x1"));
   const detail = await db.run(fulfillment.get, { orderId: "o-8" });
   assert.equal(detail.recipient.firstName, "Prenume");
@@ -435,8 +435,12 @@ test("access control: roles denied/allowed correctly", async () => {
   const serialized = JSON.stringify(detail);
   assert.equal(serialized.includes("client@exemplu.ro"), false);
   assert.equal(serialized.includes("sess-o-8"), false);
-  assert.equal(detail.items[0].price, 25);
-  assert.equal(detail.total, 50);
+  assert.equal(serialized.includes('"price"'), false);
+  assert.equal("total" in detail, false);
+  admin(db);
+  const adminDetail = await db.run(fulfillment.get, { orderId: "o-8" });
+  assert.equal(adminDetail.items[0].price, 25);
+  assert.equal(adminDetail.total, 50);
 });
 
 test("requestId replay: same request returns order, different action rejected", async () => {

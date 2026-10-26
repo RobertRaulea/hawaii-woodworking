@@ -6,6 +6,7 @@ import { api } from '../../../../convex/_generated/api';
 import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { useInventoryOperation } from '../../../hooks/useInventoryOperation';
+import { bucharestToday, monthStart } from '../../../utils/date.utils';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,22 @@ const fairStatus = (fair: {
  return 'Activ';
 };
 
+const DAY_MS = 86400000;
+const fairReportRange = (
+  fair: { startsOn?: string; endsOn?: string },
+  day: string,
+) => {
+  let from = fair.startsOn ?? monthStart(day);
+  let to =
+    fair.endsOn ??
+    (fair.startsOn && fair.startsOn > day ? fair.startsOn : day);
+  if ((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS + 1 > 366) {
+    from = monthStart(day);
+    to = day;
+  }
+  return { from, to };
+};
+
 const fairPeriod = (fair: { startsOn?: string; endsOn?: string }) => {
  if (fair.startsOn && fair.endsOn)
  return `${fair.startsOn} – ${fair.endsOn}`;
@@ -44,6 +61,14 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  const { data: fairs, error } = useAdminQuery(api.pos.listFairs, {
  includeArchived: true,
  });
+ const day = bucharestToday();
+ const { data: todayReport, error: reportError } = useAdminQuery(
+ api.reports.summary,
+ { from: day, to: day, channel: 'pos' },
+ );
+ const todayByFair = new Map(
+ (todayReport?.posByFair ?? []).map((row) => [row.fairId, row]),
+ );
  const operation = useInventoryOperation(actorId);
  const [filter, setFilter] = useState<'active' | 'archived'>('active');
  const [creating, setCreating] = useState(false);
@@ -172,6 +197,16 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500 ">
  Locație de inventar: stocul propriu al târgului
  </p>
+ <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400 ">
+ {reportError
+ ? reportError
+ : (() => {
+ const row = todayByFair.get(fair._id);
+ return row
+ ? `Azi: ${(row.netCents / 100).toFixed(2)} RON · ${row.count} bonuri`
+ : 'Azi: fără vânzări';
+ })()}
+ </p>
  {fair.active ? <FairSellers fairId={fair._id} /> : null}
  </div>
  </div>
@@ -212,6 +247,17 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  to={`/admin/transfers/new?from=workshop&to=${fair._id}`}
  >
  Transfer nou
+ </Link>
+ </Button>
+ <Button
+ asChild
+ variant="outline"
+ className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ >
+ <Link
+ to={`/admin/reports?channel=pos&fairId=${fair._id}&from=${fairReportRange(fair, day).from}&to=${fairReportRange(fair, day).to}`}
+ >
+ Raport
  </Link>
  </Button>
  {fair.active ? (

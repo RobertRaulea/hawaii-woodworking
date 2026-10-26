@@ -37,7 +37,15 @@ export const fixture = () => {
           withIndex: (_index, callback) => {
             const range = {
               eq: (field, value) => {
-                filters.push([field, value]);
+                filters.push([field, 'eq', value]);
+                return range;
+              },
+              gte: (field, value) => {
+                filters.push([field, 'gte', value]);
+                return range;
+              },
+              lte: (field, value) => {
+                filters.push([field, 'lte', value]);
                 return range;
               },
             };
@@ -51,7 +59,13 @@ export const fixture = () => {
           collect: async () =>
             [...table(name).values()]
               .filter((value) =>
-                filters.every(([field, expected]) => value[field] === expected),
+                filters.every(([field, op, expected]) =>
+                  op === 'eq'
+                    ? value[field] === expected
+                    : op === 'gte'
+                      ? value[field] >= expected
+                      : value[field] <= expected,
+                ),
               )
               .sort((a, b) =>
                 descending
