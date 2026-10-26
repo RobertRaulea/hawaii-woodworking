@@ -182,6 +182,8 @@ Integrare (2026-10-26, același branch): `test:unit` 146/146, `test:ui` 99/99, `
 - Temă: paginile admin noi au variante `dark:`; `PackingSlip` rămâne alb intenționat (document de imprimat).
 - Tabletă: capturi Chrome headless 1024×768 și 768×1024 doar pentru `/` și `/products` (randare corectă, temă întunecată). `/admin/login` rămâne la „Se încarcă…” în headless (Clerk) → **paginile admin nu au fost verificate vizual pe tabletă**; doar revizuire statică a claselor responsive (tabele în `overflow-auto`, filtre în grid, dialoguri cu lățime limitată).
 
+Deploy (2026-10-26): commit `fb3dab9` pe `main` (push la GitHub), `convex deploy` pe producția `upbeat-lyrebird-218` — reușit, fără indexuri șterse. MCP `functionSpec`: prod = dev, 113 funcții identice, inclusiv `reports:summary`/`reports:dashboard`. Frontend-ul Vercel nu a fost republicat manual (depinde de integrarea Vercel↔GitHub). Variabilele de mediu din prod nu se pot citi prin MCP (read-only) — verificare manuală în dashboard. Avertisment la deploy: proiectul depășește limitele planului gratuit (dashboard.convex.dev/t/robert-raulea).
+
 ## 8. Starea modulelor
 
 | Modul | Stare actuală | Ce lipsește |
