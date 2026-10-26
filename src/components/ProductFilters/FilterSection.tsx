@@ -1,41 +1,34 @@
-import { useState } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import {
+ Accordion,
+ AccordionContent,
+ AccordionItem,
+ AccordionTrigger,
+} from '@/components/ui/accordion';
 
 interface FilterSectionProps {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
+ title: string;
+ children: React.ReactNode;
+ defaultOpen?: boolean;
 }
 
 export const FilterSection: React.FC<FilterSectionProps> = ({
-  title,
-  children,
-  defaultOpen = true,
+ title,
+ children,
+ defaultOpen = true,
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border-b border-stone-200 last:border-b-0">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between py-4 px-1 text-left hover:bg-stone-50 transition-colors"
-      >
-        <span className="font-medium text-stone-900 text-sm uppercase tracking-wide">
-          {title}
-        </span>
-        <ChevronDownIcon
-          className={`h-5 w-5 text-stone-600 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
-      <div
-        className={`overflow-hidden transition-all duration-200 ${
-          isOpen ? 'max-h-96 pb-4' : 'max-h-0'
-        }`}
-      >
-        <div className="px-1">{children}</div>
-      </div>
-    </div>
-  );
+ return (
+ <Accordion
+ type="single"
+ collapsible
+ defaultValue={defaultOpen ? 'section' : undefined}
+ className="border-b border-stone-200 dark:border-stone-800 last:border-b-0"
+ >
+ <AccordionItem value="section" className="border-b-0">
+ <AccordionTrigger className="px-1 text-sm font-medium uppercase tracking-wide text-stone-900 dark:text-stone-50 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-50">
+ {title}
+ </AccordionTrigger>
+ <AccordionContent className="px-1">{children}</AccordionContent>
+ </AccordionItem>
+ </Accordion>
+ );
 };

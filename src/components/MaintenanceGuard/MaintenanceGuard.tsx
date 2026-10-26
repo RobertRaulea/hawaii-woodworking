@@ -4,17 +4,17 @@ import { shouldShowUnderConstruction, maintenanceConfig } from '../../utils/main
 import UnderConstruction from '../../pages/UnderConstruction/UnderConstruction';
 
 interface MaintenanceGuardProps {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }
 
 const MaintenanceGuard: React.FC<MaintenanceGuardProps> = ({ children }) => {
-  const location = useLocation();
-  
-  if (shouldShowUnderConstruction(location.pathname)) {
-    return <UnderConstruction expectedDate={maintenanceConfig.expectedCompletionDate} />;
-  }
+ const location = useLocation();
+ 
+ if (shouldShowUnderConstruction(location.pathname)) {
+ return <UnderConstruction expectedDate={maintenanceConfig.expectedCompletionDate} />;
+ }
 
-  return <>{children}</>;
+ return <>{children}</>;
 };
 
 export default MaintenanceGuard;

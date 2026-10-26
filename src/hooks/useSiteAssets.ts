@@ -6,25 +6,25 @@ import type { SiteAsset } from '../types/siteAsset.types';
 export type { SiteAsset } from '../types/siteAsset.types';
 
 export const useSiteAssets = (category: string) => {
-  const data = useQuery(api.siteAssets.getByCategory, { category });
+ const data = useQuery(api.siteAssets.getByCategory, { category });
 
-  const assets = useMemo<SiteAsset[]>(() => {
-    if (!data) {
-      return [];
-    }
+ const assets = useMemo<SiteAsset[]>(() => {
+ if (!data) {
+ return [];
+ }
 
-    return data.map((asset) => ({
-      id: asset._id,
-      name: asset.name,
-      category: asset.category,
-      url: asset.url,
-      title: asset.title,
-      description: asset.description,
-      price: asset.price,
-    }));
-  }, [data]);
+ return data.map((asset) => ({
+ id: asset._id,
+ name: asset.name,
+ category: asset.category,
+ url: asset.url,
+ title: asset.title,
+ description: asset.description,
+ price: asset.price,
+ }));
+ }, [data]);
 
-  const loading = data === undefined;
+ const loading = data === undefined;
 
-  return { assets, loading, error: null };
+ return { assets, loading, error: null };
 };

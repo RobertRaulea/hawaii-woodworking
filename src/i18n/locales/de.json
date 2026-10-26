@@ -6,7 +6,12 @@
     "cart": "Warenkorb",
     "myOrders": "Meine Bestellungen",
     "accountSettings": "Kontoeinstellungen",
-    "allProducts": "Alle Produkte"
+    "allProducts": "Alle Produkte",
+    "menu": "Menü"
+  },
+  "theme": {
+    "light": "Zum hellen Design wechseln",
+    "dark": "Zum dunklen Design wechseln"
   },
   "common": {
     "loading": "Wird geladen...",
@@ -44,7 +49,29 @@
     "category": "Kategorie",
     "relatedProducts": "Ähnliche Produkte",
     "noProducts": "Keine Produkte verfügbar",
-    "viewDetails": "Details anzeigen"
+    "viewDetails": "Details anzeigen",
+    "sku": "Artikelnummer",
+    "quantityLabel": "Menge",
+    "share": "Teilen",
+    "linkCopied": "Link in die Zwischenablage kopiert",
+    "descriptionTitle": "Produktbeschreibung",
+    "productDetails": "Produktdetails",
+    "shippingReturns": "Versand & Rückgabe",
+    "shippingDetails": "Wir versenden sorgfältig in ganz Rumänien innerhalb von 2-5 Werktagen. Die genauen Versandkosten werden an der Kasse berechnet.",
+    "returnsDetails": "Sie können das Produkt innerhalb von 14 Tagen nach Erhalt in der Originalverpackung zurückgeben. Personalisierte Artikel können nicht zurückgegeben werden.",
+    "uniqueNote": "Jedes Stück ist handgefertigt — kleine Abweichungen in Farbton und Textur machen Ihr Produkt einzigartig.",
+    "benefitHandcrafted": "Handgefertigt in Rumänien",
+    "benefitShipping": "Landesweite Lieferung",
+    "benefitSecure": "100 % sichere Zahlung",
+    "benefitReturns": "14 Tage Rückgabe",
+    "viewFullscreen": "Vollbild ansehen",
+    "previousImage": "Vorheriges Bild",
+    "nextImage": "Nächstes Bild",
+    "notFound": "Produkt nicht gefunden",
+    "notFoundDescription": "Das gesuchte Produkt existiert nicht oder ist nicht mehr verfügbar.",
+    "browseProducts": "Alle Produkte ansehen",
+    "decreaseQuantity": "Menge verringern",
+    "increaseQuantity": "Menge erhöhen"
   },
   "hero": {
     "subtitle": "Handwerk & CNC-Technologie",
@@ -175,7 +202,8 @@
     "nameDesc": "Name: Z-A",
     "newest": "Neueste",
     "hide": "Filter ausblenden",
-    "show": "Filter anzeigen"
+    "show": "Filter anzeigen",
+    "close": "Schließen"
   },
   "auth": {
     "login": "Anmelden",

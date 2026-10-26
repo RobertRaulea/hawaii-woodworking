@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { Toaster } from '../../src/components/ui/sonner';
 import assert from 'node:assert/strict';
 import { beforeEach, it, mock } from 'node:test';
 import type { InventoryController } from '../../src/types/inventory.types';
@@ -119,10 +120,11 @@ it('confirmarea stocului poate fi închisă manual', async () => {
   operation = { ...controller, completed: receipt };
   render(
     <MemoryRouter>
+      <Toaster />
       <AdminInventory />
     </MemoryRouter>,
   );
-  assert.ok(screen.getByRole('status').textContent?.includes('Total: 134'));
+  await screen.findByText(/Total: 134/);
   await userEvent
     .setup()
     .click(screen.getByRole('button', { name: 'Închide notificarea' }));

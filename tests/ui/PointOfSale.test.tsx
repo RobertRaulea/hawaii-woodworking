@@ -37,7 +37,9 @@ mock.module(
     },
   },
 );
-mock.module('convex/react', { namedExports: { useQuery: query } });
+mock.module('convex/react', {
+  namedExports: { useQuery: query, useQueries: () => ({}) },
+});
 mock.module(
   new URL('../../src/pages/Admin/PointOfSale/usePosPayment.ts', import.meta.url)
     .href,

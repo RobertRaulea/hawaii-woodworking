@@ -154,8 +154,8 @@ test('product cards display fair stock and stop additions at the available quant
   );
   assert.ok(button[0].includes('disabled=""'));
   assert.ok(html.includes('grid-cols-2'));
-  assert.ok(html.includes('md:grid-cols-3'));
-  assert.ok(html.includes('lg:flex-row'));
+  assert.ok(html.includes('lg:grid-cols-3'));
+  assert.ok(html.includes('xl:flex-row'));
 });
 
 test('the order displays quantities, unit prices, totals, and named cart controls', () => {

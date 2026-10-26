@@ -6,7 +6,12 @@
     "cart": "Coș",
     "myOrders": "Comenzile mele",
     "accountSettings": "Setări cont",
-    "allProducts": "Toate produsele"
+    "allProducts": "Toate produsele",
+    "menu": "Meniu"
+  },
+  "theme": {
+    "light": "Comută la tema luminoasă",
+    "dark": "Comută la tema întunecată"
   },
   "common": {
     "loading": "Se încarcă...",
@@ -44,7 +49,29 @@
     "category": "Categorie",
     "relatedProducts": "Produse similare",
     "noProducts": "Nu există produse disponibile",
-    "viewDetails": "Vezi detalii"
+    "viewDetails": "Vezi detalii",
+    "sku": "Cod produs",
+    "quantityLabel": "Cantitate",
+    "share": "Distribuie",
+    "linkCopied": "Link copiat în clipboard",
+    "descriptionTitle": "Descrierea produsului",
+    "productDetails": "Detalii produs",
+    "shippingReturns": "Livrare și retur",
+    "shippingDetails": "Expediem cu grijă în toată România, în 2-5 zile lucrătoare. Costul de transport este calculat la finalizarea comenzii.",
+    "returnsDetails": "Poți returna produsul în 14 zile de la primire, în ambalajul original. Produsele personalizate nu pot fi returnate.",
+    "uniqueNote": "Fiecare piesă este lucrată manual — mici variații de nuanță și textură fac produsul tău unic.",
+    "benefitHandcrafted": "Lucrat manual în România",
+    "benefitShipping": "Livrare în toată țara",
+    "benefitSecure": "Plată 100% securizată",
+    "benefitReturns": "Retur în 14 zile",
+    "viewFullscreen": "Vezi pe tot ecranul",
+    "previousImage": "Imaginea anterioară",
+    "nextImage": "Imaginea următoare",
+    "notFound": "Produsul nu a fost găsit",
+    "notFoundDescription": "Produsul pe care îl cauți nu există sau nu mai este disponibil.",
+    "browseProducts": "Vezi toate produsele",
+    "decreaseQuantity": "Scade cantitatea",
+    "increaseQuantity": "Crește cantitatea"
   },
   "hero": {
     "subtitle": "Artizanat & Tehnologie CNC",
@@ -175,7 +202,8 @@
     "nameDesc": "Nume: Z-A",
     "newest": "Cele mai noi",
     "hide": "Ascunde Filtrele",
-    "show": "Afișează Filtrele"
+    "show": "Afișează Filtrele",
+    "close": "Închide"
   },
   "auth": {
     "login": "Autentificare",

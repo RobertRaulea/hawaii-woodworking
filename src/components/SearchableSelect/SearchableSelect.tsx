@@ -1,193 +1,151 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type React from 'react';
+import { ChevronsUpDown } from 'lucide-react';
+import { ProductThumb } from '../ProductThumb';
+import {
+ Command,
+ CommandEmpty,
+ CommandGroup,
+ CommandInput,
+ CommandItem,
+ CommandList,
+} from '@/components/ui/command';
+import { cn } from '@/utils/cn.utils';
 
 interface SearchableSelectProps {
-  label: string;
-  id: string;
-  options: readonly string[];
-  value: string;
-  onChange: (value: string) => void;
-  onBlur?: () => void;
-  error?: string;
-  required?: boolean;
-  placeholder?: string;
-  disabled?: boolean;
+ label: string;
+ id: string;
+ options: readonly string[];
+ optionImages?: ReadonlyMap<string, string | null | undefined>;
+ value: string;
+ onChange: (value: string) => void;
+ onBlur?: () => void;
+ error?: string;
+ required?: boolean;
+ placeholder?: string;
+ disabled?: boolean;
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
-  label,
-  id,
-  options,
-  value,
-  onChange,
-  onBlur,
-  error,
-  required = false,
-  placeholder = 'Selectează...',
-  disabled = false,
+ label,
+ id,
+ options,
+ optionImages,
+ value,
+ onChange,
+ onBlur,
+ error,
+ required = false,
+ placeholder = 'Selectează...',
+ disabled = false,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+ const [isOpen, setIsOpen] = useState(false);
+ const [search, setSearch] = useState('');
+ const containerRef = useRef<HTMLDivElement>(null);
 
-  const filtered = search
-    ? options.filter((opt) =>
-        opt.toLowerCase().includes(search.toLowerCase())
-      )
-    : [...options];
+ const close = useCallback(() => {
+ setIsOpen(false);
+ setSearch('');
+ }, []);
 
-  const close = useCallback(() => {
-    setIsOpen(false);
-    setSearch('');
-    setHighlightedIndex(-1);
-  }, []);
+ useEffect(() => {
+ const handler = (e: MouseEvent) => {
+ if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+ close();
+ onBlur?.();
+ }
+ };
+ document.addEventListener('mousedown', handler);
+ return () => document.removeEventListener('mousedown', handler);
+ }, [close, onBlur]);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        close();
-        onBlur?.();
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [close, onBlur]);
+ const handleSelect = (opt: string) => {
+ onChange(opt);
+ close();
+ };
 
-  useEffect(() => {
-    if (highlightedIndex >= 0 && listRef.current) {
-      const item = listRef.current.children[highlightedIndex] as HTMLElement | undefined;
-      item?.scrollIntoView?.({ block: 'nearest' });
-    }
-  }, [highlightedIndex]);
+ const handleKeyDown = (e: React.KeyboardEvent) => {
+ if (!isOpen && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+ e.preventDefault();
+ setIsOpen(true);
+ return;
+ }
+ if (isOpen && e.key === 'Escape') {
+ e.preventDefault();
+ close();
+ }
+ };
 
-  const handleSelect = (opt: string) => {
-    onChange(opt);
-    close();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) {
-      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-        e.preventDefault();
-        setIsOpen(true);
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev < filtered.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setHighlightedIndex((prev) =>
-          prev > 0 ? prev - 1 : filtered.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (highlightedIndex >= 0 && filtered[highlightedIndex]) {
-          handleSelect(filtered[highlightedIndex]);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        close();
-        break;
-    }
-  };
-
-  const displayValue = isOpen ? search : value;
-
-  return (
-    <div ref={containerRef} className="relative">
-      <label htmlFor={id} className="block text-xs font-medium text-stone-500 mb-1.5 tracking-wide uppercase">
-        {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input
-        id={id}
-        type="text"
-        role="combobox"
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-        aria-controls={`${id}-listbox`}
-        aria-activedescendant={
-          highlightedIndex >= 0 ? `${id}-option-${highlightedIndex}` : undefined
-        }
-        autoComplete="off"
-        disabled={disabled}
-        placeholder={value || placeholder}
-        value={displayValue}
-        className={`w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200 bg-white ${
-          error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300'
-        } ${disabled ? 'bg-stone-100 cursor-not-allowed' : ''}`}
-        onFocus={() => {
-          setIsOpen(true);
-          setSearch('');
-        }}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setHighlightedIndex(0);
-          if (!isOpen) setIsOpen(true);
-        }}
-        onKeyDown={handleKeyDown}
-      />
-      <svg
-        className={`pointer-events-none absolute right-3 top-[2.4rem] h-4 w-4 text-stone-400 transition-transform ${
-          isOpen ? 'rotate-180' : ''
-        }`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-      </svg>
-
-      {isOpen && (
-        <ul
-          ref={listRef}
-          id={`${id}-listbox`}
-          role="listbox"
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-stone-200 bg-white shadow-lg"
-        >
-          {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-stone-400">
-              Niciun rezultat
-            </li>
-          ) : (
-            filtered.map((opt, idx) => (
-              <li
-                key={opt}
-                id={`${id}-option-${idx}`}
-                role="option"
-                aria-selected={opt === value}
-                className={`cursor-pointer px-3 py-2 text-sm transition-colors ${
-                  idx === highlightedIndex
-                    ? 'bg-amber-50 text-amber-900'
-                    : opt === value
-                      ? 'bg-amber-100/50 text-stone-900'
-                      : 'text-stone-700 hover:bg-stone-50'
-                }`}
-                onMouseEnter={() => setHighlightedIndex(idx)}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleSelect(opt);
-                }}
-              >
-                {opt}
-              </li>
-            ))
-          )}
-        </ul>
-      )}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  );
+ return (
+ <div ref={containerRef} className="relative">
+ <Command label={label} className="h-auto overflow-visible bg-transparent">
+ <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-1.5 tracking-wide uppercase">
+ {label}
+ {required && <span className="text-red-500 ml-0.5">*</span>}
+ <CommandInput
+ bare
+ id={id}
+ autoComplete="off"
+ disabled={disabled}
+ placeholder={value || placeholder}
+ value={isOpen ? search : value}
+ onValueChange={(next) => {
+ setSearch(next);
+ if (!isOpen) setIsOpen(true);
+ }}
+ onFocus={() => {
+ setIsOpen(true);
+ setSearch('');
+ }}
+ onKeyDown={handleKeyDown}
+ className={`mt-1.5 h-auto w-full rounded-md border px-3.5 py-2.5 text-sm font-normal normal-case tracking-normal text-stone-900 dark:text-stone-50 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200 bg-white dark:bg-stone-900 ${
+ error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300 dark:border-stone-600 '
+ } ${disabled ? 'bg-stone-100 dark:bg-stone-800 cursor-not-allowed' : ''}`}
+ />
+ </label>
+ <ChevronsUpDown
+ className={`pointer-events-none absolute right-3 top-[2.4rem] h-4 w-4 text-stone-400 dark:text-stone-500 transition-transform ${
+ isOpen ? 'rotate-180' : ''
+ }`}
+ />
+ {isOpen && (
+ <CommandList className="absolute z-50 mt-1 max-h-60 w-full rounded-md border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-lg">
+ <CommandEmpty className="px-3 py-2 text-sm text-stone-400 dark:text-stone-500 ">
+ Niciun rezultat
+ </CommandEmpty>
+ <CommandGroup>
+ {options.map((opt) => (
+ <CommandItem
+ key={opt}
+ value={opt}
+ onSelect={() => handleSelect(opt)}
+ onMouseDown={(e) => e.preventDefault()}
+ className={cn(
+ 'cursor-pointer px-3 py-2 text-sm transition-colors data-[selected=true]:bg-amber-50 dark:data-[selected=true]:bg-amber-950/60 data-[selected=true]:text-amber-900 dark:data-[selected=true]:text-amber-300',
+ opt === value
+ ? 'bg-amber-100/50 dark:bg-amber-900/40 text-stone-900 dark:text-stone-50 '
+ : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800',
+ )}
+ >
+ {optionImages ? (
+ <span className="flex items-center gap-2.5">
+ <ProductThumb
+ src={optionImages.get(opt)}
+ alt={opt}
+ className="h-8 w-8"
+ />
+ {opt}
+ </span>
+ ) : (
+ opt
+ )}
+ </CommandItem>
+ ))}
+ </CommandGroup>
+ </CommandList>
+ )}
+ </Command>
+ {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
+ </div>
+ );
 };

@@ -6,24 +6,24 @@ import en from './locales/en.json';
 import de from './locales/de.json';
 
 i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources: {
-      ro: { translation: ro },
-      en: { translation: en },
-      de: { translation: de },
-    },
-    fallbackLng: 'ro',
-    lng: 'ro',
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'i18nextLng',
-    },
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+ .use(LanguageDetector)
+ .use(initReactI18next)
+ .init({
+ resources: {
+ ro: { translation: ro },
+ en: { translation: en },
+ de: { translation: de },
+ },
+ fallbackLng: 'ro',
+ lng: 'ro',
+ detection: {
+ order: ['localStorage', 'navigator'],
+ caches: ['localStorage'],
+ lookupLocalStorage: 'i18nextLng',
+ },
+ interpolation: {
+ escapeValue: false,
+ },
+ });
 
 export default i18n;

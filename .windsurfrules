@@ -32,7 +32,7 @@
     - Optimize images
     - Minimize re-renders
 13. Use React Router for navigation
-14. Use HeroIcons for icons
+14. Use lucide-react for icons and shadcn/ui primitives from src/components/ui/ for UI elements
 15. Use React Hook Form for form handling
 16. Use Vite for development
 17. Use ESLint and Prettier for code formatting

@@ -1,28 +1,23 @@
 export type Language = "ro" | "en" | "de";
 
-export function getTranslatedField<T extends Record<string, any>>(
+const asNonEmptyString = (value: unknown): string | null =>
+  typeof value === "string" && value !== "" ? value : null;
+
+export function getTranslatedField<T extends object>(
   item: T,
   fieldName: string,
   language: Language
 ): string {
-  const translatedFieldName = `${fieldName}_${language}`;
-  
-  if (item[translatedFieldName]) {
-    return item[translatedFieldName];
-  }
-  
-  if (item[`${fieldName}_ro`]) {
-    return item[`${fieldName}_ro`];
-  }
-  
-  if (item[fieldName]) {
-    return item[fieldName];
-  }
-  
-  return "";
+  const record = item as Record<string, unknown>;
+  return (
+    asNonEmptyString(record[`${fieldName}_${language}`]) ??
+    asNonEmptyString(record[`${fieldName}_ro`]) ??
+    asNonEmptyString(record[fieldName]) ??
+    ""
+  );
 }
 
-export function addTranslatedFields<T extends Record<string, any>>(
+export function addTranslatedFields<T extends object>(
   item: T,
   language: Language
 ): T & { translatedName?: string; translatedDescription?: string } {

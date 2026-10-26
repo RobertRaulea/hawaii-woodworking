@@ -11,6 +11,7 @@ import { ShippingProvider } from './context/ShippingContext';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
 import { AdminRoute, StaffHome } from './components/AdminRoute';
 import { ScrollToTop } from './components/ScrollToTop';
+import { Toaster } from './components/ui/sonner';
 
 // Lazy-loaded pages
 const Catalog = lazy(() => import('./pages/Catalog/Catalog').then((m) => ({ default: m.Catalog })));
@@ -46,92 +47,93 @@ const FulfillmentQueue = lazy(() => import('./pages/Admin/Fulfillment/Fulfillmen
 const FulfillmentDetail = lazy(() => import('./pages/Admin/Fulfillment/FulfillmentDetail').then((m) => ({ default: m.FulfillmentDetail })));
 
 const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <p className="text-stone-500">Se încarcă...</p>
-  </div>
+ <div className="flex items-center justify-center min-h-[60vh]">
+ <p className="text-stone-500 dark:text-stone-400 ">Se încarcă...</p>
+ </div>
 );
 
 function App() {
-  return (
-    <HelmetProvider>
-      <CartProvider>
-        <ShippingProvider>
-        <Router>
-          <ScrollToTop />
-          <MaintenanceGuard>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="products" element={<Products />} />
-                  <Route path="catalog" element={<Catalog />} />
-                  <Route path="cart" element={<Cart />} />
-                  <Route path="shipping" element={<Shipping />} />
-                  <Route path="login" element={<Login />} />
-                  <Route path="checkout" element={<Checkout />} />
-                  <Route path="my-orders" element={<MyOrders />} />
-                  <Route path="my-orders/:id" element={<MyOrderDetail />} />
-                  <Route path="thank-you" element={<ThankYou />} />
-                  <Route path="product/:productId" element={<ProductDetailPage />} />
-                  <Route path="terms-and-conditions" element={<TermsAndConditions />} />
-                  <Route path="privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="return-policy" element={<ReturnPolicy />} />
-                  <Route path="legal-information" element={<LegalInformation />} />
-                </Route>
+ return (
+ <HelmetProvider>
+ <CartProvider>
+ <ShippingProvider>
+ <Router>
+ <ScrollToTop />
+ <Toaster />
+ <MaintenanceGuard>
+ <Suspense fallback={<PageLoader />}>
+ <Routes>
+ <Route path="/" element={<Layout />}>
+ <Route index element={<Home />} />
+ <Route path="products" element={<Products />} />
+ <Route path="catalog" element={<Catalog />} />
+ <Route path="cart" element={<Cart />} />
+ <Route path="shipping" element={<Shipping />} />
+ <Route path="login" element={<Login />} />
+ <Route path="checkout" element={<Checkout />} />
+ <Route path="my-orders" element={<MyOrders />} />
+ <Route path="my-orders/:id" element={<MyOrderDetail />} />
+ <Route path="thank-you" element={<ThankYou />} />
+ <Route path="product/:productId" element={<ProductDetailPage />} />
+ <Route path="terms-and-conditions" element={<TermsAndConditions />} />
+ <Route path="privacy-policy" element={<PrivacyPolicy />} />
+ <Route path="return-policy" element={<ReturnPolicy />} />
+ <Route path="legal-information" element={<LegalInformation />} />
+ </Route>
 
-                {/* Admin routes */}
-                <Route path="admin/login" element={<AdminLogin />} />
-                <Route path="pos" element={<Navigate to="/admin/pos" replace />} />
-                <Route path="admin" element={<AdminRoute />}>
-                  <Route element={<AdminRoute permission="pos.sell" />}>
-                    <Route path="pos" element={<PointOfSale />} />
-                  </Route>
-                  <Route element={<AdminLayout />}>
-                    <Route index element={<StaffHome />} />
-                    <Route element={<AdminRoute permission="fairs.manage" />}>
-                      <Route path="fairs" element={<AdminFairs />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="inventory.read" />}>
-                      <Route path="inventory" element={<AdminInventory />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="transfers.view" />}>
-                      <Route path="transfers" element={<TransferList />} />
-                      <Route path="transfers/new" element={<TransferForm />} />
-                      <Route path="transfers/:id" element={<TransferDetail />} />
-                      <Route path="transfers/:id/edit" element={<TransferForm />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="catalog.manage" />}>
-                      <Route path="products" element={<AdminProducts />} />
-                      <Route path="products/new" element={<ProductForm />} />
-                      <Route path="products/:id" element={<ProductForm />} />
-                      <Route path="categories" element={<AdminCategories />} />
-                      <Route path="custom-works" element={<AdminCustomWorks />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="orders.manage" />}>
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="orders/:id" element={<OrderDetail />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="orders.fulfill" />}>
-                      <Route path="fulfillment" element={<FulfillmentQueue />} />
-                      <Route path="fulfillment/:id" element={<FulfillmentDetail />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="customers.manage" />}>
-                      <Route path="customers" element={<AdminCustomers />} />
-                      <Route path="customers/:id" element={<CustomerDetail />} />
-                    </Route>
-                    <Route element={<AdminRoute permission="staff.manage" />}>
-                      <Route path="staff" element={<AdminStaff />} />
-                    </Route>
-                  </Route>
-                </Route>
-              </Routes>
-            </Suspense>
-          </MaintenanceGuard>
-        </Router>
-        </ShippingProvider>
-      </CartProvider>
-    </HelmetProvider>
-  );
+ {/* Admin routes */}
+ <Route path="admin/login" element={<AdminLogin />} />
+ <Route path="pos" element={<Navigate to="/admin/pos" replace />} />
+ <Route path="admin" element={<AdminRoute />}>
+ <Route element={<AdminRoute permission="pos.sell" />}>
+ <Route path="pos" element={<PointOfSale />} />
+ </Route>
+ <Route element={<AdminLayout />}>
+ <Route index element={<StaffHome />} />
+ <Route element={<AdminRoute permission="fairs.manage" />}>
+ <Route path="fairs" element={<AdminFairs />} />
+ </Route>
+ <Route element={<AdminRoute permission="inventory.read" />}>
+ <Route path="inventory" element={<AdminInventory />} />
+ </Route>
+ <Route element={<AdminRoute permission="transfers.view" />}>
+ <Route path="transfers" element={<TransferList />} />
+ <Route path="transfers/new" element={<TransferForm />} />
+ <Route path="transfers/:id" element={<TransferDetail />} />
+ <Route path="transfers/:id/edit" element={<TransferForm />} />
+ </Route>
+ <Route element={<AdminRoute permission="catalog.manage" />}>
+ <Route path="products" element={<AdminProducts />} />
+ <Route path="products/new" element={<ProductForm />} />
+ <Route path="products/:id" element={<ProductForm />} />
+ <Route path="categories" element={<AdminCategories />} />
+ <Route path="custom-works" element={<AdminCustomWorks />} />
+ </Route>
+ <Route element={<AdminRoute permission="orders.manage" />}>
+ <Route path="orders" element={<AdminOrders />} />
+ <Route path="orders/:id" element={<OrderDetail />} />
+ </Route>
+ <Route element={<AdminRoute permission="orders.fulfill" />}>
+ <Route path="fulfillment" element={<FulfillmentQueue />} />
+ <Route path="fulfillment/:id" element={<FulfillmentDetail />} />
+ </Route>
+ <Route element={<AdminRoute permission="customers.manage" />}>
+ <Route path="customers" element={<AdminCustomers />} />
+ <Route path="customers/:id" element={<CustomerDetail />} />
+ </Route>
+ <Route element={<AdminRoute permission="staff.manage" />}>
+ <Route path="staff" element={<AdminStaff />} />
+ </Route>
+ </Route>
+ </Route>
+ </Routes>
+ </Suspense>
+ </MaintenanceGuard>
+ </Router>
+ </ShippingProvider>
+ </CartProvider>
+ </HelmetProvider>
+ );
 }
 
 export default App;

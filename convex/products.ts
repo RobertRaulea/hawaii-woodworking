@@ -52,6 +52,27 @@ export const listAdmin = query({
   },
 });
 
+// First image of every product, including archived/inactive ones, for
+// identification thumbnails in back-office views. Readable by all staff.
+export const thumbnails = query({
+  args: {},
+  handler: async (ctx) => {
+    await requirePermission(ctx, "inventory.read");
+    const products = await ctx.db.query("products").collect();
+    return await Promise.all(
+      products.map(async (product) => ({
+        id: product._id,
+        url:
+          (
+            await resolveImageUrls(ctx, product.imageStorageIds?.slice(0, 1))
+          )[0] ??
+          product.images?.[0] ??
+          null,
+      })),
+    );
+  },
+});
+
 export const generateProductImageUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {

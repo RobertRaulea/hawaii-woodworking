@@ -2,7 +2,46 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
+// Mirrors the paths in tsconfig.app.json so the Node test runner resolves
+// the same aliases Vite uses.
+const aliases = [
+  ['@/', new URL('../src/', import.meta.url)],
+  ['@hooks/', new URL('../src/hooks/', import.meta.url)],
+  ['@context/', new URL('../src/context/', import.meta.url)],
+  ['@assets/', new URL('../assets/', import.meta.url)],
+];
+
+const withExtensionFallback = async (specifier, context, nextResolve) => {
+  for (const suffix of [
+    '.ts',
+    '.tsx',
+    '.js',
+    '/index.ts',
+    '/index.tsx',
+    '/index.js',
+  ]) {
+    try {
+      return await nextResolve(`${specifier}${suffix}`, context);
+    } catch {
+      continue;
+    }
+  }
+  throw new Error(`Cannot resolve ${specifier}`);
+};
+
 export const resolve = async (specifier, context, nextResolve) => {
+  const alias = aliases.find(([prefix]) => specifier.startsWith(prefix));
+  if (alias) {
+    const target = new URL(
+      specifier.slice(alias[0].length),
+      alias[1],
+    ).href;
+    try {
+      return await nextResolve(target, context);
+    } catch {
+      return withExtensionFallback(target, context, nextResolve);
+    }
+  }
   try {
     return await nextResolve(specifier, context);
   } catch (error) {
@@ -10,20 +49,7 @@ export const resolve = async (specifier, context, nextResolve) => {
       specifier.startsWith('.') &&
       !/\.(?:[cm]?[jt]sx?|json)$/.test(specifier)
     ) {
-      for (const suffix of [
-        '.ts',
-        '.tsx',
-        '.js',
-        '/index.ts',
-        '/index.tsx',
-        '/index.js',
-      ]) {
-        try {
-          return await nextResolve(`${specifier}${suffix}`, context);
-        } catch {
-          continue;
-        }
-      }
+      return withExtensionFallback(specifier, context, nextResolve);
     }
     throw error;
   }

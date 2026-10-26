@@ -13,6 +13,7 @@ const reconcile = mock.fn<
 mock.module('convex/react', {
   namedExports: {
     useMutation: () => reconcile,
+    useQueries: () => ({}),
     useConvexConnectionState: () => ({ isWebSocketConnected: true }),
   },
 });

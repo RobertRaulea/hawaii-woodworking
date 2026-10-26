@@ -6,20 +6,20 @@ import type { Category } from '../types/category.types';
 export type { Category } from '../types/category.types';
 
 export const useCategories = () => {
-  const data = useQuery(api.categories.getAll);
+ const data = useQuery(api.categories.getAll);
 
-  const categories = useMemo<Category[]>(() => {
-    if (!data) {
-      return [];
-    }
+ const categories = useMemo<Category[]>(() => {
+ if (!data) {
+ return [];
+ }
 
-    return data.map((category) => ({
-      id: category._id,
-      name: category.name,
-    }));
-  }, [data]);
+ return data.map((category) => ({
+ id: category._id,
+ name: category.name,
+ }));
+ }, [data]);
 
-  const loading = data === undefined;
+ const loading = data === undefined;
 
-  return { categories, loading, error: null };
+ return { categories, loading, error: null };
 };

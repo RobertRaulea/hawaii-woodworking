@@ -114,10 +114,7 @@ it('Escape nu abandonează o operațiune deja trimisă și neconfirmată', () =>
       onClose={close}
     />,
   );
-  fireEvent(
-    screen.getByRole('dialog'),
-    new Event('cancel', { cancelable: true }),
-  );
+  fireEvent.keyDown(document, { key: 'Escape' });
   assert.equal(close.mock.callCount(), 0);
   assert.equal(
     screen

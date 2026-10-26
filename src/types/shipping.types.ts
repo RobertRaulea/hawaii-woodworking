@@ -1,27 +1,27 @@
 export interface Address {
-  street: string;
-  city: string;
-  county: string;
-  postalCode: string;
-  country: string;
+ street: string;
+ city: string;
+ county: string;
+ postalCode: string;
+ country: string;
 }
 
 export interface ShippingFormData {
-  email: string;
-  phone: string;
-  firstName: string;
-  lastName: string;
-  password?: string;
-  shippingAddress: Address;
-  billingAddress: Address;
-  sameAsShipping: boolean;
-  newsletter: boolean;
-  acceptPolicy: boolean;
-  createAccount: boolean;
+ email: string;
+ phone: string;
+ firstName: string;
+ lastName: string;
+ password?: string;
+ shippingAddress: Address;
+ billingAddress: Address;
+ sameAsShipping: boolean;
+ newsletter: boolean;
+ acceptPolicy: boolean;
+ createAccount: boolean;
 }
 
 export interface ShippingContextType {
-  shippingData: ShippingFormData | null;
-  setShippingData: (data: ShippingFormData) => void;
-  clearShippingData: () => void;
+ shippingData: ShippingFormData | null;
+ setShippingData: (data: ShippingFormData) => void;
+ clearShippingData: () => void;
 }

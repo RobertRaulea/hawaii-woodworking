@@ -5,7 +5,7 @@ Citește acest document înainte de fiecare etapă. Actualizează-l doar cu schi
 
 ## 1. Stack real (verificat)
 
-- Frontend: React 18 + TypeScript strict + Vite + Tailwind + React Router 7 + React Hook Form; icoane HeroIcons (și `lucide-react` în paginile vechi).
+- Frontend: React 18 + TypeScript strict + Vite + Tailwind + React Router 7 + React Hook Form; icoane `lucide-react`; UI pe primitive shadcn/Radix din `src/components/ui/` (vezi `docs/shadcn-migration.md`).
 - Auth: Clerk (`@clerk/clerk-react`) → JWT template `convex` → `convex/auth.config.ts` (`CLERK_JWT_ISSUER_DOMAIN`).
 - Backend/DB: Convex (`convex/`), plăți Stripe Checkout + webhook HTTP `/stripe-webhook`, post-plată Oblio (factură) + Resend (email).
 - Hosting: Vercel (`vercel.json` = doar rewrite SPA). GitHub: `RobertRaulea/hawaii-woodworking`. Nu există `.github/` (fără CI în repo).
@@ -108,7 +108,7 @@ Logica comună: `convex/lib/inventory.utils.ts`.
 
 ## 6. Componente și hook-uri reutilizabile
 
-- `AdminLayout` (sidebar responsive), `AdminRoute`, `AdminDialog` (`<dialog>` nativ, `title`, `locked`, `onClose`), `Toast`, `SearchableSelect`.
+- `AdminLayout` (sidebar responsive), `AdminRoute`, `AdminDialog` (wrapper peste `Dialog` din `src/components/ui/` — Radix; `title`, `locked`, `onClose`; `locked` blochează Escape/outside-click și dezactivează butonul de închidere), notificări prin `sonner` (`Toaster` montat în `App` sub `<Router>`), `SearchableSelect`.
 - `useAdminQuery` (query cu eroare în română în loc de throw), `useInventoryOperation` (checkpoint local + reluare `requestId`), `InventoryFeedback`, `useTransferAction` (checkpoint `hawaii:transfers:action:v1:{actorId}`), `src/utils/inventory.utils.ts`, `src/types/inventory.types.ts`.
 - Stocuri: `useStockOperation` (checkpoint local `hawaii:inventory:stock-op:v1:{actorId}`, retry cu același `requestId`), `StockOperationDialog`, `StockOperationFeedback`, `StockMovementsHistory` (`usePaginatedQuery`), `AssignedFairStock` (Seller), `locationStock`/`filterStockRows` în `src/utils/inventory.utils.ts`.
 - POS: `usePosPayment`, `OrderPanel`, `ProductPicker`, `PaymentDialog`, `pos.utils.ts` (bani).

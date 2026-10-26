@@ -390,7 +390,7 @@ export const queue = query({
       .order("desc")
       .collect();
     const cutoff = Date.now() - THIRTY_DAYS;
-    const rows = orders
+    const eligible = orders
       .map((order) => ({ order, state: fulfillmentState(order) }))
       .filter(
         ({ order, state: s }) =>
@@ -399,17 +399,55 @@ export const queue = query({
           s === "packed" ||
           (s === "shipped" && (order.shippedAt ?? order.createdAt) >= cutoff),
       )
-      .filter(({ state: s }) => state === undefined || s === state)
-      .map(({ order, state: s }) => ({
-        _id: order._id,
-        shortNumber: order._id.slice(-8).toUpperCase(),
-        createdAt: order.createdAt,
-        state: s,
-        assignedTo: order.assignedTo,
-        assignedToMe: order.assignedTo === identity.subject,
-        itemCount: order.items.length,
-        units: order.items.reduce((sum, item) => sum + item.quantity, 0),
-      }));
+      .filter(({ state: s }) => state === undefined || s === state);
+    const rows = await Promise.all(
+      eligible.map(async ({ order, state: s }) => {
+        let recipientName: string | undefined;
+        if (order.shipping) {
+          recipientName =
+            `${order.shipping.firstName} ${order.shipping.lastName}`.trim();
+        } else if (order.customerId) {
+          const customer = await ctx.db.get(order.customerId);
+          if (customer)
+            recipientName =
+              `${customer.firstName} ${customer.lastName}`.trim();
+        }
+        const checklist = order.checklist ?? [];
+        return {
+          _id: order._id,
+          shortNumber: order._id.slice(-8).toUpperCase(),
+          createdAt: order.createdAt,
+          state: s,
+          assignedTo: order.assignedTo,
+          assignedAt: order.assignedAt,
+          assignedToMe: order.assignedTo === identity.subject,
+          itemCount: order.items.length,
+          units: order.items.reduce((sum, item) => sum + item.quantity, 0),
+          checklistTotal: checklist.length,
+          checkedCount: checklist.filter((entry) => entry.checked).length,
+          recipientName,
+          packedAt: order.packedAt,
+          shippedAt: order.shippedAt,
+          awb: order.awb,
+          carrier: order.carrier,
+        };
+      }),
+    );
+    // Actionable states run FIFO (oldest first = most urgent); the shipped
+    // tab reads like a history log, newest first.
+    const stateRank: Record<string, number> = {
+      ready: 0,
+      preparing: 1,
+      packed: 2,
+      shipped: 3,
+    };
+    rows.sort((a, b) => {
+      const rank = (stateRank[a.state] ?? 0) - (stateRank[b.state] ?? 0);
+      if (rank !== 0) return rank;
+      if (a.state === "shipped")
+        return (b.shippedAt ?? b.createdAt) - (a.shippedAt ?? a.createdAt);
+      return a.createdAt - b.createdAt;
+    });
     return rows;
   },
 });
@@ -445,12 +483,18 @@ export const get = query({
       items: order.items.map((item) => ({
         productId: item.productId,
         name: item.name,
+        price: item.price,
         quantity: item.quantity,
       })),
+      total: order.total,
       checklist: order.checklist ?? [],
       recipient: shipping,
       awb: order.awb,
       carrier: order.carrier,
+      assignedAt: order.assignedAt,
+      packedAt: order.packedAt,
+      shippedAt: order.shippedAt,
+      deliveredAt: order.deliveredAt,
       note: undefined,
       events: events.sort((a, b) => a.createdAt - b.createdAt),
       invoicePdfUrl: order.invoicePdfUrl,

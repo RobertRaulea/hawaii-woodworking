@@ -6,7 +6,12 @@
     "cart": "Cart",
     "myOrders": "My Orders",
     "accountSettings": "Account Settings",
-    "allProducts": "All Products"
+    "allProducts": "All Products",
+    "menu": "Menu"
+  },
+  "theme": {
+    "light": "Switch to light theme",
+    "dark": "Switch to dark theme"
   },
   "common": {
     "loading": "Loading...",
@@ -44,7 +49,29 @@
     "category": "Category",
     "relatedProducts": "Related Products",
     "noProducts": "No products available",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "sku": "SKU",
+    "quantityLabel": "Quantity",
+    "share": "Share",
+    "linkCopied": "Link copied to clipboard",
+    "descriptionTitle": "Product description",
+    "productDetails": "Product details",
+    "shippingReturns": "Shipping & returns",
+    "shippingDetails": "We ship carefully across Romania within 2-5 business days. The exact shipping cost is calculated at checkout.",
+    "returnsDetails": "You can return the product within 14 days of delivery, in its original packaging. Personalized items cannot be returned.",
+    "uniqueNote": "Each piece is handcrafted — small variations in tone and texture make your product one of a kind.",
+    "benefitHandcrafted": "Handcrafted in Romania",
+    "benefitShipping": "Nationwide delivery",
+    "benefitSecure": "100% secure payment",
+    "benefitReturns": "14-day returns",
+    "viewFullscreen": "View fullscreen",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "notFound": "Product not found",
+    "notFoundDescription": "The product you're looking for doesn't exist or is no longer available.",
+    "browseProducts": "Browse all products",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity"
   },
   "hero": {
     "subtitle": "Craftsmanship & CNC Technology",
@@ -175,7 +202,8 @@
     "nameDesc": "Name: Z-A",
     "newest": "Newest",
     "hide": "Hide Filters",
-    "show": "Show Filters"
+    "show": "Show Filters",
+    "close": "Close"
   },
   "auth": {
     "login": "Login",
@@ -229,6 +257,7 @@
   },
   "settings": {
     "title": "Settings",
+    "account": "Account",
     "language": "Language",
     "selectLanguage": "Select Language",
     "theme": "Theme",

@@ -7,18 +7,18 @@ export type PaymentMethod = PrepareArgs['paymentMethod'];
 export type PosAttempt = FunctionReturnType<typeof api.pos.prepare>;
 
 export interface CartLine {
-  product: PosProduct;
-  quantity: number;
+ product: PosProduct;
+ quantity: number;
 }
 
 export interface PaymentCheckpoint {
-  args: PrepareArgs;
-  phase: 'prepared' | 'paid';
-  receivedCents?: number;
+ args: PrepareArgs;
+ phase: 'prepared' | 'paid';
+ receivedCents?: number;
 }
 
 export interface CompletedSale {
-  requestId: string;
-  totalCents: number;
-  changeCents: number;
+ requestId: string;
+ totalCents: number;
+ changeCents: number;
 }
