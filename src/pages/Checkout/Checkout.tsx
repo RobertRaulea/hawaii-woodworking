@@ -2,6 +2,7 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAction } from 'convex/react';
+import { ConvexError } from 'convex/values';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { api } from '../../../convex/_generated/api';
 import type { CartItem } from '../../context/CartContext';
@@ -63,7 +64,10 @@ export const Checkout: React.FC = () => {
 
  window.location.href = response.url;
  } catch (error) {
- const message = error instanceof Error ? error.message : 'Failed to create checkout session';
+ const message =
+ error instanceof ConvexError && typeof error.data === 'string'
+ ? error.data
+ : 'Nu am putut iniția plata. Te rugăm să încerci din nou.';
  alert(message);
  } finally {
  setLoading(false);

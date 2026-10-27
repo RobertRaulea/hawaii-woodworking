@@ -148,6 +148,24 @@ export const createCheckoutSession = action({
 
     let stripeCustomerId: string | undefined = existingStripeId ?? undefined;
 
+    // Stored ids can belong to another Stripe mode/account (e.g. test ids
+    // after switching prod to live keys); drop them and resolve again.
+    if (stripeCustomerId) {
+      try {
+        const stored = await stripe.customers.retrieve(stripeCustomerId);
+        if (stored.deleted) stripeCustomerId = undefined;
+      } catch (error) {
+        if (
+          error instanceof Stripe.errors.StripeError &&
+          error.code === 'resource_missing'
+        ) {
+          stripeCustomerId = undefined;
+        } else {
+          throw error;
+        }
+      }
+    }
+
     if (!stripeCustomerId) {
       // Search Stripe for existing customer by email
       const existingStripeCustomers = await stripe.customers.list({
