@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { readEnvironment } from "./lib/environment";
 
 type OblioInvoiceResponse = {
   seriesName: string;
@@ -46,6 +47,10 @@ export const handlePostPayment = internalAction({
     orderId: v.id("orders"),
   },
   handler: async (ctx, { orderId }) => {
+    if (readEnvironment().name === "test") {
+      console.info("TEST: fiscal invoices and transactional emails disabled", orderId);
+      return;
+    }
     const oblioApiEmail = process.env.OBLIO_API_EMAIL;
     const oblioApiSecret = process.env.OBLIO_API_SECRET;
     const oblioApiCif = process.env.OBLIO_API_CIF;

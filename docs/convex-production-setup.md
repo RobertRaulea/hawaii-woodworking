@@ -1,4 +1,10 @@
-# Convex Production Setup Guide
+# Archived Convex Production Setup Guide
+
+> Superseded by [the environment runbook](environments.md).
+> Do NOT execute the historical commands below: switching `.env` to production
+> and force-seeding are not the supported workflow. TEST and Production now have
+> explicit provider bindings. Production cleanup and activation require separate
+> approval; this guide is retained only as historical context.
 
 ## Understanding Convex Deployments
 

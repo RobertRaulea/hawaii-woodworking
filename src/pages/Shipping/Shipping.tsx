@@ -280,7 +280,7 @@ export const Shipping: React.FC = () => {
  const proceedToCheckout = (data: ShippingFormData) => {
  const payload = prepareFormData(data);
 
- setShippingData(payload);
+ setShippingData({ ...payload, password: undefined });
  navigate('/checkout');
  };
 
@@ -355,12 +355,12 @@ export const Shipping: React.FC = () => {
 
  const newSessionId = result.createdSessionId;
 
- if (newSessionId) {
- await setActive({ session: newSessionId });
+ if (!newSessionId) {
+ throw new Error('Contul nu are o sesiune activa. Conecteaza-te pentru a continua.');
  }
+ await setActive({ session: newSessionId });
 
- await persistCustomerFromShipping(pendingFormData);
-
+ // Checkout persists the customer after Convex has authenticated the new Clerk session.
  setShowVerification(false);
  proceedToCheckout(pendingFormData);
  } catch (error: unknown) {
@@ -408,6 +408,7 @@ export const Shipping: React.FC = () => {
  </p>
 
  <Input
+ aria-label="Cod de verificare email"
  type="text"
  inputMode="numeric"
  maxLength={6}
@@ -928,6 +929,7 @@ export const Shipping: React.FC = () => {
  </section>
 
  {/* Submit */}
+ <div id="clerk-captcha" />
  <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-stone-200 dark:border-stone-800 ">
  <Button
  type="button"

@@ -12,6 +12,7 @@ import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
 import { AdminRoute, StaffHome } from './components/AdminRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Toaster } from './components/ui/sonner';
+import { EnvironmentBanner } from './components/EnvironmentBanner/EnvironmentBanner';
 
 // Lazy-loaded pages
 const Catalog = lazy(() => import('./pages/Catalog/Catalog').then((m) => ({ default: m.Catalog })));
@@ -60,6 +61,7 @@ function App() {
  <CartProvider>
  <ShippingProvider>
  <Router>
+ <EnvironmentBanner />
  <ScrollToTop />
  <Toaster />
  <MaintenanceGuard>

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import { useQuery } from 'convex/react';
+import { useConvexAuth, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 
 /**
@@ -8,15 +8,16 @@ import { api } from '../../convex/_generated/api';
  */
 export const useCustomerProfile = () => {
  const { isSignedIn } = useAuth();
+ const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
 
  const customer = useQuery(
  api.customers.getByClerkUserId,
- isSignedIn ? {} : 'skip'
+ isSignedIn && isAuthenticated ? {} : 'skip'
  );
 
  return {
  customer: customer ?? null,
- isLoading: isSignedIn && customer === undefined,
+ isLoading: !!isSignedIn && (isAuthLoading || !isAuthenticated || customer === undefined),
  isSignedIn: !!isSignedIn,
  };
 };

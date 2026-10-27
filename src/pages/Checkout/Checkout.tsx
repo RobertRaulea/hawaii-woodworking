@@ -1,7 +1,8 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAction } from 'convex/react';
+import { useAction, useConvexAuth } from 'convex/react';
+import { useAuth } from '@clerk/clerk-react';
 import { ConvexError } from 'convex/values';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { api } from '../../../convex/_generated/api';
@@ -16,6 +17,9 @@ export const Checkout: React.FC = () => {
  const { shippingData } = useShipping();
  const navigate = useNavigate();
  const [loading, setLoading] = useState(false);
+ const { isLoaded, isSignedIn } = useAuth();
+ const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
+ const authReady = isLoaded && !isAuthLoading && (!isSignedIn || isAuthenticated);
  const createCheckoutSession = useAction(api.checkout.createCheckoutSession);
 
  // Redirect to shipping if no shipping data
@@ -31,7 +35,7 @@ export const Checkout: React.FC = () => {
  );
 
  const handleCheckout = async () => {
- if (!shippingData) return;
+ if (!shippingData || !authReady) return;
  setLoading(true);
 
  try {
@@ -99,11 +103,11 @@ export const Checkout: React.FC = () => {
  </Card>
 
  <Button
- disabled={loading || total === 0}
+ disabled={loading || total === 0 || !authReady}
  onClick={handleCheckout}
  className="mt-8 h-auto w-full rounded-md bg-stone-900 px-6 py-3.5 text-sm font-medium tracking-wide text-white transition-all duration-200 hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white disabled:opacity-50"
  >
- {loading ? 'Se redirecționează...' : 'Plătește cu cardul'}
+ {loading ? 'Se redirecționează...' : !authReady ? 'Se conecteaza contul...' : 'Plătește cu cardul'}
  </Button>
  </div>
  );

@@ -3,6 +3,7 @@
 import Stripe from "stripe";
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
+import { requirePaymentEnvironment, validateWebhookMode } from "./lib/environment";
 
 export const verifyWebhookSignature = internalAction({
   args: {
@@ -10,15 +11,16 @@ export const verifyWebhookSignature = internalAction({
     signature: v.string(),
   },
   handler: async (_ctx, { body, signature }) => {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const { secretKey } = requirePaymentEnvironment(process.env, false);
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    if (!stripeSecretKey || !webhookSecret) {
+    if (!webhookSecret) {
       throw new Error("Missing Stripe environment variables");
     }
 
-    const stripe = new Stripe(stripeSecretKey);
+    const stripe = new Stripe(secretKey);
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    validateWebhookMode(event.livemode);
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;

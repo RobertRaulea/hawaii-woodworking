@@ -1,4 +1,4 @@
-export const SITE_URL = 'https://www.hawaiiproducts.ro';
+export const SITE_URL = import.meta.env?.VITE_SITE_URL ?? 'https://www.hawaiiproducts.ro';
 export const SITE_NAME = 'Hawaii Woodworking';
 export const DEFAULT_DESCRIPTION =
  'Produse din lemn personalizate, cadouri artizanale și mobilier pentru restaurante realizate cu pasiune în România';

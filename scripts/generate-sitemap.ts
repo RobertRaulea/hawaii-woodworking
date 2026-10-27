@@ -1,76 +1,26 @@
-console.log('--- Sitemap script started ---');
 import { ConvexHttpClient } from 'convex/browser';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { api } from '../convex/_generated/api';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { api } from '../convex/_generated/api.js';
+import { validateFrontendEnvironment } from '../shared/environment';
+import type { EnvironmentVariables } from '../shared/environment';
 
-// Recreate __dirname for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export const writeSearchFiles = async (variables: EnvironmentVariables, outputDirectory: string) => {
+  const environment = validateFrontendEnvironment(variables);
+  await mkdir(outputDirectory, { recursive: true });
+  const paths = ['/', '/products', '/catalog', '/terms-and-conditions',
+    '/privacy-policy', '/return-policy', '/legal-information'];
 
-// Load environment variables from .env file
-import dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-const convexUrl = process.env.VITE_CONVEX_URL;
-
-if (!convexUrl) {
-  throw new Error('VITE_CONVEX_URL is not defined in the environment variables.');
-}
-
-const convex = new ConvexHttpClient(convexUrl);
-
-const SITE_URL = 'https://www.hawaiiproducts.ro';
-
-async function generateSitemap() {
-  console.log('Generating sitemap...');
-
-  const products = await convex.query(api.products.getAll, {});
-
-  // Define static pages
-  const staticPages = [
-    { url: '/', changefreq: 'weekly', priority: 1.0 },
-    { url: '/products', changefreq: 'weekly', priority: 0.9 },
-    { url: '/catalog', changefreq: 'monthly', priority: 0.8 },
-    { url: '/terms-and-conditions', changefreq: 'yearly', priority: 0.5 },
-    { url: '/privacy-policy', changefreq: 'yearly', priority: 0.5 },
-    { url: '/return-policy', changefreq: 'yearly', priority: 0.5 },
-    { url: '/legal-information', changefreq: 'yearly', priority: 0.5 },
-  ];
-
-  // Generate dynamic product pages
-  const productPages = products.map((product) => ({
-    url: `/product/${product._id}`,
-    changefreq: 'monthly',
-    priority: 0.7,
-  }));
-
-  const allPages = [...staticPages, ...productPages];
-
-  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages
-  .map(page => `  <url>
-    <loc>${SITE_URL}${page.url}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`)
-  .join('\n')}
-</urlset>`;
-
-  const sitemapPath = path.resolve(__dirname, '../public/sitemap.xml');
-  fs.writeFileSync(sitemapPath, sitemapXml);
-
-  console.log(`Sitemap generated successfully with ${allPages.length} URLs at ${sitemapPath}`);
-}
-
-(async () => {
-  try {
-    await generateSitemap();
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
+  if (environment.name === 'production') {
+    const convex = new ConvexHttpClient(environment.convexUrl);
+    const products = await convex.query(api.products.getAll, {});
+    paths.push(...products.map((product) => `/product/${product._id}`));
   }
-})();
+  const locations = environment.name === 'test' ? '' : paths
+    .map((route) => `  <url><loc>${environment.siteUrl}${route}</loc></url>`).join('\n');
+  await writeFile(path.join(outputDirectory, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${locations}\n</urlset>\n`);
+  await writeFile(path.join(outputDirectory, 'robots.txt'), environment.name === 'test'
+    ? 'User-agent: *\nDisallow: /\n'
+    : `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /shipping\nDisallow: /my-orders\nSitemap: ${environment.siteUrl}/sitemap.xml\n`);
+};

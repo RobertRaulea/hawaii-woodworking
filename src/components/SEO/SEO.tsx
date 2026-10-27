@@ -29,7 +29,7 @@ export const SEO: React.FC<SEOProps> = ({
  <title>{fullTitle}</title>
  <meta name="description" content={finalDescription} />
  <meta name="keywords" content={finalKeywords} />
- <meta name="robots" content="index, follow" />
+ <meta name="robots" content={import.meta.env?.VITE_APP_ENV === 'test' ? 'noindex, nofollow, noarchive' : 'index, follow'} />
  <meta name="language" content="ro" />
  <meta name="geo.region" content="RO" />
  <meta name="geo.placename" content="Romania" />

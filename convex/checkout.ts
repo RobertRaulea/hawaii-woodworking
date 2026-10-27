@@ -7,6 +7,7 @@ import { internal } from './_generated/api';
 import { action } from './_generated/server';
 import type { CheckoutSnapshotLine } from './lib/inventory.utils';
 import { toCents } from './lib/pos.utils';
+import { requirePaymentEnvironment, resolveCheckoutOrigin } from './lib/environment';
 
 type CheckoutItem = {
   productId: Id<'products'>;
@@ -15,36 +16,6 @@ type CheckoutItem = {
 
 type CheckoutResponse = {
   url: string | null;
-};
-
-const FALLBACK_ORIGIN = 'https://www.hawaiiproducts.ro';
-
-/**
- * Only store-owned origins may be used for Stripe success/cancel URLs;
- * anything else falls back to the canonical shop origin so a crafted
- * client request cannot redirect payers to a phishing domain.
- * Extra origins (e.g. preview deployments) go in the ALLOWED_ORIGINS
- * env var, comma-separated.
- */
-const resolveSafeOrigin = (origin: string): string => {
-  const allowed = new Set([
-    FALLBACK_ORIGIN,
-    'https://hawaiiproducts.ro',
-    ...(process.env.ALLOWED_ORIGINS ?? '')
-      .split(',')
-      .map((o) => o.trim())
-      .filter(Boolean),
-  ]);
-  try {
-    const url = new URL(origin);
-    const isLocalDev =
-      (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
-      url.protocol === 'http:';
-    if (allowed.has(url.origin) || isLocalDev) return url.origin;
-  } catch {
-    // fall through to the safe default
-  }
-  return FALLBACK_ORIGIN;
 };
 
 const addressValidator = v.object({
@@ -106,6 +77,8 @@ export const createCheckoutSession = action({
       };
     },
   ): Promise<CheckoutResponse> => {
+    const paymentEnvironment = requirePaymentEnvironment();
+    const safeOrigin = resolveCheckoutOrigin(origin);
     if (items.length === 0) {
       throw new Error('No items provided for checkout.');
     }
@@ -114,12 +87,7 @@ export const createCheckoutSession = action({
       { items },
     );
 
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      throw new Error('Missing STRIPE_SECRET_KEY environment variable.');
-    }
-
-    const stripe = new Stripe(stripeSecretKey);
+    const stripe = new Stripe(paymentEnvironment.secretKey);
 
     // 1. Upsert customer in Convex (identity comes from auth, never the client)
     const identity = await ctx.auth.getUserIdentity();
@@ -240,15 +208,16 @@ export const createCheckoutSession = action({
       });
 
     // 5. Create Stripe session with Stripe Customer
-    const safeOrigin = resolveSafeOrigin(origin);
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
+      payment_method_types: ['card'],
       line_items: lineItems,
       customer: stripeCustomerId,
       success_url: `${safeOrigin}/thank-you`,
       cancel_url: `${safeOrigin}/cart?canceled=true`,
       metadata: {
         convexCustomerId: customerId,
+        appEnvironment: paymentEnvironment.name,
       },
     });
 

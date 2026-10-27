@@ -26,7 +26,14 @@ export default defineSchema({
     active: v.optional(v.boolean()),
     archivedAt: v.optional(v.number()),
     archivedBy: v.optional(v.string()),
-  }),
+    demoKey: v.optional(v.string()),
+  }).index("by_demoKey", ["demoKey"]),
+  demoAssets: defineTable({
+    key: v.string(),
+    storageId: v.id("_storage"),
+    sourceUrl: v.string(),
+    licenseUrl: v.string(),
+  }).index("by_key", ["key"]),
   customers: defineTable({
     clerkUserId: v.optional(v.string()),
     stripeCustomerId: v.optional(v.string()),
