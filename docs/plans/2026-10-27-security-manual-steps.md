@@ -1,7 +1,10 @@
 # Plan manual post-audit de securitate (2026-10-27)
 
-Fix-urile de cod sunt commit-uite în `c7c9367` (`fix: remediate security audit findings`).
-Mai jos sunt **doar pașii manuali** rămași, în ordinea recomandată.
+> **STATUS (actualizat)**: Pașii 1–3 au fost executați automat: cheia Resend a fost rotită prin API (cea expusă e revocată — verificat 400/invalid), `RESEND_API_KEY` e setată pe Convex prod + dev + `.env` local, `npx convex deploy` a publicat `rateLimits` + fix-urile în prod (`upbeat-lyrebird-218`), iar `git push` a declanșat deploy Vercel cu headerele de securitate active (verificat pe `/products`). Repo-ul GitHub e **public** — cheia a fost expusă public.
+>
+> Rămân de făcut manual doar: Pasul 5 (verificare funcțională), Pasul 6 (CSP enforced), Pasul 7 opțional (istoric git), cheia "Onboarding" din Resend dashboard, și Dependabot toggle în repo settings.
+
+Fix-urile de cod sunt commit-uite (`fix: remediate security audit findings` + `docs: add manual follow-up plan`).
 
 Context de referință:
 - Deployment Convex prod: `upbeat-lyrebird-218`
@@ -117,11 +120,11 @@ Verifică și dacă repo-ul e **public**: https://github.com/RobertRaulea/hawaii
 
 ## Checklist final
 
-- [ ] Cheie Resend veche revocată, cheie nouă setată în Convex prod (+dev +.env local)
-- [ ] `npx convex deploy` rulat; `rateLimits` vizibil în prod
-- [ ] `git push` → Vercel deploy Ready
-- [ ] Headers verificate cu `curl -I`
-- [ ] Login admin + checkout + POS testate
-- [ ] CSP trecut în enforced după verificarea consolei
-- [ ] (opțional) istoric git curățat / repo verificat dacă e public
-- [ ] Dependabot activat în repo settings
+- [x] Cheie Resend veche revocată, cheie nouă setată în Convex prod (+dev +.env local)
+- [x] `npx convex deploy` rulat; `rateLimits` vizibil în prod
+- [x] `git push` → Vercel deploy live, headere verificate (`/products`)
+- [ ] Verifică și cheia **"Onboarding"** în Resend dashboard (full access, valoare necunoscută — șterge-o dacă nu o recunoști)
+- [ ] Login admin + checkout + POS testate pe live
+- [ ] CSP trecut în enforced după verificarea consolei (Pasul 6)
+- [ ] Dependabot activat în repo settings (Settings → Code security)
+- [ ] (opțional) istoric git curățat — repo-ul e **public**
