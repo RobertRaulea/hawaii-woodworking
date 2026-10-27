@@ -38,6 +38,11 @@ const projectRoot = process.cwd();
 const argv = process.argv.slice(2);
 const skipProducts = argv.includes('--skip-products');
 const skipSiteAssets = argv.includes('--skip-site-assets');
+const allowLarge = argv.includes('--allow-large');
+
+// Every storage file is re-downloaded by each new visitor and counts toward
+// Convex Data Egress, so oversized originals must be compressed first.
+const MAX_UPLOAD_BYTES = 500 * 1024;
 
 const siteAssetDefinitions: AssetDefinition[] = [
   {
@@ -101,6 +106,14 @@ const uploadBufferToConvexStorage = async (
   contentType: string,
   generateUploadUrl: () => Promise<string>
 ): Promise<Id<'_storage'>> => {
+  if (!allowLarge && contentType !== 'image/svg+xml' && buffer.length > MAX_UPLOAD_BYTES) {
+    throw new Error(
+      `File is ${Math.round(buffer.length / 1024)}KB (max ${MAX_UPLOAD_BYTES / 1024}KB). ` +
+        'Compress it to WebP (max 1200px, hero max 1920px) or upload it from the admin UI, ' +
+        'or pass --allow-large.'
+    );
+  }
+
   const uploadUrl = await generateUploadUrl();
 
   const response = await fetch(uploadUrl, {
