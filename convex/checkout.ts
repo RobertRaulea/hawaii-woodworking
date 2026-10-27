@@ -17,6 +17,36 @@ type CheckoutResponse = {
   url: string | null;
 };
 
+const FALLBACK_ORIGIN = 'https://www.hawaiiproducts.ro';
+
+/**
+ * Only store-owned origins may be used for Stripe success/cancel URLs;
+ * anything else falls back to the canonical shop origin so a crafted
+ * client request cannot redirect payers to a phishing domain.
+ * Extra origins (e.g. preview deployments) go in the ALLOWED_ORIGINS
+ * env var, comma-separated.
+ */
+const resolveSafeOrigin = (origin: string): string => {
+  const allowed = new Set([
+    FALLBACK_ORIGIN,
+    'https://hawaiiproducts.ro',
+    ...(process.env.ALLOWED_ORIGINS ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  ]);
+  try {
+    const url = new URL(origin);
+    const isLocalDev =
+      (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
+      url.protocol === 'http:';
+    if (allowed.has(url.origin) || isLocalDev) return url.origin;
+  } catch {
+    // fall through to the safe default
+  }
+  return FALLBACK_ORIGIN;
+};
+
 const addressValidator = v.object({
   street: v.string(),
   city: v.string(),
@@ -192,12 +222,13 @@ export const createCheckoutSession = action({
       });
 
     // 5. Create Stripe session with Stripe Customer
+    const safeOrigin = resolveSafeOrigin(origin);
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
       customer: stripeCustomerId,
-      success_url: `${origin}/thank-you`,
-      cancel_url: `${origin}/cart?canceled=true`,
+      success_url: `${safeOrigin}/thank-you`,
+      cancel_url: `${safeOrigin}/cart?canceled=true`,
       metadata: {
         convexCustomerId: customerId,
       },

@@ -3,6 +3,7 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./lib/auth";
+import { enforceRateLimit } from "./lib/rateLimit";
 
 const addressValidator = v.object({
   street: v.string(),
@@ -41,6 +42,14 @@ const saveCustomer = async (
   callerId: string | undefined,
   callerEmail: string | undefined,
 ): Promise<Id<"customers">> => {
+  // Both public entry points funnel here; cap per-email writes so the
+  // guest path can't be scripted into customer/order/Stripe spam.
+  await enforceRateLimit(
+    ctx,
+    `customer-upsert:${args.email.toLowerCase()}`,
+    15,
+    60 * 60 * 1000,
+  );
   const linkId =
     callerId &&
     callerEmail &&

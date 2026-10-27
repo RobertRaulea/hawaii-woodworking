@@ -17,6 +17,7 @@ import type * as inventory from "../inventory.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_directory from "../lib/directory.js";
 import type * as lib_permissions from "../lib/permissions.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_storage from "../lib/storage.js";
 import type * as lib_translations from "../lib/translations.js";
 import type * as orders from "../orders.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/directory": typeof lib_directory;
   "lib/permissions": typeof lib_permissions;
+  "lib/rateLimit": typeof lib_rateLimit;
   "lib/storage": typeof lib_storage;
   "lib/translations": typeof lib_translations;
   orders: typeof orders;

@@ -465,4 +465,10 @@ export default defineSchema({
     legacyReplay: v.optional(v.boolean()),
     createdAt: v.number(),
   }).index("by_request", ["requestId"]),
+
+  rateLimits: defineTable({
+    key: v.string(),
+    windowStart: v.number(),
+    count: v.number(),
+  }).index("by_key", ["key"]),
 });

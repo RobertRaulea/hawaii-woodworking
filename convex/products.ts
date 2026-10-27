@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { requireAdmin, requirePermission } from "./lib/auth";
 import { resolveImageUrls } from "./lib/storage";
@@ -180,7 +180,7 @@ export const seedProducts = mutation({
   },
 });
 
-export const getStripePriceIds = query({
+export const getStripePriceIds = internalQuery({
   args: { ids: v.array(v.id("products")) },
   handler: async (ctx, { ids }) => {
     const products = await Promise.all(ids.map((id) => ctx.db.get(id)));
