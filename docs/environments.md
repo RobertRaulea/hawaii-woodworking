@@ -18,8 +18,8 @@ The Vercel dashboard calls the stable deployment of the TEST project "Production
 That is a hosting release label, NOT Stripe Live mode. Its `VITE_APP_ENV` remains
 `test`, with only test provider bindings.
 
-The shorter `hawaii-woodworking-test.vercel.app` hostname was unavailable; do not
-use it. The team-scoped URL in the table is this project's stable alias.
+Use the team-scoped URL in the table as the canonical TEST checkout origin.
+Other Vercel aliases are not automatically trusted checkout return origins.
 
 The Stripe MCP business account and the existing isolated sandbox have different
 account IDs. The sandbox key used by Convex has been checked directly through
@@ -145,3 +145,22 @@ webhook delivery.
 
 Convex currently reports Free plan usage above its limits. Review the team usage
 dashboard before inviting a large tester group; this work does not upgrade billing.
+
+## Verified Rollout (2026-10-27)
+
+- TEST frontend deployment `dpl_7smCvgybmruDoiK5UGauriaCdr6d` reached READY.
+- The live public catalog renders 34 products, including 30 demo products with images.
+- Browser checks at 390, 768, and 1440 pixels showed no horizontal overflow and no
+  application JavaScript errors.
+- A real hosted Stripe TEST Checkout accepted the 4242 test card and returned to
+  the TEST thank-you page. Stripe reported `livemode=false`, `payment_status=paid`.
+- Its genuine webhook marked order `jh74q710dxgdhzp25ycj46w5wn8h28e3` paid with
+  inventory applied; demo product `demo-v1-6-1` stock decreased from 100 to 99.
+- Unit/backend and RTL suites pass: 156 + 104 tests. Frontend/backend strict
+  TypeScript checks and the TEST production-optimized build pass.
+- Automated public Clerk signup reached the expected Cloudflare human-verification
+  challenge. It was not bypassed or disabled. Actual email verification, JWT
+  claims, and authenticated checkout still need a human signup check or a Clerk
+  testing token from an authorized Clerk connection; no Clerk MCP is available
+  in this session. Mocked signup/error/auth-readiness tests pass.
+- Production data and configuration were not modified.

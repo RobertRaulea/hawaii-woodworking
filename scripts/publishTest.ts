@@ -18,7 +18,15 @@ if (existsSync('.vercel/project.json')) {
 mkdirSync('.vercel', { recursive: true });
 writeFileSync('.vercel/project.json', JSON.stringify({ projectId, orgId, projectName: 'hawaii-woodworking-test' }));
 execFileSync('npm', ['run', 'test:sync'], { stdio: 'inherit' });
-execFileSync('npx', ['--yes', 'vercel', 'deploy', '--prod', '--yes', '--scope', orgId], {
-  stdio: 'inherit',
-  env: { ...process.env, VERCEL_PROJECT_ID: projectId, VERCEL_ORG_ID: orgId },
-});
+const args = ['--yes', 'vercel', 'deploy', '--prod', '--yes', '--scope', orgId];
+if (process.env.VERCEL_TOKEN) args.push('--token', process.env.VERCEL_TOKEN);
+try {
+  execFileSync('npx', args, {
+    stdio: 'inherit',
+    env: { ...process.env, VERCEL_PROJECT_ID: projectId, VERCEL_ORG_ID: orgId },
+  });
+} catch {
+  // Do not print exec errors: spawn arguments may contain an optional CLI token.
+  console.error('TEST publish failed. Check Vercel login, team access, and build logs.');
+  process.exitCode = 1;
+}
