@@ -15,7 +15,7 @@ const frontend = {
   VITE_APP_ENV: 'test',
   VITE_CONVEX_URL: 'https://exuberant-fox-228.convex.cloud',
   VITE_CLERK_PUBLISHABLE_KEY: `pk_test_${Buffer.from('choice-fowl-16.clerk.accounts.dev$').toString('base64')}`,
-  VITE_SITE_URL: 'https://hawaii-woodworking-test.vercel.app',
+  VITE_SITE_URL: 'https://hawaii-woodworking-test-robertrauleas-projects.vercel.app',
 };
 const backend = {
   APP_ENV: 'test',

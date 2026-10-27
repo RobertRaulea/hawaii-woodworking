@@ -4,7 +4,7 @@ import { parse } from 'dotenv';
 import Stripe from 'stripe';
 
 const deployment = 'exuberant-fox-228';
-const siteUrl = 'https://hawaii-woodworking-test.vercel.app';
+const siteUrl = 'https://hawaii-woodworking-test-robertrauleas-projects.vercel.app';
 const endpointUrl = `https://${deployment}.convex.site/stripe-webhook`;
 const cli = './node_modules/.bin/convex';
 const convex = (...args: string[]): string => execFileSync(cli, [

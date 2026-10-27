@@ -8,7 +8,7 @@ const vars = {
   APP_ENV: 'test',
   CONVEX_CLOUD_URL: 'https://exuberant-fox-228.convex.cloud',
   CLERK_JWT_ISSUER_DOMAIN: 'https://choice-fowl-16.clerk.accounts.dev',
-  SITE_URL: 'https://hawaii-woodworking-test.vercel.app',
+  SITE_URL: 'https://hawaii-woodworking-test-robertrauleas-projects.vercel.app',
 };
 const old = {};
 before(() => {

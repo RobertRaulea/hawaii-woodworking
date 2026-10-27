@@ -7,7 +7,7 @@ TEST only. Production data, configuration, and payment activation are untouched.
 
 | Service | TEST / development | Production (future activation) |
 | --- | --- | --- |
-| Storefront | https://hawaii-woodworking-test.vercel.app | https://www.hawaiiproducts.ro |
+| Storefront | https://hawaii-woodworking-test-robertrauleas-projects.vercel.app | https://www.hawaiiproducts.ro |
 | Vercel project | `hawaii-woodworking-test` | `magazin_online_hawaii_products` |
 | Convex | `exuberant-fox-228` | `upbeat-lyrebird-218` |
 | Clerk | `choice-fowl-16.clerk.accounts.dev`, Development | Production instance must be verified before launch |
@@ -17,6 +17,9 @@ TEST only. Production data, configuration, and payment activation are untouched.
 The Vercel dashboard calls the stable deployment of the TEST project "Production".
 That is a hosting release label, NOT Stripe Live mode. Its `VITE_APP_ENV` remains
 `test`, with only test provider bindings.
+
+The shorter `hawaii-woodworking-test.vercel.app` hostname was unavailable; do not
+use it. The team-scoped URL in the table is this project's stable alias.
 
 The Stripe MCP business account and the existing isolated sandbox have different
 account IDs. The sandbox key used by Convex has been checked directly through
