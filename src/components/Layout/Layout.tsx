@@ -7,9 +7,8 @@ import { useSiteAssets } from '../../hooks/useSiteAssets';
 export const Layout: React.FC = () => {
  const { assets: logoAssets } = useSiteAssets('logo');
  const logoSrc =
- logoAssets.find((asset) => asset.name === 'hawaii-logo.svg')?.url ??
- logoAssets[0]?.url ??
- '/hawaii-logo-without-text.png';
+ logoAssets.find((asset) => asset.name !== 'hawaii-logo.svg')?.url ??
+ '/images/hawaii-logo.svg';
 
  return (
  <div className="flex min-h-screen flex-col overflow-x-clip bg-stone-50 dark:bg-stone-950 ">

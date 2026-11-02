@@ -7,10 +7,7 @@ import { useSiteAssets } from '../../hooks/useSiteAssets';
 export const Home: React.FC = () => {
  const { assets: heroAssets } = useSiteAssets('hero');
 
- const heroBackgroundImage =
- heroAssets.find((asset) => asset.name === 'WoodPhoto.jpg')?.url ??
- heroAssets[0]?.url ??
- 'https://placehold.co/1600x900?text=Hawaii+Woodworking';
+ const heroBackgroundImage = heroAssets.find((asset) => asset.name !== 'WoodPhoto.jpg')?.url;
 
  const schema = {
  '@context': 'https://schema.org',

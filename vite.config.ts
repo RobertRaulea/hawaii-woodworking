@@ -8,6 +8,7 @@ import { writeSearchFiles } from './scripts/generate-sitemap';
 export default defineConfig(({ mode }) => {
   const variables = loadEnv(mode, process.cwd(), 'VITE_');
   const environment = validateFrontendEnvironment(variables);
+  const convexOrigin = new URL(environment.convexUrl).origin;
   let outputDirectory = 'dist';
   return {
   plugins: [
@@ -16,6 +17,8 @@ export default defineConfig(({ mode }) => {
       name: 'environment-bound-search-files',
       configResolved: (config) => { outputDirectory = config.build.outDir; },
       transformIndexHtml: () => [
+        { tag: 'link', attrs: { rel: 'preconnect', href: convexOrigin, crossorigin: true }, injectTo: 'head-prepend' },
+        { tag: 'link', attrs: { rel: 'dns-prefetch', href: convexOrigin }, injectTo: 'head-prepend' },
         { tag: 'meta', attrs: { name: 'app-environment', content: environment.name }, injectTo: 'head' },
         ...(environment.name === 'test' ? [
           { tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow, noarchive' }, injectTo: 'head' as const },

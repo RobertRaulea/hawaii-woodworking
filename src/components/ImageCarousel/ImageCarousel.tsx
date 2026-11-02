@@ -48,6 +48,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
  <img
  src={currentSrc}
  alt={`${alt} - image ${currentIndex + 1}`}
+ loading="lazy"
+ decoding="async"
  className={`${className} transition-all duration-500 ease-in-out`}
  />
  {images.length > 1 && (

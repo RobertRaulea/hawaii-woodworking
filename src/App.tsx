@@ -5,7 +5,6 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home/Home';
 import { Products } from './pages/Products/Products';
-import { Cart } from './pages/Cart/Cart';
 import { CartProvider } from './context/CartContext';
 import { ShippingProvider } from './context/ShippingContext';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
@@ -15,6 +14,7 @@ import { Toaster } from './components/ui/sonner';
 import { EnvironmentBanner } from './components/EnvironmentBanner/EnvironmentBanner';
 
 // Lazy-loaded pages
+const Cart = lazy(() => import('./pages/Cart/Cart').then((m) => ({ default: m.Cart })));
 const Catalog = lazy(() => import('./pages/Catalog/Catalog').then((m) => ({ default: m.Catalog })));
 const Checkout = lazy(() => import('./pages/Checkout/Checkout').then((m) => ({ default: m.Checkout })));
 const ThankYou = lazy(() => import('./pages/ThankYou/ThankYou').then((m) => ({ default: m.ThankYou })));
