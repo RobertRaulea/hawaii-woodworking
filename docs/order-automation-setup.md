@@ -1,5 +1,7 @@
 # Order Automation Setup Guide
 
+> Provider setup reference. For current environment boundaries and guarded publication, use [the environment runbook](environments.md). TEST intentionally disables post-payment email/invoice automation; do not use `npx convex dev` or provider changes as incidental validation.
+
 This guide explains how to configure email notifications, Oblio invoice generation, and courier AWB automation for the Hawaii Woodworking store.
 
 ## Overview
@@ -53,16 +55,15 @@ Go to your Convex dashboard → **Settings** → **Environment Variables** and a
 
 **Important:** `RESEND_FROM_EMAIL` must be from a domain you've verified in Resend.
 
-### Step 4: Deploy to Convex
+### Step 4: Publish the approved backend
+
+For TEST, follow [the environment runbook](environments.md) and run:
 
 ```bash
-npx convex dev
+npm run test:sync
 ```
 
-The system will automatically:
-- Regenerate Convex API types
-- Deploy the new functions
-- Start listening for Stripe webhooks
+Production deployment and provider activation require separate approval and the production runbook; do not use `npx convex dev` as an incidental validation step.
 
 ### Step 5: Test the Flow
 

@@ -1,5 +1,7 @@
 # Quick Start: Order Automation
 
+> Historical quick-start notes. The current TEST/production contract is in [the environment runbook](environments.md); TEST disables post-payment email/invoice automation and backend publication is a guarded remote operation.
+
 ## What Was Implemented
 
 ✅ **Automatic email notifications** when orders are paid
@@ -32,10 +34,12 @@ OBLIO_API_SECRET=your_api_secret_token
 OBLIO_API_CIF=RO12345678
 ```
 
-### 4. Deploy
+### 4. Publish the approved backend
+
+For TEST, follow [the environment runbook](environments.md) and run:
 
 ```bash
-npx convex dev
+npm run test:sync
 ```
 
 ## Testing

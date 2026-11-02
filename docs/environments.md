@@ -1,16 +1,18 @@
 # TEST and Production
 
-One codebase, separate data and payment environments. The current rollout changes
-TEST only. Production data, configuration, and payment activation are untouched.
+One codebase, separate data and payment environments. This runbook defines the
+provider bindings and guarded TEST workflow implemented in the repository. The
+dated rollout report records what was checked then, not current deployment state;
+verify live configuration separately before a release or payment activation.
 
 ## Environment Map
 
-| Service | TEST / development | Production (future activation) |
+| Service | TEST / development | Production (verify live activation separately) |
 | --- | --- | --- |
 | Storefront | https://hawaii-woodworking-test-robertrauleas-projects.vercel.app | https://www.hawaiiproducts.ro |
 | Vercel project | `hawaii-woodworking-test` | `magazin_online_hawaii_products` |
 | Convex | `exuberant-fox-228` | `upbeat-lyrebird-218` |
-| Clerk | `choice-fowl-16.clerk.accounts.dev`, Development | Production instance must be verified before launch |
+| Clerk | `choice-fowl-16.clerk.accounts.dev`, Development | `clerk.hawaiiproducts.ro`; verify Production instance/domain before launch |
 | Stripe | Hawaii sandbox `acct_1RYni5I8gZB3b1Rz`, test keys | Live business account, not activated by this rollout |
 | Fiscal invoices / order emails | Disabled | Configure and validate before launch |
 
@@ -113,9 +115,10 @@ npm run test:configure
 That command checks the exact sandbox account and existing enabled webhook first.
 It does not print keys or rotate a webhook signing secret.
 
-## Future Production Launch
+## Production Launch Checklist
 
-This has NOT been performed.
+This checklist is not authorization or evidence of a completed launch. Confirm the
+current deployment/provider state and obtain explicit approval before executing it.
 
 1. Inventory and back up the existing production data. Obtain explicit approval
    for any deletion, or decide on a new empty production project.
@@ -132,8 +135,9 @@ This has NOT been performed.
 6. Upload the real catalog, validate fulfillment and operational integrations,
    then explicitly approve enabling real purchases.
 
-`npm run build:production` intentionally fails with the current local TEST
-credentials. A release must never "switch mode" by merely changing a label.
+`npm run build:production` requires matching production credentials and provider
+bindings; it must fail if local TEST bindings are mixed into that build. A release
+must never "switch mode" by merely changing a label.
 
 ## Validation Limits
 

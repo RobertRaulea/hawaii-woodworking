@@ -1,55 +1,41 @@
 # Hawaii Woodworking Store — Agent Instructions
 
-Use this as the **minimal** always-on guidance for AI coding assistants. For detailed rules, follow the linked docs (progressive disclosure).
+Romanian woodworking storefront and operational backoffice: online orders, fair POS, inventory, transfers, fulfillment, and reports.
 
-## Quick Reference
+## Start Here
 
-- **Stack**: React + TypeScript (strict) + Vite + Tailwind + React Router + Convex
-- **Build**: `npm run build`
-- **Lint**: `npm run lint`
-- **Dev**: `npm run dev`
+- Stack: React 18 + strict TypeScript + Vite + Tailwind/shadcn + React Router; Clerk auth, Convex backend, Stripe Checkout.
+- Follow `.windsurfrules`; do not change dependency versions without explicit approval.
+- Read the task-specific guide below before editing. Current code defines existing behavior; if instructions conflict with code or the requested behavior, flag the conflict instead of silently choosing a new contract.
+- Entry points: `src/main.tsx` (providers), `src/App.tsx` (routes), `convex/schema.ts` (data), `convex/lib/permissions.ts` (access).
 
-## Non-Negotiables (Applies to Every Task)
+## Local Commands
 
-- Follow `.windsurfrules`.
-- TypeScript strict mode (no `any` without strong justification).
-- React functional components with arrow functions.
-- Tailwind mobile-first styling (default → `md:` → `lg:`).
-- Semantic HTML + accessibility.
-- Do not change `package.json` versions without explicit approval.
+Use Node 22 and npm. Run checks appropriate to the change; see the testing guide for focused commands and limitations.
 
-## Detailed Instructions
+- `npm run dev` — frontend only; does not publish Convex functions.
+- `npm run check:env` — validate local environment configuration.
+- `npm run build:test` — optimized TEST bundle; no production catalog query.
+- `npm run lint` — repository ESLint checks.
+- `npm test` — unit/backend regressions and React Testing Library interactions.
+- `./node_modules/.bin/tsc -p tsconfig.app.json --noEmit` — frontend/UI-test types.
+- `./node_modules/.bin/tsc -p convex/tsconfig.json --noEmit` — backend/shared types.
 
-- **Project standards**: `docs/agent-instructions/project-standards.md`
-- **Prompting templates**: `docs/agent-instructions/prompting.md`
-- **Frontend guidelines**: `docs/agent-instructions/frontend.md`
-- **Convex guidelines**: `docs/agent-instructions/convex.md`
-- **Testing & validation**: `docs/agent-instructions/testing.md`
-- **Git workflow**: `docs/agent-instructions/git-workflow.md`
+## Critical Guardrails
 
-## Project Docs
+- Confirm the environment before any remote operation. Local development shares the TEST backend; sync, seed, publish, production activation, and provider changes are not local validation. Follow the environment runbook and obtain approval for the operation.
+- Internal access uses `admin`, `seller`, `atelier` and the shared permission matrix. Enforce backend permissions and fair scope as well as route guards; never grant access from client-supplied metadata or directory records.
+- Preserve stock audit trails, nonnegative balances, paid-order claims, and in-transit quantities. Do not edit stock through product forms or invent another stock pool.
+- Preserve idempotency and user-scoped checkpoints. Resolve uncertain payments/stock/transfers/order actions using their original `requestId`; never clear an uncertain paid attempt or ask for another payment.
+- Payment confirmation, stock allocation, and fulfillment are separate. Duplicate Stripe deliveries must not repeat deductions or schedule post-payment automation again; unresolved `needs_review` orders must not ship.
+- Reuse existing UI and business workflows. Preserve accessibility, mobile/tablet/desktop behavior, light/dark themes, and storefront translations; do not perform unrelated rewrites.
 
-- **Supabase → Convex migration**: `docs/supabase-to-convex-migration.md`
+## Read for Your Task
 
-## Local Validation
-
-- Unit/backend regression tests (Node 22, installed TypeScript): `npm run test:unit`
-- React Testing Library interaction tests with jsdom: `npm run test:ui`; all tests: `npm test`. The UI runner uses Node 22's experimental module-mocking API, not a Vite test server.
-- Strict frontend check: `./node_modules/.bin/tsc -p tsconfig.app.json --noEmit`
-- TypeScript config regression tests: `node --test tests/typescript-config.test.mjs`. Keep the root `tsconfig.json` solution-only; frontend compiler options and aliases belong in `tsconfig.app.json`.
-- Strict POS backend check: `./node_modules/.bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler convex/pos.ts convex/schema.ts`
-- Offline production bundling: `./node_modules/.bin/vite build`. `npm run build` also runs a sitemap prebuild that queries the configured Convex deployment.
-- Development backend sync: `./node_modules/.bin/convex dev --once`; first verify that `.env.local` selects the intended development deployment. Vite alone does not publish new Convex functions.
-- With Convex CLI 1.31.6, use default `.env.local` loading for account-token authentication. Its `--env-file` path skips the saved account login when no deploy key is provided.
-- Backend tests use a transactional database double. React Testing Library tests exercise interactions in jsdom; legacy markup tests use server rendering. These do not replace Convex OCC integration tests or real browser viewport/native dialog focus testing.
-
-## Fair Point Of Sale
-
-- `/admin/pos` uses the existing admin-only access model, including discount authorization.
-- Product `stock` is the online pool (the historical `workshop` audit location). Total stock is derived as online plus all `fairInventory` balances; there is no separate third workshop allocation.
-- All POS money is integer bani. Card payments require approval on a separate bank terminal; fiscal documents and returns are separate workflows.
-- Payment attempts are idempotent and recoverable locally and from `pos.openAttempts`. Do not clear an uncertain paid attempt or request another payment; verify/retry its original request ID.
-- Fair creation and archival live at `/admin/fairs`; inventory and bidirectional transfers live at `/admin/inventory`. The POS does not contain inventory configuration.
-- Archival returns remaining fair stock online atomically, after a confirmed quantity preview, and is blocked by unresolved POS payments.
-- Inventory operations have durable `inventoryOperations` receipts and user-scoped local checkpoints. Never regenerate the request ID for an uncertain transfer/archive.
-- Online payment confirmation is independent of inventory fulfillment: `inventoryStatus` is `pending`, `applied`, or `needs_review`. Paid orders needing review must be explicitly reconciled before shipping; repeated Stripe deliveries must not deduct stock or schedule post-payment automation again.
+- [Project conventions and constraints](docs/agent-instructions/project-standards.md)
+- [Frontend, UI, localization, and assets](docs/agent-instructions/frontend.md)
+- [Convex, authentication, and backend boundaries](docs/agent-instructions/convex.md)
+- [Backoffice module map and business invariants](docs/backoffice-context.md) — dated audit/release notes are historical, not current deployment status.
+- [Testing commands and verification limits](docs/agent-instructions/testing.md)
+- [TEST/production environment and release runbook](docs/environments.md)
+- [Git workflow](docs/agent-instructions/git-workflow.md)

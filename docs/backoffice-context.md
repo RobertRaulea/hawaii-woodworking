@@ -1,17 +1,17 @@
 # Backoffice — context comun pentru etapele următoare
 
-Audit: 2026-10-22, branch `docs/backoffice-context` (din `main` @ `1f79ffe`).
-Citește acest document înainte de fiecare etapă. Actualizează-l doar cu schimbările relevante.
+Harta modulelor și regulile de lucru de mai jos au fost confruntate cu sursele locale la 2026-11-02. Documentul conține și istoricul auditului început la 2026-10-22.
+Citește secțiunile relevante pentru sarcină. Numărătorile, rezultatele de teste, branch-urile, checklist-urile de lansare și afirmațiile despre deploy din notele datate sunt istorice, nu dovadă despre starea actuală. Pentru medii/publicare folosește [runbook-ul de medii](environments.md); pentru autorizare și comportament verifică sursele indicate. Nu executa o procedură istorică în locul runbook-ului curent.
 
 ## 1. Stack real (verificat)
 
 - Frontend: React 18 + TypeScript strict + Vite + Tailwind + React Router 7 + React Hook Form; icoane `lucide-react`; UI pe primitive shadcn/Radix din `src/components/ui/` (vezi `docs/shadcn-migration.md`).
 - Auth: Clerk (`@clerk/clerk-react`) → JWT template `convex` → `convex/auth.config.ts` (`CLERK_JWT_ISSUER_DOMAIN`).
 - Backend/DB: Convex (`convex/`), plăți Stripe Checkout + webhook HTTP `/stripe-webhook`, post-plată Oblio (factură) + Resend (email).
-- Hosting: Vercel (`vercel.json` = doar rewrite SPA). GitHub: `RobertRaulea/hawaii-woodworking`. Nu există `.github/` (fără CI în repo).
+- Hosting: Vercel (`vercel.json`: rewrite SPA, cache și headere de securitate, inclusiv CSP Report-Only). GitHub: `RobertRaulea/hawaii-woodworking`. `.github/dependabot.yml` există; nu există workflow-uri CI în checkout-ul verificat.
 - Convex (MCP `status`): development `exuberant-fox-228` (selectat de `.env.local`, read/write), production `upbeat-lyrebird-218` (read-only în MCP, neatins).
 - Dev verificat prin MCP `functionSpec` + `tables`: funcțiile publicate coincid cu `convex/*.ts` din repo; tabelele declarate coincid cu `convex/schema.ts`.
-- Env dev (doar nume): `CLERK_JWT_ISSUER_DOMAIN`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Lipsesc în dev `OBLIO_*`, `RESEND_API_KEY`, `ADMIN_EMAIL` → automatizarea post-plată se oprește în dev (comportament așteptat, nu bug).
+- Medii: contractele curente sunt în `shared/environment.ts` și `convex/lib/environment.ts`. În TEST, `postPayment.handlePostPayment` oprește explicit facturarea și emailurile înainte de citirea credențialelor. Prezența sau lipsa variabilelor într-un deployment trebuie verificată separat, fără afișarea valorilor secrete.
 
 ## 2. Rute și entry points
 
@@ -34,14 +34,14 @@ Toate rutele de backoffice sunt în `src/App.tsx`, sub `admin` + `<AdminRoute />
 
 Shop public: `/`, `/products`, `/catalog`, `/product/:id`, `/cart`, `/shipping`, `/checkout`, `/thank-you`, `/my-orders(/:id)`, `/login`, pagini legale (sub `Layout`, fără restricție de rol).
 
-## 3. Roluri și autorizare (implementat 2026-10-22, necommitat pe `docs/backoffice-context`)
+## 3. Roluri și autorizare
 
 - **Valori acceptate (exact, case-sensitive): `admin`, `seller`, `atelier`.** Orice altceva (lipsă, `ADMIN`, `VANZATOR`, `customer`, array) = fără acces intern. `ADMIN`/`VANZATOR` nu au fost folosite niciodată în cod.
-- Sursă de încredere: JWT Clerk citit **doar în backend**: claim `role` ?? `publicMetadata.role` (`convex/lib/auth.ts`). `unsafeMetadata` nu se citește. Nicio funcție nu setează roluri; rolurile se setează manual de proprietar în Clerk Dashboard → user → Public metadata `{ "role": "seller" }`.
+- Sursă de încredere: JWT Clerk citit **doar în backend**: claim `role` ?? `publicMetadata.role` (`convex/lib/auth.ts`). `unsafeMetadata` nu se citește. Nicio funcție nu acordă rolul autorizativ; rolurile se setează manual de proprietar în Clerk Dashboard → user → Public metadata `{ "role": "seller" }`.
 - Matrice centrală, pură: `convex/lib/permissions.ts` (`PERMISSIONS`, `parseRole`, `hasPermission`, `HOME_PATH`), importată de backend și frontend.
 - Backend: `convex/lib/auth.ts` → `getStaff`, `requirePermission(ctx, perm)`, `requireAdmin`, `authorizedFairIds`, `canAccessFair`, `requireFairAccess`.
 - Frontend: `src/hooks/useStaffAccess.ts` citește `staff.me` (backend), nu metadata Clerk; `useAdmin.ts` a fost șters. `AdminRoute permission="…"` protejează fiecare grup de rute; `StaffHome` redirecționează `/admin` → `HOME_PATH[role]`. Meniul `AdminLayout` e filtrat după permisiuni. `/pos` = alias redirect către `/admin/pos`.
-- Locații autorizate: tabel `fairAssignments` (fairId, userId Clerk, assignedBy, createdAt). Admin alocă vânzători în `/admin/fairs` (`FairSellers.tsx`, câmp „ID utilizator Clerk (user_…)”) prin `staff.assignFairSeller/unassignFairSeller/listFairSellers`. Alocarea nu acordă rol. Admin și Atelier văd toate locațiile.
+- Locații autorizate: tabel `fairAssignments` (fairId, userId Clerk, assignedBy, createdAt). Admin alocă vânzători în `/admin/fairs` (`FairSellers.tsx` selectează după email; `SellerEmailForm` asociază un email pentru un ID Clerk lipsă) prin `staff.assignFairSeller/unassignFairSeller/listFairSellers/sellers`. Alocarea nu acordă rol. Admin și Atelier văd toate locațiile.
 - Client = orice utilizator (autentificat sau guest) pentru Shop; paginile publice nu sunt restricționate pentru niciun rol.
 - Identitatea operatorului: mereu `identity.subject` din JWT (`posAttempts.sellerId`, `actorId`).
 - Identitatea clientului: `customers.getByClerkUserId` (fără argumente) și `upsertFromShipping`/checkout derivă userul din `ctx.auth`; `clerkUserId` trimis de client este acceptat de validator (compatibilitate) dar ignorat. Legarea unui client de cont se face numai dacă `email_verified` din JWT e `true` și emailul coincide; un email deja legat de alt cont → eroare „Adresa de email aparține unui cont existent…”.
@@ -54,9 +54,9 @@ Shop public: `/`, `/products`, `/catalog`, `/product/:id`, `/cart`, `/shipping`,
 | `inventory.read` | ✓ | ✓ | ✓ (doar târguri alocate active) | `/admin/inventory`; `pos.listFairs`, `pos.getStockOverview` (`scope: 'assigned'` pentru seller: fără online/total/issues) |
 | `inventory.readAll` | ✓ | ✓ | – | toate locațiile + online/total |
 | `inventory.transfer` | ✓ | ✓ | – | `pos.transfer` (doar reluare chitanțe vechi), `pos.getInventoryOperation` |
-| `transfers.view` | ✓ | ✓ | ✓ (doar solicitările proprii) | `/admin/transfers*`; `transfers.list/get/getEvent` |
-| `transfers.request` | ✓ | – | ✓ (destinație = târg alocat) | `transfers.request`; Seller poate anula doar propria solicitare `requested` |
-| `transfers.execute` | ✓ | ✓ | – | `transfers.create/updateDraft/ship/receive/cancel` |
+| `transfers.view` | ✓ | ✓ | ✓ (doar solicitările proprii) | `/admin/transfers*`; `transfers.list/get/getEvent`; `receive`/`cancel` cu verificări suplimentare de rol |
+| `transfers.request` | ✓ | – | ✓ (destinație = târg alocat) | `transfers.request`; Seller poate anula doar propria solicitare `requested` prin `transfers.cancel` |
+| `transfers.execute` | ✓ | ✓ | – | `transfers.create/updateDraft/ship`; permite și `receive/cancel` fără restricția de solicitant |
 | `inventory.adjust` | ✓ | ✓ | – | `inventory.receive/adjust/count/setLowStockThreshold/countSnapshot/getStockOperation` |
 | `inventory.reconcile` | ✓ | ✓ | – | `orders.reconcileStock`, `orders.getInventoryIssues` |
 | `products.posOptions` | ✓ | ✓ | – | `pos.setProductOptions` (SKU/favorit, nu preț) |
@@ -64,9 +64,10 @@ Shop public: `/`, `/products`, `/catalog`, `/product/:id`, `/cart`, `/shipping`,
 | `orders.manage` | ✓ | – | – | `/admin/orders*`; `orders.listAdmin/getAdmin/cancel`, `fulfillment.reassign`; date complete și totaluri |
 | `reports.view` | ✓ | – | – | `/admin/reports`; `reports.summary`; în `reports.dashboard` secțiunea `sales` și `exceptions.posPrepared` |
 | `dashboard.view` | ✓ | ✓ | ✓ | `/admin/dashboard`; `reports.dashboard` — fiecare secțiune cere propria permisiune (`orders.fulfill` → fulfillment, `inventory.readAll` → stoc redus, `transfers.view` → transferuri (Seller: doar proprii), `inventory.reconcile` → excepții, `pos.sell` fără `reports.view` → POS azi pe târgurile alocate); secțiune nepermisă = `null` |
-| `fairs.manage` | ✓ | – | – | `/admin/fairs`; `pos.createFair/updateFair/getArchivePreview/archiveFair`, `staff.*FairSeller*` |
+| `fairs.manage` | ✓ | – | – | `/admin/fairs`; `pos.createFair/updateFair/getArchivePreview/archiveFair`, `staff.sellers/*FairSeller*` |
 | `catalog.manage` | ✓ | – | – | `/admin/products*`, `/admin/categories`, `/admin/custom-works`; `products.*`, `categories.*`, `siteAssets.*`, `seedCategories` (prin `requireAdmin`) |
 | `customers.manage` | ✓ | – | – | `/admin/customers*`; `customers.getAll/getById/update/delete/newsletter`, `orders.getByCustomerId` |
+| `staff.manage` | ✓ | – | – | `/admin/staff`; `staff.setDirectoryEntry` (afișare/selecție, nu rol autorizativ) |
 
 Destinații implicite: Admin → `/admin/dashboard`, Seller → `/admin/pos`, Atelier → `/admin/inventory`. Fără rol intern → mesaj „Acces intern indisponibil” + link la magazin. Rol fără permisiune pe rută → refuz + link la pagina proprie.
 
@@ -80,7 +81,7 @@ Neverificat din mediu: configurația JWT template-ului Clerk (claim `role`, `ema
 - SKU: o singură regulă `validateSku` (trim + majuscule, ≤80, unic case-insensitive) pentru `createProduct/updateProduct/pos.setProductOptions`.
 - Categorii: redenumirea unei categorii folosite e refuzată (doar traducerile se pot edita); ștergerea categoriilor folosite rămâne blocată.
 - Locații: `fairs` (`active`, `startsOn?`/`endsOn?` `YYYY-MM-DD`, arhivare cu `archiveOperationId`). Fiecare târg este propria locație de inventar (`fairInventory` după `fairId`); stare afișată derivată: Arhivat / Planificat / Încheiat / Activ (perioada e informativă, POS-ul depinde doar de `active`). Locația „atelier/online” = `products.stock` (`location: "workshop"` în audit). Nu există tabel de locații generic.
-- Inventar: `fairInventory` (fair × product), `stockMovements` (audit: `transfer | sale | online_sale`), `inventoryOperations` (chitanțe idempotente transfer/arhivare, `requestId`).
+- Inventar: `fairInventory` (fair × product), `stockMovements` (audit: `transfer | transfer_out | transfer_in | sale | online_sale | online_cancel | receipt | adjustment | count`), `inventoryOperations` (chitanțe transfer/arhivare), `stockOperations` (intrare/ajustare/inventariere), `transferEvents` (flux transfer), toate idempotente după `requestId`.
 - POS: `posAttempts` (`prepared | completed | cancelled`), `posSales` (bani în bani-întregi, `businessDate`).
 - Comenzi: `orders` (`status`, `inventoryStatus: pending | applied | needs_review | released`, `inventoryUnfulfilledItems`, `paymentConfirmedAt`, `postPaymentScheduledAt`; aditiv: `fulfillmentStatus? preparing|packed`, `assignedTo/At`, `checklist`, `packedAt`, `shippedAt/By`, `awb`, `carrier`, `deliveredAt`, `cancelledAt/By`, `cancelReason`, `refundStatus? manual_required`, `inventoryRestockedAt`, `shipping` snapshot), `orderEvents` (istoric + idempotență, `by_order`, `by_request`), `customers` (PII: email, nume, adrese). `stockMovements.kind` + `online_cancel`. Dev: 12 comenzi vechi (7 plătite, 3 neplătite, 2 anulate), fără facturi.
 - **Plată vs. fulfillment** (`convex/lib/orders.utils.ts`): `paymentStatus` = plătită doar prin `paymentConfirmedAt` (webhook Stripe) sau stare veche `paid/shipped/delivered`; personalul nu o poate schimba. `fulfillmentState` = `ready → preparing → packed → shipped → delivered` (+ `blocked`, `cancelled`); `preparing/packed` în `fulfillmentStatus`, iar `shipped/delivered` folosesc `status` existent. Eligibil: `paid`, plată confirmată, inventar `applied` sau vechi, neanulată. Nu există ramburs în model; o comandă neplătită nu intră niciodată în fulfillment. Vânzările POS nu creează comenzi.
@@ -90,20 +91,20 @@ Neverificat din mediu: configurația JWT template-ului Clerk (claim `role`, `ema
 - Acces: `fairAssignments` (Seller ↔ târg; indexuri `by_user`, `by_fair`, `by_fair_user`).
 - Operațiuni de stoc (2026-10-22, aditiv, fără migrare de date): `stockMovements.kind` + `receipt|adjustment|count`, `reason` + `production|damaged|lost|found|correction|other|count`, câmpuri `note`, `stockOperationId`, indexuri `by_location_fair`, `by_product_location`; tabel `stockOperations` (chitanță idempotentă, `by_request`). Separat de `inventoryOperations` deoarece acela cere `fairId/fairName` și e legat de transfer/arhivare.
 - Transferuri (aditiv): `transfers` (status `requested|draft|in_transit|partially_received|received|cancelled`, from/to Atelier sau târg, linii cu requested/planned/shipped/received; indexuri `by_status`, `by_createdBy`), `transferEvents` (istoric + idempotență, `by_request`, `by_transfer`), `stockMovements.kind` + `transfer_out|transfer_in`, câmp `transferId`. Dev: 0 transferuri la publicare.
-- Lipsesc: variante de produs, prag minim per locație, închiderea unei diferențe pierdute în tranzit, date de expediere (AWB/curier).
+- Lipsesc: variante de produs, prag minim per locație și închiderea auditată a unei diferențe pierdute în tranzit. AWB/curier există în fulfillment, dar rămân manual.
 
 ## 5. Regula actuală de inventar și rezervări
 
 Logica comună: `convex/lib/inventory.utils.ts`.
 
-- **Total** = `products.stock` (online) + Σ `fairInventory.quantity`. Fără al treilea pool „atelier”.
+- **Stoc fizic în locații** = `products.stock` (Atelier, sursa canalului online) + Σ `fairInventory.quantity`. În `pos.getStockOverview`, **totalul** include și cantitatea în tranzit (expediat minus recepționat). Nu crea un al treilea pool „atelier” și nu confunda stocul fizic cu disponibilul după claims; chitanțele vechi `stockSummary` nu sunt o vedere globală a tranzitului.
 - **Transferuri** (`convex/transfers.ts`): Solicitare (Seller) → Draft → În tranzit → Recepționat (parțial/complet). Draft și anulare (doar `requested|draft`): fără stoc. `ship`: scade sursa all-or-nothing (Atelier ≤ disponibil după rezervări; târg ≤ sold și fără POS `prepared`), `transfer_out`; destinația nu crește. `receive`: adaugă doar cantitatea primită (≤ rest în tranzit), `transfer_in`; restul rămâne în tranzit (`partially_received`). Sursă ≠ destinație; târguri active. Fiecare acțiune are `requestId`, reluat din `transferEvents` înaintea verificărilor de stare. Transferurile/evenimentele nu se șterg. `getStockOverview` expune `inTransitStock` și îl include în `totalStock`. Arhivarea unui târg e blocată de transferuri deschise.
 - **Transferul direct vechi** (`pos.transfer` → `transferInventory`) nu mai acceptă operațiuni noi; doar reia chitanțe existente (recuperare checkpoint `useInventoryOperation`). `StockTransferDialog` a fost șters; butonul „Transfer” din Stocuri deschide `/admin/transfers/new?productId=…&from=…`.
 - **Arhivare târg** (`pos.archiveFair`): returnează stocul rămas online atomic, după preview confirmat; blocată de plăți POS nerezolvate.
 - **POS**: `prepare` creează intenția (un singur `prepared` per vânzător); `complete` re-validează prețuri și stocul la târg (`buildSale` din `convex/lib/pos.utils.ts`), scade `fairInventory`, scrie `stockMovements kind:"sale"`; idempotent prin `posSales.by_request`. Card = aprobare pe terminal separat.
 - **Checkout online** (`checkout.createCheckoutSession`): **nu rezervă stoc**. Verifică doar disponibilitatea (`checkoutSnapshot` → `onlineDeductions`) și creează comanda `pending` + sesiune Stripe. Comenzile `pending` nu blochează stoc; sesiunile expirate nu sunt tratate (rămân `pending`).
 - **Scădere online**: doar la webhook `checkout.session.completed` → `orders.markOrderPaid` (idempotent: `paymentConfirmedAt`/`inventoryStatus`). Stoc suficient → scade `products.stock`, `stockMovements kind:"online_sale"`, `inventoryStatus:"applied"`, programează post-plata o singură dată. Lipsă de stoc → alocare parțială + `needs_review`. Plătită după anulare → `needs_review` (`cancelled`), fără scădere.
-- **„Rezervare” efectivă** = cantitățile nealocate din comenzile plătite `needs_review` (`onlineReviewClaims`); acestea scad stocul online disponibil în catalog, transferuri și POS overview. Reconciliere: `orders.reconcileStock` (admin). Expedierea (`shipped/delivered`) este blocată până la `applied`.
+- **„Rezervare” efectivă** = cantitățile nealocate din comenzile plătite `needs_review` (`onlineReviewClaims`); acestea scad stocul online disponibil în catalog, transferuri și POS overview. Reconciliere: `orders.reconcileStock` (permisiune `inventory.reconcile`: Admin/Atelier). Expedierea (`shipped/delivered`) este blocată până la `applied`.
 - **Locații fizice**: Atelier = `products.stock` (audit `workshop`) și fiecare târg = `fairInventory`. Online este canalul care vinde din Atelier: Atelier fizic / rezervat / disponibil = `onlinePhysicalStock` / `onlineHeldOrders` / `onlineStock`. Târguri: rezervat 0 (POS `prepare` nu rezervă), disponibil = fizic.
 - **Operațiuni de stoc** (`convex/inventory.ts`, permisiune `inventory.adjust`): `receive` (doar Atelier, +cant.), `adjust` (±, motiv + notă 3–500 obligatorie), `count` (așteptat/numărat/diferență), `setLowStockThreshold`. Fiecare scrie atomic stoc + `stockMovements` + `stockOperations`; idempotente pe `requestId` (replay verificat înaintea oricărei validări). Fără stoc negativ; scăderea în Atelier nu poate coborî sub cantitatea rezervată; scăderea/inventarierea la târg e blocată de o încercare POS `prepared` pentru produs.
 - **Inventariere fără suprascriere veche**: `countSnapshot` dă `expectedQuantity` + `lastMovementId`; `count` refuză dacă soldul sau ultima mișcare pentru produs+locație s-au schimbat („Revalidează numărătoarea”). Atelier caută ultima mișcare după prefix `productId+workshop` (rândurile de transfer/arhivare au `fairId`) — verificat pe dev prin MCP (index = scanare completă).
@@ -142,10 +143,12 @@ Dev (MCP, 2026-10-26, doar numărători): 13 comenzi, 0 cu `paymentConfirmedAt`,
 - `useAdminQuery` (query cu eroare în română în loc de throw), `useInventoryOperation` (checkpoint local + reluare `requestId`), `InventoryFeedback`, `useTransferAction` (checkpoint `hawaii:transfers:action:v1:{actorId}`), `src/utils/inventory.utils.ts`, `src/types/inventory.types.ts`.
 - Stocuri: `useStockOperation` (checkpoint local `hawaii:inventory:stock-op:v1:{actorId}`, retry cu același `requestId`), `StockOperationDialog`, `StockOperationFeedback`, `StockMovementsHistory` (`usePaginatedQuery`), `AssignedFairStock` (Seller), `locationStock`/`filterStockRows` în `src/utils/inventory.utils.ts`.
 - POS: `usePosPayment`, `OrderPanel`, `ProductPicker`, `PaymentDialog`, `pos.utils.ts` (bani).
-- Temă: Tailwind `stone`/`amber`, sidebar `bg-stone-900`. **Nu există dark mode** (fără `darkMode` în `tailwind.config.js`, fără clase `dark:`).
-- Limba: Târguri/Stocuri/POS/La comandă sunt în română; Products/Categories/Orders/Customers și `AdminLayout`/`AdminRoute` sunt încă în engleză.
+- Temă: Tailwind `stone`/`amber`, sidebar `bg-stone-900`. Dark mode există (`darkMode: 'class'`, `useTheme`, `ThemeToggle`, clase `dark:`).
+- Limba: interfața de backoffice este în principal în română; unele nume de fișiere, stări și termeni tehnici rămân în engleză.
 
 ## 7. Comenzi de testare
+
+Comenzile curente sunt în [ghidul de testare](agent-instructions/testing.md). Rezultatele datate de mai jos sunt istorice, nu starea actuală a suitei.
 
 | Scop | Comandă |
 |---|---|
@@ -153,13 +156,14 @@ Dev (MCP, 2026-10-26, doar numărători): 13 comenzi, 0 cu `paymentConfirmedAt`,
 | UI (React Testing Library + jsdom) | `npm run test:ui` |
 | Toate | `npm test` |
 | Typecheck frontend | `./node_modules/.bin/tsc -p tsconfig.app.json --noEmit` |
-| Typecheck backend POS | `./node_modules/.bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler convex/pos.ts convex/schema.ts` |
+| Typecheck backend/shared | `./node_modules/.bin/tsc -p convex/tsconfig.json --noEmit` |
 | Config TS | `node --test tests/typescript-config.test.mjs` |
 | Lint | `npm run lint` |
-| Bundle offline | `./node_modules/.bin/vite build` (`npm run build` rulează prebuild sitemap care interoghează Convex) |
-| Sync backend dev | `./node_modules/.bin/convex dev --once` (doar după verificarea `.env.local` = dev) |
+| Build TEST | `npm run build:test` |
+| Mediu local | `npm run check:env` |
+| Sync backend TEST | `npm run test:sync` (operațiune remote ghidată; nu este validare locală) |
 
-Fixture backend: `tests/helpers/convexFixture.mjs`; fixture UI: `tests/ui/fixtures.ts`, `tests/ui/setup.mjs`. Teste existente: `pos*`, `fairs-backend`, `inventory-backend`, `orders-stock`, UI pentru POS, Fairs, Inventory, StockTransfer, OrderInventoryReview.
+Fixture backend: `tests/helpers/convexFixture.mjs`; fixture UI: `tests/ui/fixtures.ts`, `tests/ui/setup.mjs`. Teste existente: `pos*`, `fairs-backend`, `inventory-backend`, `orders-stock`, UI pentru POS, Fairs, Inventory, Transfers, OrderInventoryReview.
 
 Baseline 2026-10-22 (Node v22.22.0): `test:unit` 68/68, `test:ui` 33/33, ambele `tsc` OK, `vite build` OK. `npm run lint`: 4 erori preexistente `no-explicit-any` (`convex/lib/translations.ts`, `useTranslatedCategories.ts`, `useTranslatedProducts.ts`) + 7 warnings; nu sunt regresii.
 
@@ -189,57 +193,35 @@ Deploy (2026-10-26): commit `fb3dab9` pe `main` (push la GitHub), `convex deploy
 | Modul | Stare actuală | Ce lipsește |
 |---|---|---|
 | Vânzări la târg (`/admin/pos`) | Completă: POS idempotent, cash/card, discount, recuperare plăți, sumar zilnic; Admin + Seller (doar târguri alocate) | — |
-| Târguri (`/admin/fairs`) | Completă: creare/editare cu perioadă, stare derivată, locație de inventar proprie, linkuri POS/Stoc/Transferuri/Transfer nou, alocare vânzători, arhivare atomică | Selectare vânzător după nume/email (acum ID Clerk manual) |
+| Târguri (`/admin/fairs`) | Completă: creare/editare cu perioadă, stare derivată, locație de inventar proprie, linkuri POS/Stoc/Transferuri/Transfer nou, alocare vânzători după email/ID Clerk, arhivare atomică | Selectare după nume (nu există) |
 | Stocuri (`/admin/inventory`) | Completă: căutare nume/SKU, filtre locație/categorie/disponibilitate, fizic/rezervat/disponibil/prag, istoric paginat; Admin/Atelier: intrare, ajustare, inventariere, prag; coloană „În tranzit”; Seller read-only pe târgurile alocate | Variante (nu există în schemă); prag per locație |
 | Transferuri (`/admin/transfers`) | Completă: listă + filtre stare/locație, detalii, mai multe produse, note, istoric; Seller: solicitări proprii | Închiderea diferenței pierdute în tranzit; paginare (listă limitată la 200 recente) |
 | Products | Completă: căutare nume/SKU, filtre categorie/stare, paginare 20/pagină, SKU, imagini, preț, activ/inactiv, arhivare/restaurare, ștergere doar fără istoric, stoc informativ cu link la Stocuri (doar Admin) | Variante (nu există în schemă) |
 | Categories | Completă: CRUD admin, număr produse, redenumire/ștergere blocate pentru categorii folosite | — |
 | La comandă | Completă: galerie `siteAssets` editabilă (titlu, preț, descriere, imagine) | Nu e flux de comenzi la comandă, doar vitrină |
 | Comenzi (Admin) | Completă: listă paginată 25/pagină (max. 1000 recente), căutare număr/client/email/sesiune Stripe, filtre perioadă/plată/fulfillment, detalii cu snapshot preț și totaluri, livrare, notițe, istoric, factură existentă, anulare controlată, realocare | Paginare server-side peste 1000 comenzi |
-| Customers | Parțială: listă, detaliu, editare, ștergere, newsletter (admin) | UI în engleză; ștergerea nu verifică comenzile asociate |
-| Roluri Seller/Atelier | Completă (cod + teste, dev) | Setarea manuală a rolurilor în Clerk; commit/PR; deploy coordonat |
+| Customers | Completă: listă, detaliu, editare, newsletter (admin), ștergere blocată pentru clienți cu comenzi | — |
+| Roluri Seller/Atelier | Completă: matrice, rute, meniu, alocări, redactare | Rolurile autoritative se setează manual în Clerk |
 | Reaprovizionare | Completă ca solicitare de transfer (`requested`) | — |
 | Panou (`/admin/dashboard`) | Completă: Admin — Azi/Luna curentă (vânzări separat de încasări), comenzi de pregătit, stoc redus, transferuri în tranzit, excepții, linkuri cu filtre; Atelier — operațional fără bani; Seller — POS azi pe târgurile alocate + solicitările proprii în tranzit | — |
 | Rapoarte (`/admin/reports`) | Completă (Admin): filtre perioadă/canal/târg, sumar vânzări, încasări, comenzi pe stări, POS pe târg, produse vândute, vânzări pe zile, CSV per tabel | Retururi POS (nu există flux); rambursări confirmate (nu există integrare) |
 | Fulfillment | Completă: coadă (De pregătit/În pregătire/Ambalate/Expediate recent), preluare, checklist, notițe, ambalare, expediere cu AWB manual, livrare, listă imprimabilă, secțiune separată de solicitări de reaprovizionare | Integrare curier (intenționat absentă) |
 
-## 9. Blocaje și riscuri reale
+## 9. Riscuri și limite cunoscute
 
-1. **Rezolvat (2026-10-22):** `seedCategories` → admin; `customers.getByClerkUserId` → `identity.subject`; `upsertFromShipping`/checkout ignoră `clerkUserId` din client și leagă doar pe email verificat; `orders.getByCustomerId` → admin. Rămas: `products.getStripePriceIds` public (risc mic).
-2. **Rezolvat (2026-10-22):** stocul nu se mai modifică din produs; toate schimbările trec prin operațiuni auditate (§5). Deploy coordonat: frontend-ul vechi din producție trimite `stock` la `updateProduct` și ar primi eroare cu backend-ul nou.
-3. Rolurile `seller`/`atelier` trebuie setate manual în Clerk (Public metadata). Configurația JWT template-ului Clerk (claim `role`, `email_verified`) nu poate fi verificată din acest mediu.
-4. **Deploy coordonat:** `customers.getByClerkUserId` nu mai acceptă `clerkUserId` → frontend-ul vechi din producție ar eșua cu backend-ul nou; Vercel și Convex prod trebuie publicate împreună (nu s-a făcut deploy în prod).
-5. Schimbare de comportament: un guest care folosește emailul unui cont înregistrat primește eroare și trebuie să se autentifice.
-6. Checkout-ul nu rezervă stoc; supravânzarea online e tratată ulterior prin `needs_review` (comportament intenționat; nu se reconstruiește).
-7. Fără CI în repo; validarea e locală.
-8. Catalog: `ProductForm` citește din `listAdmin` (produsele inactive rămân editabile); scripturile (`generate-sitemap`, `seedStripe`) folosesc `getAll` și văd doar produse active. Deploy coordonat: frontend-ul vechi din producție folosește `getAll` în Admin și n-ar mai vedea produsele inactive/arhivate.
-9. Comenzi: rambursările nu sunt integrate (se fac manual în Stripe; comanda arată „rambursare manuală necesară”); comenzile vechi anulate nu se restochează automat; `orders.updateStatus` mai permite doar `shipped→delivered` — frontend-ul vechi din producție (select liber de status) ar primi erori, deci deploy coordonat; lista admin e limitată la 1000 de comenzi recente.
-10. Transferuri: o diferență pierdută în tranzit rămâne deschisă (`partially_received`) — nu există încă închidere auditată; reluarea `create/request` cu același `requestId` returnează transferul inițial chiar dacă argumentele diferă (ID-urile sunt UUID per acțiune). Deploy coordonat: frontend-ul vechi apelează `pos.transfer` pentru transferuri noi, care acum sunt refuzate.
-
-11. Rapoarte: calculul citește toate comenzile la fiecare apel (fără agregate stocate; limită explicită 10000) — la volum mare va fi nevoie de agregate incrementale. Filtrul „stoc scăzut” din Stocuri include și produse inactive/arhivate, Panoul doar active → numărătorile pot diferi. Rambursările manuale nu au stare „efectuată”. Deploy coordonat: `HOME_PATH.admin` = `/admin/dashboard` cere frontend și backend noi împreună.
-
-12. Neverificat: fluxul real în browser cu conturi Clerk (Admin/Seller/Atelier), tabletă pe paginile admin, concurența OCC reală Convex (testele folosesc dublul tranzacțional), webhook Stripe real, Oblio/Resend (lipsesc variabilele în dev).
-
-### Pregătire producție — ordine
-
-1. Clerk (prod): JWT template `convex` cu claim-urile `role` (din `public_metadata.role`), `email`, `email_verified`; setează manual Public metadata `{"role":"admin|seller|atelier"}` pe conturile interne.
-2. Convex prod: verifică variabilele (`CLERK_JWT_ISSUER_DOMAIN`, `STRIPE_*`, `OBLIO_*`, `RESEND_API_KEY`, `ADMIN_EMAIL`, `RESEND_FROM_EMAIL`). Schema e doar aditivă (câmpuri opționale + tabele noi `fairAssignments`, `stockOperations`, `transfers`, `transferEvents`, `orderEvents`) → **nu e nevoie de migrare de date**; înainte de deploy rulează în prod (read-only) numărătorile de integritate de mai sus.
-3. Merge pe `main` după review; apoi deploy **simultan** Convex prod (`convex deploy`) și Vercel (frontend-ul vechi e incompatibil cu backend-ul nou: `getByClerkUserId`, `updateProduct({stock})`, `pos.transfer`, `updateStatus`, `getAll` în Admin).
-4. După deploy: alocă vânzătorii pe târguri în `/admin/fairs`; verifică un târg activ, o vânzare POS de test făcută de proprietar (fără date fictive persistente), o comandă reală Stripe.
-
-### Checklist înainte de producție
-
-- [ ] Review + commit pe branch, PR, merge (`docs/backoffice-context` e deja în `main`; `feat/reports-dashboard` necommitat).
-- [ ] Clerk JWT template + roluri setate manual.
-- [ ] Variabile Convex prod complete.
-- [ ] Test manual în browser pe dev cu câte un cont Admin/Seller/Atelier, inclusiv tabletă portrait/landscape (POS, Stocuri, Transferuri, Fulfillment, Rapoarte).
-- [ ] Integritate prod (read-only) fără stoc negativ / `prepared` / `needs_review` neașteptate.
-- [ ] Deploy coordonat Convex + Vercel, apoi verificare `/admin`, `/admin/pos`, checkout.
+- Rolurile `seller`/`atelier` se setează manual în Clerk Public metadata; `staffDirectory.role` este doar pentru afișare/selecție. Configurația JWT template (`role`, `email`, `email_verified`) trebuie verificată în dashboard-ul Clerk țintă.
+- Checkout-ul nu rezervă stoc; supravânzarea online intră pe `needs_review`. Comportamentul este intenționat și nu trebuie reconstruit fără cerință explicită.
+- Rambursările nu sunt integrate: `refundStatus: manual_required` înseamnă acțiune manuală în Stripe, nu confirmare automată.
+- O diferență pierdută în tranzit poate rămâne `partially_received`; nu există încă închidere auditată.
+- Rapoartele citesc setul filtrat la fiecare apel și au limita explicită de 10000 de comenzi/vânzări POS; la volum mare vor fi necesare agregate incrementale. Filtrul „stoc scăzut” din Stocuri include și produse inactive/arhivate, Panoul doar active, deci numărătorii pot diferi.
+- Nu există workflow CI în checkout; validarea rămâne locală/manuală.
+- Fixturele și jsdom nu dovedesc concurența OCC reală, comportamentul browserului pe tabletă, fluxul Clerk autentificat, webhook-ul Stripe real, Oblio/Resend sau integrarea curierului.
+- Pentru pregătirea producției folosește `docs/environments.md`. Notele datate din secțiunile anterioare despre merge, deploy și starea dev/prod sunt istorice, nu starea curentă.
 
 ## 10. Reguli comune pentru etapele următoare
 
 ### A. Reutilizare și siguranță
-- Păstrează tema și componentele existente (dark mode nu există acum; nu-l introduce fără cerere).
+- Păstrează tema și componentele existente, inclusiv light/dark mode (`useTheme`, `ThemeToggle`, tokenii `.dark`). `PackingSlip` rămâne intenționat alb pentru imprimare.
 - UI nou în română.
 - Nu reconstrui POS-ul sau checkout-ul.
 - Nu dubla catalogul, inventarul, locațiile sau comenzile.
@@ -257,8 +239,8 @@ Deploy (2026-10-26): commit `fb3dab9` pe `main` (push la GitHub), `convex deploy
 - Protejează rutele și funcțiile backend, nu doar meniurile.
 
 ### C. Convex
-- Folosește Convex MCP (deployment dev `exuberant-fox-228`) când inspectezi/modifici schema, queries, mutations sau verifici integrarea.
-- Nu repeta inspecțiile deja documentate aici dacă nu s-a schimbat contextul.
+- Pentru inspecții pe deployment, confirmă întâi ținta și autorizarea conform `docs/environments.md`; folosește MCP/CLI doar când verificarea remote este necesară. Inspecția codului și testele locale nu cer publicarea funcțiilor.
+- Refolosește informația verificată în sarcina curentă, dar nu trata snapshot-urile datate din acest document ca stare live a backend-ului.
 - Aplicația folosește integrarea Convex existentă la rulare, nu MCP.
 - Raportează lipsa accesului; nu pretinde verificări neexecutate.
 - Fără stoc negativ, dublă scădere sau operațiuni duplicate la retry.

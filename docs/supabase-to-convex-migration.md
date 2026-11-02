@@ -1,8 +1,10 @@
 # Supabase to Convex Migration Plan
 
+> Historical migration plan retained for context. It does not describe the current setup; use `AGENTS.md` and `docs/environments.md` for active guidance.
+
 **Project**: Hawaii Woodworking Store  
 **Date**: January 27, 2026  
-**Status**: Planning Phase
+**Status**: Historical
 
 ## Executive Summary
 
@@ -477,5 +479,5 @@ Create migration script: `scripts/migrateSupabaseToConvex.ts`
 - [Convex React Documentation](https://docs.convex.dev/client/react)
 - [Convex Node.js Client](https://docs.convex.dev/client/javascript/node)
 - [Convex Authentication](https://docs.convex.dev/auth)
-- [Current Convex Schema](`@/Users/robert.raulea/Personal Workspace/Hawaii Store/hawaii-woodworking/convex/schema.ts`)
-- [Current Products Functions](`@/Users/robert.raulea/Personal Workspace/Hawaii Store/hawaii-woodworking/convex/products.ts`)
+- [Current Convex Schema](../convex/schema.ts)
+- [Current Products Functions](../convex/products.ts)

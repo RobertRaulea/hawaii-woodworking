@@ -32,9 +32,12 @@ Files to read first:
 - path/to/file2
 
 Testing:
-- Run: npm run build
-- Run: npm run lint
 - Add/update tests: [paths]
+- Run focused tests with the repository Node loader/jsdom setup
+- Run relevant strict TypeScript checks
+- Run: npm run lint
+- Run: npm run build:test (when application changes need a bundle check)
+- State browser/integration checks not performed; no implicit sync/deploy
 ```
 
 ## High-Quality Prompt Patterns
@@ -92,7 +95,7 @@ Artifacts:
 - Network tab: [paste]
 
 Relevant files:
-- src/pages/ProductDetail/ProductDetail.tsx
+- src/pages/ProductDetail/ProductDetailPage.tsx
 - src/hooks/useProducts.ts
 ```
 
@@ -117,5 +120,5 @@ Ask me clarifying questions before you implement UI copy or layout decisions.
 ## Tooling Guidance
 
 - Prefer **small, incremental changes**.
-- Ask for **tests** when adding features or changing behavior.
+- Ask for **tests** when adding features or changing behavior; select commands from [testing guidance](testing.md).
 - For unfamiliar library usage, request **Context7 MCP** research first.

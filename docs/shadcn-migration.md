@@ -29,8 +29,8 @@ Planul complet cu prompturi per iterație: `~/.devin/plans/plan-d3ca269e2256ed83
   `requestId`/checkpoint-uri, versiunile existente din `package.json`.
 - Icoane: HeroIcons → lucide-react doar în fișierele atinse de iterație.
 - Validare obligatorie: `tsc -p tsconfig.app.json --noEmit`, `npm run lint`,
-  `npm test`, `./node_modules/.bin/vite build` (NU `npm run build` — sitemap-ul
-  cere deployment-ul Convex).
+  `npm test`, `npm run build:test` (comenzile curente sunt în
+  `docs/agent-instructions/testing.md`).
 - `PaymentDialog` rămâne `<dialog>` nativ (testele `pos-ui.test.mjs` fac
   `renderToStaticMarkup`); doar interiorul lui primește primitive.
 - Touch targets POS: `Button` `size="xl"` (min-h-12) / `size="2xl"` (min-h-14).
