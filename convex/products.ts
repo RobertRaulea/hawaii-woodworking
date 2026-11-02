@@ -11,6 +11,8 @@ import {
   generateSku,
   isSellable,
   nextSku,
+  normalizeSeoDescription,
+  normalizeSeoTitle,
   productStatus,
   validateSku,
 } from "./lib/products.utils";
@@ -241,6 +243,8 @@ export const createProduct = mutation({
     lowStockThreshold: v.optional(v.number()),
     trackStock: v.optional(v.boolean()),
     sku: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -268,6 +272,8 @@ export const createProduct = mutation({
         args.sku === undefined || !args.sku.trim()
           ? await generateSku(ctx, args.name)
           : await validateSku(ctx, undefined, args.sku),
+      seoTitle: normalizeSeoTitle(args.seoTitle),
+      seoDescription: normalizeSeoDescription(args.seoDescription),
     });
     return id;
   },
@@ -291,6 +297,8 @@ export const updateProduct = mutation({
     lowStockThreshold: v.optional(v.number()),
     trackStock: v.optional(v.boolean()),
     sku: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);
@@ -315,6 +323,8 @@ export const updateProduct = mutation({
     if (fields.description_ro !== undefined) update.description_ro = fields.description_ro;
     if (fields.description_en !== undefined) update.description_en = fields.description_en;
     if (fields.description_de !== undefined) update.description_de = fields.description_de;
+    if (fields.seoTitle !== undefined) update.seoTitle = normalizeSeoTitle(fields.seoTitle);
+    if (fields.seoDescription !== undefined) update.seoDescription = normalizeSeoDescription(fields.seoDescription);
     if (fields.imageStorageIds !== undefined) update.imageStorageIds = fields.imageStorageIds;
     if (fields.lowStockThreshold !== undefined) update.lowStockThreshold = fields.lowStockThreshold;
     if (fields.trackStock !== undefined) update.trackStock = fields.trackStock;

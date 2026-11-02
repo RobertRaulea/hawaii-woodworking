@@ -7,7 +7,11 @@
     "myOrders": "My Orders",
     "accountSettings": "Account Settings",
     "allProducts": "All Products",
-    "menu": "Menu"
+    "menu": "Menu",
+    "services": "Services",
+    "customProducts": "Custom products",
+    "circularCutting": "Circular saw cutting",
+    "solidWoodPanels": "Solid wood panels"
   },
   "theme": {
     "light": "Switch to light theme",
@@ -275,7 +279,8 @@
     "networkError": "Network error",
     "insufficientStock": "Insufficient stock for this product",
     "tryAgain": "Try again",
-    "goHome": "Go to home page"
+    "goHome": "Go to home page",
+    "notFoundDescription": "The page you are looking for does not exist or has been moved."
   },
   "validation": {
     "required": "This field is required",

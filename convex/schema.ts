@@ -18,6 +18,8 @@ export default defineSchema({
     description_ro: v.optional(v.string()),
     description_en: v.optional(v.string()),
     description_de: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
     stock: v.optional(v.number()),
     lowStockThreshold: v.optional(v.number()),
     trackStock: v.optional(v.boolean()),

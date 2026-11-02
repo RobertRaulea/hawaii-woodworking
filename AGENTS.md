@@ -15,7 +15,7 @@ Use Node 22 and npm. Run checks appropriate to the change; see the testing guide
 
 - `npm run dev` — frontend only; does not publish Convex functions.
 - `npm run check:env` — validate local environment configuration.
-- `npm run build:test` — optimized TEST bundle; no production catalog query.
+- `npm run build:test` — optimized TEST bundle; no production catalog query. The build also writes static HTML snapshots (`dist/<route>/index.html`), `sitemap.xml`, and `robots.txt` via `scripts/generate-sitemap.ts` + `scripts/prerender.ts`; refresh them by running a build.
 - `npm run lint` — repository ESLint checks.
 - `npm test` — unit/backend regressions and React Testing Library interactions.
 - `./node_modules/.bin/tsc -p tsconfig.app.json --noEmit` — frontend/UI-test types.

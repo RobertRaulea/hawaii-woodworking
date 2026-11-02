@@ -33,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  { to: '/', label: t('nav.home') },
  { to: '/products', label: t('nav.products') },
  { to: '/catalog', label: t('nav.catalog') },
+ { to: '/servicii', label: t('nav.services') },
  ];
 
  return (

@@ -1,5 +1,6 @@
 import type React from 'react';
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SEO } from '../../components/SEO/SEO';
 import { useSiteAssets } from '../../hooks/useSiteAssets';
@@ -90,6 +91,9 @@ export const Catalog: React.FC = () => {
  <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600 dark:text-stone-300sm:text-base">
  {t('customWork.subtitle')}
  </p>
+ <Button asChild variant="outline" className="mt-5 h-auto w-fit rounded-full border-amber-700/60 bg-transparent px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 hover:bg-amber-700/10 hover:text-amber-700 dark:border-amber-500/50 dark:text-amber-300 dark:hover:bg-amber-500/10 dark:hover:text-amber-200">
+ <Link to="/produse-personalizate">{t('nav.customProducts')}</Link>
+ </Button>
  </div>
  <span className="w-fit border-l-2 border-amber-700 pl-4 font-serif text-sm italic text-stone-600 dark:text-stone-300 ">
  {String(works.length).padStart(2, '0')} {t('customWork.projects')}

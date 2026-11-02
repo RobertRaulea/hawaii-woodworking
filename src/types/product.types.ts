@@ -17,4 +17,6 @@ export interface Product {
  description_ro?: string;
  description_en?: string;
  description_de?: string;
+ seoTitle?: string;
+ seoDescription?: string;
 }

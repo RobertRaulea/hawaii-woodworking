@@ -1,7 +1,12 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /pos
 Disallow: /cart
 Disallow: /checkout
+Disallow: /shipping
+Disallow: /my-orders
+Disallow: /login
 Disallow: /thank-you
 
 # Sitemap

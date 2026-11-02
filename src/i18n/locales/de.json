@@ -7,7 +7,11 @@
     "myOrders": "Meine Bestellungen",
     "accountSettings": "Kontoeinstellungen",
     "allProducts": "Alle Produkte",
-    "menu": "Menü"
+    "menu": "Menü",
+    "services": "Leistungen",
+    "customProducts": "Personalisierte Produkte",
+    "circularCutting": "Zuschnitt an der Kreissäge",
+    "solidWoodPanels": "Massivholzplatten"
   },
   "theme": {
     "light": "Zum hellen Design wechseln",
@@ -275,7 +279,8 @@
     "networkError": "Netzwerkfehler",
     "insufficientStock": "Unzureichender Lagerbestand für dieses Produkt",
     "tryAgain": "Erneut versuchen",
-    "goHome": "Zur Startseite"
+    "goHome": "Zur Startseite",
+    "notFoundDescription": "Die gesuchte Seite existiert nicht oder wurde verschoben."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich",

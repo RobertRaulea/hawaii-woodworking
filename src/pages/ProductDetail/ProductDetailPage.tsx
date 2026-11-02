@@ -19,6 +19,7 @@ import {
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { useCart } from '../../context/CartContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { useProducts } from '../../hooks/useProducts';
 import { useTranslatedProduct, useTranslatedProducts } from '../../hooks/useTranslatedProducts';
 import { SEO } from '../../components/SEO/SEO';
@@ -31,10 +32,12 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
 import { SITE_URL } from '../../constants/site.constants';
+import { buildProductSeo } from '../../../shared/seo/seo.utils';
 
 export const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const { t } = useTranslation();
+  const { language } = useLanguage();
   const { addItem, state } = useCart();
 
   const rawProduct = useQuery(
@@ -88,6 +91,8 @@ export const ProductDetailPage: React.FC = () => {
 
   if (!product) {
     return (
+      <>
+      <SEO title={t('product.notFound')} noindex />
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-24 text-center sm:px-6">
         <PackageSearch className="h-12 w-12 text-stone-300 dark:text-stone-600" strokeWidth={1.5} />
         <h1 className="mt-5 font-serif text-2xl font-medium text-stone-900 dark:text-stone-50">
@@ -100,6 +105,7 @@ export const ProductDetailPage: React.FC = () => {
           <Link to="/products">{t('product.browseProducts')}</Link>
         </Button>
       </div>
+      </>
     );
   }
 
@@ -149,10 +155,6 @@ export const ProductDetailPage: React.FC = () => {
     `Details for ${product.name}. Discover the quality and craftsmanship of our handmade ${product.category || 'item'}.`;
 
   // SEO Meta Tags and Schema
-  const pageTitle = `${product.name} - Hawaii Woodworking`;
-  const pageDescription = product.description
-    ? product.description.substring(0, 160)
-    : `Descoperă ${product.name}, un articol din lemn lucrat manual, perfect pentru cadouri sau decorațiuni. Calitate și design românesc de la Hawaii Woodworking.`;
   const pageKeywords = [
     product.name,
     product.category || 'produs lemn',
@@ -164,44 +166,7 @@ export const ProductDetailPage: React.FC = () => {
     'hawaii sibiu',
   ];
 
-  const availabilitySchema = isOutOfStock
-    ? 'https://schema.org/OutOfStock'
-    : isLowStock
-      ? 'https://schema.org/LimitedAvailability'
-      : 'https://schema.org/InStock';
-
-  const pageUrl = `${SITE_URL}/product/${product._id}`;
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Product',
-        name: product.name,
-        description: product.description || pageDescription,
-        image: productImages,
-        sku: product.sku || product._id,
-        offers: {
-          '@type': 'Offer',
-          priceCurrency: 'RON',
-          price: product.price.toFixed(2),
-          availability: availabilitySchema,
-          url: pageUrl,
-        },
-        brand: {
-          '@type': 'Brand',
-          name: 'Hawaii Woodworking',
-        },
-      },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: t('nav.home'), item: SITE_URL },
-          { '@type': 'ListItem', position: 2, name: t('nav.products'), item: `${SITE_URL}/products` },
-          { '@type': 'ListItem', position: 3, name: product.name, item: pageUrl },
-        ],
-      },
-    ],
-  };
+  const productSeo = buildProductSeo(product, SITE_URL, language);
 
   const benefits = [
     { icon: Hammer, label: t('product.benefitHandcrafted') },
@@ -213,12 +178,13 @@ export const ProductDetailPage: React.FC = () => {
   return (
     <>
       <SEO
-        title={pageTitle}
-        description={pageDescription}
+        title={productSeo.title}
+        description={productSeo.description}
         keywords={pageKeywords}
-        image={productImages[0]}
+        image={productSeo.image}
         type="product"
-        schema={productSchema}
+        schema={productSeo.schema}
+        canonicalPath={productSeo.canonicalPath}
       />
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         {/* Breadcrumb */}

@@ -32,6 +32,8 @@ export const useProducts = () => {
  description_ro: product.description_ro,
  description_en: product.description_en,
  description_de: product.description_de,
+ seoTitle: product.seoTitle,
+ seoDescription: product.seoDescription,
  }));
  }, [data]);
 

@@ -7,7 +7,11 @@
     "myOrders": "Comenzile mele",
     "accountSettings": "Setări cont",
     "allProducts": "Toate produsele",
-    "menu": "Meniu"
+    "menu": "Meniu",
+    "services": "Servicii",
+    "customProducts": "Produse personalizate",
+    "circularCutting": "Debitare la circular",
+    "solidWoodPanels": "Panouri lemn masiv"
   },
   "theme": {
     "light": "Comută la tema luminoasă",
@@ -275,7 +279,8 @@
     "networkError": "Eroare de rețea",
     "insufficientStock": "Stoc insuficient pentru acest produs",
     "tryAgain": "Încearcă din nou",
-    "goHome": "Mergi la pagina principală"
+    "goHome": "Mergi la pagina principală",
+    "notFoundDescription": "Pagina căutată nu există sau a fost mutată."
   },
   "validation": {
     "required": "Acest câmp este obligatoriu",

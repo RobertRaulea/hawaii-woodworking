@@ -1,6 +1,10 @@
 import { ConvexError } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import {
+  SEO_DESCRIPTION_MAX_LENGTH,
+  SEO_TITLE_MAX_LENGTH,
+} from "../../shared/seo/seo.utils";
 
 export type ProductStatus = "active" | "inactive" | "archived";
 
@@ -13,6 +17,25 @@ export const productStatus = (product: Doc<"products">): ProductStatus =>
 
 export const isSellable = (product: Doc<"products">) =>
   productStatus(product) === "active";
+
+const normalizeSeoField = (
+  value: string | undefined,
+  label: string,
+  maxLength: number,
+) => {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length > maxLength) {
+    throw new ConvexError(`${label} depășește ${maxLength} de caractere.`);
+  }
+  return trimmed === '' ? undefined : trimmed;
+};
+
+export const normalizeSeoTitle = (value: string | undefined) =>
+  normalizeSeoField(value, "Titlul SEO", SEO_TITLE_MAX_LENGTH);
+
+export const normalizeSeoDescription = (value: string | undefined) =>
+  normalizeSeoField(value, "Descrierea SEO", SEO_DESCRIPTION_MAX_LENGTH);
 
 const skuPrefix = (name: string) => {
   const initials = name

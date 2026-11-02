@@ -18,6 +18,10 @@ export const Footer: React.FC = () => {
  <li><Link to="/" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.home')}</Link></li>
  <li><Link to="/products" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.products')}</Link></li>
  <li><Link to="/catalog" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.catalog')}</Link></li>
+ <li><Link to="/servicii" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.services')}</Link></li>
+ <li><Link to="/produse-personalizate" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.customProducts')}</Link></li>
+ <li><Link to="/servicii/debitare-circular" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.circularCutting')}</Link></li>
+ <li><Link to="/servicii/panouri-lemn-masiv-lamela-continua" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.solidWoodPanels')}</Link></li>
  <li><Link to="/cart" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200 text-sm">{t('nav.cart')}</Link></li>
  </ul>
  </div>

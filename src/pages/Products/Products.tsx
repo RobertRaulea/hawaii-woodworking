@@ -17,7 +17,11 @@ import { SITE_URL } from '../../constants/site.constants';
 
 type SortOption = 'price-asc' | 'price-desc' | 'name-asc';
 
-export const Products: React.FC = () => {
+interface ProductsProps {
+ embedded?: boolean;
+}
+
+export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  const { t } = useTranslation();
  const pageTitle = t('seo.productsTitle');
  const pageDescription = t('seo.productsDescription');
@@ -154,38 +158,16 @@ export const Products: React.FC = () => {
  return sorted;
  }, [products, selectedCategories, priceRange, sortBy]);
 
- const pageUrl = useMemo(() => 
- typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/products`
- , []);
+ const pageUrl = `${SITE_URL}/products`;
 
  const dynamicSchema = useMemo(() => {
  const itemListElements = (!loading && filteredAndSortedProducts && filteredAndSortedProducts.length > 0)
- ? filteredAndSortedProducts.map((product: Product, index: number) => {
- const imageUrl = product.imageUrls?.[0] ?? `${SITE_URL}/images/placeholder-product.jpg`;
-
- return {
+ ? filteredAndSortedProducts.map((product: Product, index: number) => ({
  '@type': 'ListItem',
  position: index + 1,
- item: {
- '@type': 'Product',
  name: product.name,
  url: `${SITE_URL}/product/${product.id}`,
- image: imageUrl,
- description: product.description || product.name, 
- offers: {
- '@type': 'Offer',
- priceCurrency: 'RON',
- price: product.price.toFixed(2),
- availability: 'https://schema.org/InStock', 
- url: `${SITE_URL}/product/${product.id}`
- },
- brand: {
- '@type': 'Brand',
- name: 'Hawaii Woodworking'
- }
- }
- };
- })
+ }))
  : [];
 
  return {
@@ -208,12 +190,15 @@ export const Products: React.FC = () => {
 
  return (
  <>
- <SEO 
+ {!embedded && (
+ <SEO
  title={pageTitle}
  description={pageDescription}
  keywords={pageKeywords}
  schema={dynamicSchema}
+ canonicalPath="/products"
  />
+ )}
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
  {loading && (
  <div className="flex items-center justify-center py-20">
@@ -229,9 +214,15 @@ export const Products: React.FC = () => {
  {!loading && (
  <>
  <div className="mb-6 lg:mb-8">
+ {embedded ? (
+ <h2 className="font-serif text-2xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-4">
+ {t('nav.products')}
+ </h2>
+ ) : (
  <h1 className="font-serif text-2xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-4">
  {t('nav.products')}
  </h1>
+ )}
  
  <div className="flex items-center justify-between gap-3">
  <Button

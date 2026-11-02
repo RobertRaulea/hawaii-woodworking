@@ -12,10 +12,17 @@ import { AdminRoute, StaffHome } from './components/AdminRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Toaster } from './components/ui/sonner';
 import { EnvironmentBanner } from './components/EnvironmentBanner/EnvironmentBanner';
+import { RouteSEO } from './components/SEO/RouteSEO';
 
 // Lazy-loaded pages
 const Cart = lazy(() => import('./pages/Cart/Cart').then((m) => ({ default: m.Cart })));
 const Catalog = lazy(() => import('./pages/Catalog/Catalog').then((m) => ({ default: m.Catalog })));
+const Services = lazy(() => import('./pages/Services/Services').then((m) => ({ default: m.Services })));
+const CncMachining = lazy(() => import('./pages/Services/CncMachining').then((m) => ({ default: m.CncMachining })));
+const CircularCutting = lazy(() => import('./pages/Services/CircularCutting').then((m) => ({ default: m.CircularCutting })));
+const SolidWoodPanels = lazy(() => import('./pages/Services/SolidWoodPanels').then((m) => ({ default: m.SolidWoodPanels })));
+const CustomProducts = lazy(() => import('./pages/CustomProducts/CustomProducts').then((m) => ({ default: m.CustomProducts })));
+const NotFound = lazy(() => import('./pages/NotFound/NotFound').then((m) => ({ default: m.NotFound })));
 const Checkout = lazy(() => import('./pages/Checkout/Checkout').then((m) => ({ default: m.Checkout })));
 const ThankYou = lazy(() => import('./pages/ThankYou/ThankYou').then((m) => ({ default: m.ThankYou })));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetail/ProductDetailPage').then((m) => ({ default: m.ProductDetailPage })));
@@ -62,6 +69,7 @@ function App() {
  <ShippingProvider>
  <Router>
  <EnvironmentBanner />
+ <RouteSEO />
  <ScrollToTop />
  <Toaster />
  <MaintenanceGuard>
@@ -71,6 +79,11 @@ function App() {
  <Route index element={<Home />} />
  <Route path="products" element={<Products />} />
  <Route path="catalog" element={<Catalog />} />
+ <Route path="servicii" element={<Services />} />
+ <Route path="servicii/prelucrare-cnc-lemn" element={<CncMachining />} />
+ <Route path="servicii/debitare-circular" element={<CircularCutting />} />
+ <Route path="servicii/panouri-lemn-masiv-lamela-continua" element={<SolidWoodPanels />} />
+ <Route path="produse-personalizate" element={<CustomProducts />} />
  <Route path="cart" element={<Cart />} />
  <Route path="shipping" element={<Shipping />} />
  <Route path="login" element={<Login />} />
@@ -83,6 +96,7 @@ function App() {
  <Route path="privacy-policy" element={<PrivacyPolicy />} />
  <Route path="return-policy" element={<ReturnPolicy />} />
  <Route path="legal-information" element={<LegalInformation />} />
+ <Route path="*" element={<NotFound />} />
  </Route>
 
  {/* Admin routes */}

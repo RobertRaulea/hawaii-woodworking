@@ -14,6 +14,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { compressImages } from '../../../utils/imageCompression.utils';
+import { SITE_URL } from '../../../constants/site.constants';
+import {
+ brandedTitle,
+ buildProductSeo,
+ SEO_DESCRIPTION_MAX_LENGTH,
+ SEO_TITLE_MAX_LENGTH,
+} from '../../../../shared/seo/seo.utils';
 
 interface ProductFormValues {
  name: string;
@@ -27,6 +34,8 @@ interface ProductFormValues {
  description_de: string;
  lowStockThreshold: string;
  trackStock: boolean;
+ seoTitle: string;
+ seoDescription: string;
 }
 
 interface UploadedImage {
@@ -62,6 +71,7 @@ export const ProductForm: React.FC = () => {
  handleSubmit,
  reset,
  control,
+ watch,
  formState: { errors, isSubmitting },
  } = useForm<ProductFormValues>({
  defaultValues: {
@@ -76,6 +86,8 @@ export const ProductForm: React.FC = () => {
  description_de: '',
  lowStockThreshold: '5',
  trackStock: true,
+ seoTitle: '',
+ seoDescription: '',
  },
  });
 
@@ -94,6 +106,8 @@ export const ProductForm: React.FC = () => {
  description_de: existingProduct.description_de ?? '',
  lowStockThreshold: String(existingProduct.lowStockThreshold ?? 5),
  trackStock: existingProduct.trackStock ?? true,
+ seoTitle: existingProduct.seoTitle ?? '',
+ seoDescription: existingProduct.seoDescription ?? '',
  });
 
  if (existingProduct.imageStorageIds && existingProduct.imageUrls) {
@@ -214,6 +228,8 @@ export const ProductForm: React.FC = () => {
  imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,
  lowStockThreshold,
  trackStock: values.trackStock,
+ seoTitle: values.seoTitle,
+ seoDescription: values.seoDescription,
  });
  } else {
  await createProduct({
@@ -229,6 +245,8 @@ export const ProductForm: React.FC = () => {
  imageStorageIds: imageStorageIds.length > 0 ? imageStorageIds : undefined,
  lowStockThreshold,
  trackStock: values.trackStock,
+ seoTitle: values.seoTitle,
+ seoDescription: values.seoDescription,
  });
  }
 
@@ -240,6 +258,21 @@ export const ProductForm: React.FC = () => {
  };
 
  const isLoading = isEditing && catalog === undefined;
+
+ const seoPreview = buildProductSeo(
+ {
+ _id: id ?? 'produs-nou',
+ name: watch('name') || 'Produs nou',
+ name_ro: watch('name'),
+ description_ro: watch('description'),
+ price: parseFloat(watch('price')) || 0,
+ seoTitle: watch('seoTitle'),
+ seoDescription: watch('seoDescription'),
+ trackStock: watch('trackStock'),
+ },
+ SITE_URL,
+ 'ro',
+ );
 
  const pageTitle = useMemo(() => {
  if (isEditing) {
@@ -505,6 +538,57 @@ export const ProductForm: React.FC = () => {
  placeholder="Descriere produs în germană..."
  {...register('description_de')}
  />
+ </div>
+
+ <div className="grid grid-cols-1 gap-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-800">
+ <div>
+ <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-50">SEO (opțional)</h3>
+ <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+ Dacă lași câmpurile goale, titlul și descrierea din căutări se generează automat din numele și descrierea în română.
+ </p>
+ </div>
+
+ <div>
+ <Label htmlFor="seoTitle">Titlu SEO în română (max. {SEO_TITLE_MAX_LENGTH} caractere)</Label>
+ <Input
+ id="seoTitle"
+ type="text"
+ maxLength={SEO_TITLE_MAX_LENGTH}
+ className="mt-1 h-auto w-full rounded-lg px-3 py-2.5"
+ placeholder="de ex. Tocător din stejar lucrat manual"
+ {...register('seoTitle')}
+ />
+ </div>
+
+ <div>
+ <Label htmlFor="seoDescription">Descriere SEO în română (max. {SEO_DESCRIPTION_MAX_LENGTH} caractere)</Label>
+ <Textarea
+ id="seoDescription"
+ rows={2}
+ maxLength={SEO_DESCRIPTION_MAX_LENGTH}
+ className="mt-1 w-full rounded-lg px-3 py-2.5 resize-y"
+ placeholder="Descriere afișată în rezultatele căutării..."
+ {...register('seoDescription')}
+ />
+ </div>
+
+ <div
+ className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-3"
+ data-testid="seo-preview"
+ >
+ <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+ Previzualizare orientativă — Google poate rescrie sau trunchia rezultatul. Suprascrierile se aplică doar pentru română; în engleză și germană se generează din traduceri.
+ </p>
+ <p className="mt-1 text-sm font-medium text-blue-700 dark:text-blue-300">
+ {brandedTitle(seoPreview.title, 'Hawaii Woodworking')}
+ </p>
+ <p className="text-xs text-green-700 dark:text-green-400">
+ {SITE_URL}{seoPreview.canonicalPath}
+ </p>
+ <p className="mt-1 text-xs leading-5 text-stone-600 dark:text-stone-300">
+ {seoPreview.description}
+ </p>
+ </div>
  </div>
 
  {/* Images */}
