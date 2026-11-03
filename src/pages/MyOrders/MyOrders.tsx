@@ -1,7 +1,7 @@
 import type React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { useQuery } from 'convex/react';
+import { useConvexAuth, useQuery } from 'convex/react';
 import { useTranslation } from 'react-i18next';
 import { ShoppingBag, Eye } from 'lucide-react';
 import { api } from '../../../convex/_generated/api';
@@ -26,8 +26,11 @@ const formatPrice = (price: number): string => `${price.toFixed(2)} RON`;
 export const MyOrders: React.FC = () => {
  const { t, i18n } = useTranslation();
  const { isSignedIn, isLoaded } = useAuth();
- const navigate = useNavigate();
- const orders = useQuery(api.orders.getMyOrders);
+ const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
+ const orders = useQuery(
+ api.orders.getMyOrders,
+ isLoaded && isSignedIn && isAuthenticated && !isAuthLoading ? {} : 'skip'
+ );
 
  const STATUS_LABELS: Record<OrderStatus, string> = {
  pending: t('orders.pending'),
@@ -57,8 +60,7 @@ export const MyOrders: React.FC = () => {
  }
 
  if (!isSignedIn) {
- navigate('/login', { replace: true });
- return null;
+ return <Navigate to="/login" replace />;
  }
 
  if (orders === undefined) {

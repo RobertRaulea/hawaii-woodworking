@@ -4,6 +4,7 @@ import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./lib/auth";
 import { enforceRateLimit } from "./lib/rateLimit";
+import { customerSpend } from "./lib/orders.utils";
 
 const addressValidator = v.object({
   street: v.string(),
@@ -15,6 +16,7 @@ const addressValidator = v.object({
 
 interface CustomerProfile {
   email: string;
+  phone?: string;
   firstName: string;
   lastName: string;
   shippingAddress: {
@@ -70,6 +72,7 @@ const saveCustomer = async (
     await ctx.db.patch(existing._id, {
       firstName: args.firstName,
       lastName: args.lastName,
+      ...(args.phone !== undefined ? { phone: args.phone.trim() } : {}),
       shippingAddress: args.shippingAddress,
       billingAddress: args.billingAddress,
       newsletter: args.newsletter,
@@ -83,6 +86,7 @@ const saveCustomer = async (
     clerkUserId: linkId,
     isRegistered: Boolean(callerId),
     email: args.email,
+    ...(args.phone !== undefined ? { phone: args.phone.trim() } : {}),
     firstName: args.firstName,
     lastName: args.lastName,
     shippingAddress: args.shippingAddress,
@@ -98,6 +102,7 @@ export const upsertCustomer = internalMutation({
     callerId: v.optional(v.string()),
     callerEmail: v.optional(v.string()),
     email: v.string(),
+    phone: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
     shippingAddress: addressValidator,
@@ -112,6 +117,7 @@ export const upsertFromShipping = mutation({
   args: {
     clerkUserId: v.optional(v.string()),
     email: v.string(),
+    phone: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
     shippingAddress: addressValidator,
@@ -176,9 +182,7 @@ export const getAll = query({
           )
           .collect();
 
-        const totalSpent = orders
-          .filter((o) => o.status !== "cancelled")
-          .reduce((sum, o) => sum + o.total, 0);
+        const totalSpent = customerSpend(orders);
 
         return {
           ...customer,
@@ -211,6 +215,7 @@ export const updateCustomer = mutation({
   args: {
     customerId: v.id("customers"),
     email: v.string(),
+    phone: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
     shippingAddress: addressValidator,

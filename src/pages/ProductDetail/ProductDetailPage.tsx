@@ -1,7 +1,6 @@
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useQuery } from 'convex/react';
 import { useTranslation } from 'react-i18next';
 import {
   ChevronRight,
@@ -21,6 +20,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useProducts } from '../../hooks/useProducts';
+import { useAdminQuery } from '../../hooks/useAdminQuery';
 import { useTranslatedProduct, useTranslatedProducts } from '../../hooks/useTranslatedProducts';
 import { SEO } from '../../components/SEO/SEO';
 import { ProductGallery } from '../../components/ProductGallery';
@@ -40,7 +40,7 @@ export const ProductDetailPage: React.FC = () => {
   const { language } = useLanguage();
   const { addItem, state } = useCart();
 
-  const rawProduct = useQuery(
+  const { data: rawProduct, error } = useAdminQuery(
     api.products.getById,
     productId ? { id: productId as Id<'products'> } : 'skip'
   );
@@ -69,6 +69,39 @@ export const ProductDetailPage: React.FC = () => {
     const rest = others.filter(p => !sameCategory.includes(p));
     return [...sameCategory, ...rest].slice(0, 8);
   }, [translatedProducts, product]);
+
+  if (error) {
+    return (
+      <div role="alert" className="mx-auto max-w-7xl px-4 py-24 text-center md:px-6">
+        <h1 className="font-serif text-2xl text-stone-900 dark:text-stone-50">
+          {t('common.error')}
+        </h1>
+        <p className="mt-3 text-stone-600 dark:text-stone-300">
+          {t('errors.loadFailed', {
+            defaultValue: {
+              ro: 'Datele nu pot fi încărcate. Te rugăm să reîncarci pagina.',
+              en: 'The data could not be loaded. Please reload the page.',
+              de: 'Die Daten konnten nicht geladen werden. Bitte lade die Seite neu.',
+            }[language],
+          })}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button asChild variant="secondary">
+            <Link to="/products">{t('product.browseProducts')}</Link>
+          </Button>
+          <Button onClick={() => window.location.reload()}>
+            {t('common.reload', {
+              defaultValue: {
+                ro: 'Reîncarcă pagina',
+                en: 'Reload page',
+                de: 'Seite neu laden',
+              }[language],
+            })}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

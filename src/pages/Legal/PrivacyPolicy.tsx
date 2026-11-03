@@ -1,5 +1,7 @@
 import type React from 'react';
 
+import { BUSINESS } from '../../../shared/seo/seo.utils';
+
 export const PrivacyPolicy: React.FC = () => {
  return (
  <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
@@ -9,7 +11,7 @@ export const PrivacyPolicy: React.FC = () => {
  <section className="mb-8">
  <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">1. Informații generale</h2>
  <p className="mb-4">
- Această Politică de Confidențialitate explică modul în care SC Hawaii Woodworking SRL colectează, 
+ Această Politică de Confidențialitate explică modul în care {BUSINESS.legalName} colectează,
  utilizează și protejează datele dumneavoastră personale atunci când utilizați site-ul nostru. 
  Respectăm dreptul dumneavoastră la confidențialitate și ne angajăm să protejăm datele personale în 
  conformitate cu Regulamentul General privind Protecția Datelor (GDPR) și legislația română în vigoare.
@@ -102,13 +104,14 @@ export const PrivacyPolicy: React.FC = () => {
  <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">9. Contact</h2>
  <p className="mb-4">
  Pentru orice întrebări sau solicitări legate de prelucrarea datelor personale, ne puteți 
- contacta la adresa de email: contact@hawaiiwoodworking.ro
+ contacta la adresa de email: <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>,
+ {' '}telefon: <a href={BUSINESS.phoneHref}>{BUSINESS.phoneDisplay}</a> sau la adresa: {BUSINESS.address}.
  </p>
  </section>
  </div>
  
  <p className="text-sm text-gray-500 dark:text-stone-400 mt-12 text-center">
- Actualizat la data: 01.05.2023
+ Actualizat la data: 03.11.2026
  </p>
  </div>
  );

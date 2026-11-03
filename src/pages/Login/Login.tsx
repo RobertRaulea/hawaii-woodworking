@@ -25,7 +25,7 @@ export const Login: React.FC = () => {
  appearance={{
  elements: {
  rootBox: 'mx-auto w-full',
- card: 'shadow-soft rounded-lg border border-stone-200 dark:border-stone-800 ',
+ card: 'shadow-soft rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-50',
  headerTitle: 'font-serif text-stone-900 dark:text-stone-50 ',
  headerSubtitle: 'text-stone-500 dark:text-stone-400 ',
  socialButtonsBlockButton:
@@ -43,7 +43,7 @@ export const Login: React.FC = () => {
  <div className="mt-8 text-center">
  <Link
  to="/shipping"
- className="text-sm text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300: transition-colors duration-200"
+ className="text-sm text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors duration-200"
  >
  Continuă fără cont →
  </Link>

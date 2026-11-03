@@ -110,7 +110,7 @@ export const AdminCategories: React.FC = () => {
  return (
  <section>
  <div className="mb-6 flex items-center justify-between">
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">Categorii</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Categorii</h1>
  </div>
 
  {error && (
@@ -150,7 +150,7 @@ export const AdminCategories: React.FC = () => {
  <TableHeader>
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 ">Nume</TableHead>
- <TableHead className="hidden px-4 py-3 text-right font-medium text-stone-600 dark:text-stone-300md:table-cell">Produse</TableHead>
+ <TableHead className="hidden px-4 py-3 text-right font-medium text-stone-600 dark:text-stone-300 md:table-cell">Produse</TableHead>
  <TableHead className="px-4 py-3 text-right font-medium text-stone-600 dark:text-stone-300 ">Acțiuni</TableHead>
  </TableRow>
  </TableHeader>
@@ -187,7 +187,7 @@ export const AdminCategories: React.FC = () => {
  </p>
  ) : null}
  </TableCell>
- <TableCell className="hidden px-4 py-3 text-right text-stone-600 dark:text-stone-300md:table-cell">
+ <TableCell className="hidden px-4 py-3 text-right text-stone-600 dark:text-stone-300 md:table-cell">
  {productCountByCategory.get(category.name) ?? 0}
  </TableCell>
  <TableCell className="px-4 py-3 text-right">
@@ -207,7 +207,7 @@ export const AdminCategories: React.FC = () => {
  variant="ghost"
  size="sm"
  onClick={cancelEditing}
- className="gap-1 px-2.5 text-xs font-medium text-stone-500 dark:text-stone-400hover:text-stone-500 dark:hover:text-stone-400:"
+ className="gap-1 px-2.5 text-xs font-medium text-stone-500 dark:text-stone-400 hover:text-stone-500 dark:hover:text-stone-400"
  >
  <X className="h-3.5 w-3.5" />
  Anulează
@@ -242,7 +242,7 @@ export const AdminCategories: React.FC = () => {
  variant="ghost"
  size="sm"
  onClick={() => setConfirmDeleteId(null)}
- className="px-2.5 text-xs font-medium text-stone-500 dark:text-stone-400hover:text-stone-500 dark:hover:text-stone-400:"
+ className="px-2.5 text-xs font-medium text-stone-500 dark:text-stone-400 hover:text-stone-500 dark:hover:text-stone-400"
  >
  Anulează
  </Button>

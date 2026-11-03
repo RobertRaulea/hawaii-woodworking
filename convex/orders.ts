@@ -168,6 +168,21 @@ export const createPendingOrder = internalMutation({
       v.object({
         firstName: v.string(),
         lastName: v.string(),
+        phone: v.optional(v.string()),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          county: v.string(),
+          postalCode: v.string(),
+          country: v.string(),
+        }),
+      }),
+    ),
+    billing: v.optional(
+      v.object({
+        firstName: v.string(),
+        lastName: v.string(),
+        phone: v.optional(v.string()),
         address: v.object({
           street: v.string(),
           city: v.string(),
@@ -187,6 +202,7 @@ export const createPendingOrder = internalMutation({
       inventoryStatus: "pending",
       stripeSessionId: args.stripeSessionId,
       shipping: args.shipping,
+      billing: args.billing,
       createdAt: Date.now(),
     });
   },
@@ -731,5 +747,16 @@ export const getMyOrderById = query({
     if (!order || order.customerId !== customer._id) return null;
 
     return { ...order, customer };
+  },
+});
+
+export const getCheckoutConfirmation = query({
+  args: { sessionId: v.string() },
+  handler: async (ctx, { sessionId }) => {
+    if (!/^cs_(?:test_|live_)?[A-Za-z0-9]{16,240}$/.test(sessionId)) return null;
+    const order = await ctx.db.query('orders').withIndex('by_stripeSessionId', (q) => q.eq('stripeSessionId', sessionId)).first();
+    if (!order) return null;
+    const confirmed = paymentStatus(order) === 'paid';
+    return { state: order.status === 'cancelled' ? (confirmed ? 'review' as const : 'cancelled' as const) : confirmed ? (order.inventoryStatus === 'needs_review' ? 'review' as const : 'confirmed' as const) : 'pending' as const };
   },
 });

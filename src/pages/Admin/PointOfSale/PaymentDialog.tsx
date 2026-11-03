@@ -235,7 +235,7 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  size="xl"
  disabled={busy || !online}
  onClick={abandon}
- className="mt-3 w-full rounded-xl border-stone-300 dark:border-stone-700 px-4 py-3 text-sm font-normal text-stone-600 dark:text-stone-300hover:text-stone-600 dark:hover:text-stone-300:"
+ className="mt-3 w-full rounded-xl border-stone-300 dark:border-stone-700 px-4 py-3 text-sm font-normal text-stone-600 dark:text-stone-300 hover:text-stone-600 dark:hover:text-stone-300"
  >
  Plata neefectuata / refuzata · Inapoi la cos
  </Button>

@@ -58,31 +58,23 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  const categoriesParam = searchParams.get('categories');
  const minPriceParam = searchParams.get('minPrice');
  const maxPriceParam = searchParams.get('maxPrice');
- const sortParam = searchParams.get('sort') as SortOption;
+ const sortParam = searchParams.get('sort');
 
- if (categoriesParam) {
- setSelectedCategories(categoriesParam.split(','));
- }
- if (minPriceParam) {
- setPriceRange(prev => ({ ...prev, min: parseInt(minPriceParam) }));
- } else {
- setPriceRange(prev => ({ ...prev, min: minPrice }));
- }
- if (maxPriceParam) {
- setPriceRange(prev => ({ ...prev, max: parseInt(maxPriceParam) }));
- } else {
- setPriceRange(prev => ({ ...prev, max: maxPrice }));
- }
- if (sortParam && ['price-asc', 'price-desc', 'name-asc'].includes(sortParam)) {
- setSortBy(sortParam);
- }
+ const parsePrice = (value: string | null, fallback: number): number => {
+ if (value === null || !/^[+-]?\d+$/.test(value)) return fallback;
+ const parsed = Number(value);
+ if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) return fallback;
+ return Math.min(maxPrice, Math.max(minPrice, parsed));
+ };
+ const min = parsePrice(minPriceParam, minPrice);
+ const max = parsePrice(maxPriceParam, maxPrice);
+
+ setSelectedCategories(categoriesParam ? categoriesParam.split(',') : []);
+ setPriceRange({ min: Math.min(min, max), max: Math.max(min, max) });
+ setSortBy(
+ sortParam === 'price-desc' || sortParam === 'name-asc' ? sortParam : 'price-asc'
+ );
  }, [searchParams, minPrice, maxPrice]);
-
- useEffect(() => {
- if (minPrice && maxPrice && priceRange.min === 0 && priceRange.max === 10000) {
- setPriceRange({ min: minPrice, max: maxPrice });
- }
- }, [minPrice, maxPrice, priceRange.min, priceRange.max]);
 
  const updateUrlParams = (
  categories: string[],

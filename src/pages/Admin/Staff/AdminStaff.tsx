@@ -58,7 +58,7 @@ export const AdminStaff = () => {
 
  return (
  <div className="mx-auto max-w-3xl p-4 md:p-6">
- <h1 className="text-xl font-semibold text-stone-900 dark:text-stone-50 ">Echipă</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Echipă</h1>
  <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
  Emailurile apar automat când fiecare membru staff intră în zona de
  administrare. Pentru conturile care nu s-au conectat încă, asociază
@@ -103,7 +103,7 @@ export const AdminStaff = () => {
  {entry.userId}
  </p>
  </div>
- <div className="shrink-0 text-xs text-stone-500 dark:text-stone-400md:text-right">
+ <div className="shrink-0 text-xs text-stone-500 dark:text-stone-400 md:text-right">
  <p className="truncate text-sm text-stone-700 dark:text-stone-300 ">
  {entry.email}
  </p>

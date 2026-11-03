@@ -1,7 +1,7 @@
 'use node';
 
 import Stripe from 'stripe';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
 import { action } from './_generated/server';
@@ -38,6 +38,7 @@ export const createCheckoutSession = action({
     customer: v.object({
       clerkUserId: v.optional(v.string()),
       email: v.string(),
+      phone: v.string(),
       firstName: v.string(),
       lastName: v.string(),
       shippingAddress: addressValidator,
@@ -57,6 +58,7 @@ export const createCheckoutSession = action({
       customer: {
         clerkUserId?: string;
         email: string;
+        phone: string;
         firstName: string;
         lastName: string;
         shippingAddress: {
@@ -79,6 +81,17 @@ export const createCheckoutSession = action({
   ): Promise<CheckoutResponse> => {
     const paymentEnvironment = requirePaymentEnvironment();
     const safeOrigin = resolveCheckoutOrigin(origin);
+    if (paymentEnvironment.name === 'production') {
+      throw new ConvexError('Costul transportului nu este încă stabilit. Plata este indisponibilă până la configurarea tarifului.');
+    }
+    const country = customer.shippingAddress.country.trim().normalize('NFC').toLowerCase();
+    if (country !== 'romania' && country !== 'românia' && country !== 'ro') {
+      throw new ConvexError('Livrarea este disponibilă doar în România. Corectează țara adresei de livrare.');
+    }
+    const phone = customer.phone.trim();
+    if (!/^\+?[0-9\s\-()]{7,20}$/.test(phone)) {
+      throw new ConvexError('Numărul de telefon nu este valid.');
+    }
     if (items.length === 0) {
       throw new Error('No items provided for checkout.');
     }
@@ -100,6 +113,7 @@ export const createCheckoutSession = action({
             ? (identity.email as string | undefined)
             : undefined,
         email: customer.email,
+        phone,
         firstName: customer.firstName,
         lastName: customer.lastName,
         shippingAddress: customer.shippingAddress,
@@ -115,6 +129,7 @@ export const createCheckoutSession = action({
     )) as string | null;
 
     let stripeCustomerId: string | undefined = existingStripeId ?? undefined;
+    let canUpdateStripeCustomer = false;
 
     // Stored ids can belong to another Stripe mode/account (e.g. test ids
     // after switching prod to live keys); drop them and resolve again.
@@ -122,6 +137,7 @@ export const createCheckoutSession = action({
       try {
         const stored = await stripe.customers.retrieve(stripeCustomerId);
         if (stored.deleted) stripeCustomerId = undefined;
+        else canUpdateStripeCustomer = stored.metadata.convexCustomerId === customerId;
       } catch (error) {
         if (
           error instanceof Stripe.errors.StripeError &&
@@ -143,9 +159,12 @@ export const createCheckoutSession = action({
 
       if (existingStripeCustomers.data.length > 0) {
         stripeCustomerId = existingStripeCustomers.data[0].id;
+        canUpdateStripeCustomer =
+          existingStripeCustomers.data[0].metadata.convexCustomerId === customerId;
       } else {
         const newStripeCustomer = await stripe.customers.create({
           email: customer.email,
+          phone,
           name: `${customer.firstName} ${customer.lastName}`,
           address: {
             line1: customer.shippingAddress.street,
@@ -167,6 +186,9 @@ export const createCheckoutSession = action({
         customerId,
         stripeCustomerId,
       });
+    }
+    if (canUpdateStripeCustomer && stripeCustomerId) {
+      await stripe.customers.update(stripeCustomerId, { phone });
     }
 
     // 2. Resolve products
@@ -213,7 +235,7 @@ export const createCheckoutSession = action({
       payment_method_types: ['card'],
       line_items: lineItems,
       customer: stripeCustomerId,
-      success_url: `${safeOrigin}/thank-you`,
+      success_url: `${safeOrigin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${safeOrigin}/cart?canceled=true`,
       metadata: {
         convexCustomerId: customerId,
@@ -230,7 +252,14 @@ export const createCheckoutSession = action({
       shipping: {
         firstName: customer.firstName,
         lastName: customer.lastName,
+        phone,
         address: customer.shippingAddress,
+      },
+      billing: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        phone,
+        address: customer.billingAddress,
       },
     });
 

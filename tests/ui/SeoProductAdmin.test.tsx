@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { RequestForQueries } from 'convex/react';
 import { getFunctionName } from 'convex/server';
 import assert from 'node:assert/strict';
 import { it, mock } from 'node:test';
@@ -39,6 +40,11 @@ const mutation = mock.fn<(reference: unknown, args: unknown) => Promise<unknown>
 mock.module('convex/react', {
   namedExports: {
     useQuery: query,
+    useQueries: (requests: RequestForQueries) => Object.fromEntries(
+      Object.entries(requests).map(([key, request]) => [
+        key, query(request.query, request.args),
+      ]),
+    ),
     useMutation: () => mutation,
     usePaginatedQuery: () => ({ results: [], status: 'Exhausted', loadMore: () => {} }),
     useConvex: () => ({ mutation, query: async () => null }),

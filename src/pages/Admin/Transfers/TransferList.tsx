@@ -66,7 +66,7 @@ const TransferList = () => {
  return (
  <section className="space-y-5">
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-50 ">Transferuri</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Transferuri</h1>
  <div className="flex flex-wrap gap-2">
  {can('transfers.request') && (
  <Button

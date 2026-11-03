@@ -149,7 +149,7 @@ export const AdminOrders: React.FC = () => {
  return (
  <section className="max-w-6xl space-y-6">
  <header>
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">Comenzi</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Comenzi</h1>
  <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
  Toate comenzile online, cu starea plății și a pregătirii.
  </p>

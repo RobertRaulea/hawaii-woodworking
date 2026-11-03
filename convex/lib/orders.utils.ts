@@ -1,4 +1,5 @@
 import type { Doc } from "../_generated/dataModel";
+import { toCents } from "./pos.utils";
 
 export type PaymentStatus = "paid" | "cancelled" | "pending";
 
@@ -24,6 +25,16 @@ export const paymentStatus = (order: Doc<"orders">): PaymentStatus => {
   if (order.status === "cancelled") return "cancelled";
   return "pending";
 };
+
+export const customerSpend = (orders: readonly Doc<"orders">[]): number =>
+  orders.reduce(
+    (sum, order) =>
+      sum +
+      (order.status !== "cancelled" && paymentStatus(order) === "paid"
+        ? toCents(order.total)
+        : 0),
+    0,
+  ) / 100;
 
 export const isFulfillEligible = (order: Doc<"orders">) =>
   order.status === "paid" &&

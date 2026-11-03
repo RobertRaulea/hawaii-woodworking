@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
     <section className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <h1 className="text-3xl font-semibold text-stone-900 dark:text-stone-50">
+          <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50">
             Panou
           </h1>
           <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">

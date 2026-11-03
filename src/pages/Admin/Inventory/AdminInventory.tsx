@@ -173,7 +173,7 @@ const InventoryWorkspace = ({
  return (
  <div>
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">Stocuri</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Stocuri</h1>
  <div className="flex gap-2">
  {can('products.posOptions') ? (
  <Button
@@ -518,4 +518,3 @@ const InventoryWorkspace = ({
  </div>
  );
 };
-

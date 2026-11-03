@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from '@/components/ui/sonner';
 import type { CartItem, CartState, CartAction, CartContextType } from '../types/cart.types';
 
@@ -22,7 +22,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
  }
  return {
  ...state,
- items: [...state.items, { ...action.payload, quantity: 1 }],
+ items: [...state.items, action.payload],
  };
  }
  case 'REMOVE_ITEM':
@@ -122,10 +122,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
  dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
  };
 
- const clearCart = () => {
+ const clearCart = useCallback(() => {
  dispatch({ type: 'CLEAR_CART' });
  localStorage.removeItem('cart');
- };
+ }, []);
 
  return (
  <CartContext.Provider value={{ state, addItem, removeItem, updateQuantity, clearCart, totalItems }}>

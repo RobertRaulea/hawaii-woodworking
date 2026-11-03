@@ -4,6 +4,7 @@ import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useSignUp } from '@clerk/clerk-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../../convex/_generated/api';
 import { useShipping } from '../../context/ShippingContext';
 import type { ShippingFormData } from '../../types/shipping.types';
@@ -52,6 +53,7 @@ interface InputFieldProps {
  id: string;
  type?: string;
  placeholder?: string;
+ autoComplete?: React.InputHTMLAttributes<HTMLInputElement>['autoComplete'];
  error?: string;
  required?: boolean;
  registration: ReturnType<ReturnType<typeof useForm>['register']>;
@@ -62,6 +64,7 @@ const InputField: React.FC<InputFieldProps> = ({
  id,
  type = 'text',
  placeholder,
+ autoComplete,
  error,
  required = false,
  registration,
@@ -75,12 +78,16 @@ const InputField: React.FC<InputFieldProps> = ({
  id={id}
  type={type}
  placeholder={placeholder}
+ autoComplete={autoComplete}
+ required={required}
+ aria-invalid={error ? true : undefined}
+ aria-describedby={error ? `${id}-error` : undefined}
  className={`h-auto w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 dark:text-stone-50 transition-all duration-200 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 ${
  error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300 dark:border-stone-600 '
  }`}
  {...registration}
  />
- {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
+ {error && <p id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
  </div>
 );
 
@@ -88,6 +95,7 @@ interface SelectFieldProps {
  label: string;
  id: string;
  options: readonly string[];
+ autoComplete?: React.SelectHTMLAttributes<HTMLSelectElement>['autoComplete'];
  error?: string;
  required?: boolean;
  registration: ReturnType<ReturnType<typeof useForm>['register']>;
@@ -97,6 +105,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
  label,
  id,
  options,
+ autoComplete,
  error,
  required = false,
  registration,
@@ -108,19 +117,23 @@ const SelectField: React.FC<SelectFieldProps> = ({
  </Label>
  <select
  id={id}
+ autoComplete={autoComplete}
+ required={required}
+ aria-invalid={error ? true : undefined}
+ aria-describedby={error ? `${id}-error` : undefined}
  className={`w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 dark:text-stone-50 bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200 ${
  error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300 dark:border-stone-600 '
  }`}
  {...registration}
  >
- <option value="">Select...</option>
+ <option value="">Selectează...</option>
  {options.map((opt) => (
  <option key={opt} value={opt}>
  {opt}
  </option>
  ))}
  </select>
- {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
+ {error && <p id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
  </div>
 );
 
@@ -151,6 +164,20 @@ const EMPTY_DEFAULTS: ShippingFormData = {
 };
 
 export const Shipping: React.FC = () => {
+ const { t, i18n } = useTranslation();
+ const language = i18n.resolvedLanguage?.split('-')[0] ?? i18n.language?.split('-')[0];
+ const shippingNotice = {
+ ro: 'Livrăm doar în România. Costul transportului nu este încă stabilit; plata reală este indisponibilă până la configurarea tarifului.',
+ en: 'Delivery is available only in Romania. The shipping tariff is not yet confirmed; real payments are unavailable until it is configured.',
+ de: 'Die Lieferung ist nur innerhalb Rumäniens möglich. Die Versandkosten stehen noch nicht fest; echte Zahlungen sind bis zur Festlegung nicht verfügbar.',
+ };
+ const countryCorrection = t('shipping.romaniaOnlyCorrection', {
+ defaultValue: {
+ ro: 'Livrăm doar în România. Corectează țara adresei salvate pentru a continua.',
+ en: 'Delivery is available only in Romania. Correct the country of your saved shipping address to continue.',
+ de: 'Die Lieferung ist nur innerhalb Rumäniens möglich. Korrigiere das Land der gespeicherten Lieferadresse, um fortzufahren.',
+ }[language === 'en' || language === 'de' ? language : 'ro'],
+ });
  const navigate = useNavigate();
  const { setShippingData, shippingData } = useShipping();
  const { state: cartState } = useCart();
@@ -187,7 +214,7 @@ export const Shipping: React.FC = () => {
  hasPreFilled.current = true;
  reset({
  email: customer.email,
- phone: '',
+ phone: customer.phone ?? '',
  firstName: customer.firstName,
  lastName: customer.lastName,
  password: '',
@@ -266,6 +293,7 @@ export const Shipping: React.FC = () => {
  try {
  await upsertCustomerFromShipping({
  email: data.email,
+ phone: data.phone,
  firstName: data.firstName,
  lastName: data.lastName,
  shippingAddress: data.shippingAddress,
@@ -409,6 +437,9 @@ export const Shipping: React.FC = () => {
 
  <Input
  aria-label="Cod de verificare email"
+ autoComplete="one-time-code"
+ aria-invalid={verificationError ? true : undefined}
+ aria-describedby={verificationError ? 'verificationCode-error' : undefined}
  type="text"
  inputMode="numeric"
  maxLength={6}
@@ -418,7 +449,7 @@ export const Shipping: React.FC = () => {
  className="h-auto w-full rounded-md border-stone-300 dark:border-stone-600 px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] transition-all duration-200 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
  />
 
- {verificationError && <p className="mt-2 text-sm text-red-600 dark:text-red-400 ">{verificationError}</p>}
+ {verificationError && <p id="verificationCode-error" className="mt-2 text-sm text-red-600 dark:text-red-400 ">{verificationError}</p>}
 
  <Button
  type="button"
@@ -471,7 +502,8 @@ export const Shipping: React.FC = () => {
  label="Email"
  id="email"
  type="email"
- placeholder="your@email.com"
+ autoComplete="email"
+ placeholder="adresa@exemplu.ro"
  error={errors.email?.message}
  required
  registration={register('email', {
@@ -489,10 +521,12 @@ export const Shipping: React.FC = () => {
  label="Telefon"
  id="phone"
  type="tel"
+ autoComplete="tel"
  placeholder="+40 7xx xxx xxx"
  error={errors.phone?.message}
  required
  registration={register('phone', {
+ setValueAs: (value: string) => value.trim(),
  required: 'Numărul de telefon este obligatoriu',
  pattern: {
  value: /^\+?[0-9\s\-()]{7,20}$/,
@@ -512,7 +546,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Prenume"
  id="firstName"
- placeholder="First name"
+ autoComplete="given-name"
+ placeholder="Prenume"
  error={errors.firstName?.message}
  required
  registration={register('firstName', {
@@ -523,7 +558,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Nume"
  id="lastName"
- placeholder="Last name"
+ autoComplete="family-name"
+ placeholder="Nume"
  error={errors.lastName?.message}
  required
  registration={register('lastName', {
@@ -543,21 +579,30 @@ export const Shipping: React.FC = () => {
  <SelectField
  label="Țară"
  id="shippingCountry"
- options={COUNTRIES}
+ autoComplete="shipping country-name"
+ options={['România']}
  error={errors.shippingAddress?.country?.message}
  required
  registration={register('shippingAddress.country', {
  required: 'Țara este obligatorie',
+ validate: (value) => value === 'România' || countryCorrection,
  onChange: () => {
  setValue('shippingAddress.county', '');
  setValue('shippingAddress.city', '');
  },
  })}
  />
+ <p className="text-sm text-stone-600 dark:text-stone-300" role="status">
+ {t('shipping.tariffPendingNotice', { defaultValue: shippingNotice[language === 'en' || language === 'de' ? language : 'ro'] })}
+ </p>
+ {shippingCountry !== 'România' && (
+ <p className="text-sm text-red-600 dark:text-red-400">{countryCorrection}</p>
+ )}
  <InputField
  label="Stradă"
  id="shippingStreet"
- placeholder="Street address"
+ autoComplete="shipping street-address"
+ placeholder="Stradă și număr"
  error={errors.shippingAddress?.street?.message}
  required
  registration={register('shippingAddress.street', {
@@ -601,7 +646,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Județ / Sector"
  id="shippingCounty"
- placeholder="County / State"
+ autoComplete="shipping address-level1"
+ placeholder="Județ / Regiune"
  error={errors.shippingAddress?.county?.message}
  required
  registration={register('shippingAddress.county', {
@@ -639,7 +685,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Oraș"
  id="shippingCity"
- placeholder="City"
+ autoComplete="shipping address-level2"
+ placeholder="Oraș"
  error={errors.shippingAddress?.city?.message}
  required
  registration={register('shippingAddress.city', {
@@ -652,7 +699,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Cod poștal"
  id="shippingPostalCode"
- placeholder="Postal code"
+ autoComplete="shipping postal-code"
+ placeholder="Cod poștal"
  error={errors.shippingAddress?.postalCode?.message}
  registration={register('shippingAddress.postalCode', {
  validate: (val) => {
@@ -696,6 +744,7 @@ export const Shipping: React.FC = () => {
  <SelectField
  label="Țară"
  id="billingCountry"
+ autoComplete="billing country-name"
  options={COUNTRIES}
  error={errors.billingAddress?.country?.message}
  required
@@ -710,7 +759,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Stradă"
  id="billingStreet"
- placeholder="Street address"
+ autoComplete="billing street-address"
+ placeholder="Stradă și număr"
  error={errors.billingAddress?.street?.message}
  required
  registration={register('billingAddress.street', {
@@ -754,7 +804,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Județ / Sector"
  id="billingCounty"
- placeholder="County / State"
+ autoComplete="billing address-level1"
+ placeholder="Județ / Regiune"
  error={errors.billingAddress?.county?.message}
  required
  registration={register('billingAddress.county', {
@@ -792,7 +843,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Oraș"
  id="billingCity"
- placeholder="City"
+ autoComplete="billing address-level2"
+ placeholder="Oraș"
  error={errors.billingAddress?.city?.message}
  required
  registration={register('billingAddress.city', {
@@ -805,7 +857,8 @@ export const Shipping: React.FC = () => {
  <InputField
  label="Cod poștal"
  id="billingPostalCode"
- placeholder="Postal code"
+ autoComplete="billing postal-code"
+ placeholder="Cod poștal"
  error={errors.billingAddress?.postalCode?.message}
  registration={register('billingAddress.postalCode', {
  validate: (val) => {
@@ -861,6 +914,7 @@ export const Shipping: React.FC = () => {
  onBlur={field.onBlur}
  ref={field.ref}
  aria-invalid={errors.acceptPolicy ? true : undefined}
+ aria-describedby={errors.acceptPolicy ? 'acceptPolicy-error' : undefined}
  className="mt-0.5 h-4 w-4"
  />
  <span className="text-sm text-stone-700 dark:text-stone-300 ">
@@ -880,7 +934,7 @@ export const Shipping: React.FC = () => {
  )}
  />
  {errors.acceptPolicy && (
- <p className="text-xs text-red-600 dark:text-red-400 ml-7">{errors.acceptPolicy.message}</p>
+ <p id="acceptPolicy-error" className="text-xs text-red-600 dark:text-red-400 ml-7">{errors.acceptPolicy.message}</p>
  )}
 
  {/* Create Account */}
@@ -913,6 +967,7 @@ export const Shipping: React.FC = () => {
  label="Parolă"
  id="password"
  type="password"
+ autoComplete="new-password"
  placeholder="Minim 8 caractere"
  error={errors.password?.message}
  required

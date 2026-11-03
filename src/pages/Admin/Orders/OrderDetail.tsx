@@ -143,7 +143,7 @@ export const OrderDetail: React.FC = () => {
  Înapoi la Comenzi
  </Link>
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
  Comanda #{order.shortNumber}
  </h1>
  <div className="flex flex-wrap items-center gap-2">

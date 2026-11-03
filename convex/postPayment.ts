@@ -5,42 +5,11 @@ import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { readEnvironment } from "./lib/environment";
+import { createOblioInvoice } from "./lib/oblio";
+import type { OrderWithCustomer } from "./lib/oblio";
+import { escapeHtml } from "../shared/seo/seo.utils";
 
-type OblioInvoiceResponse = {
-  seriesName: string;
-  number: string;
-  link: string;
-};
-
-type OrderItem = {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
-
-type Address = {
-  street: string;
-  city: string;
-  county: string;
-  postalCode: string;
-  country: string;
-};
-
-type Customer = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  shippingAddress: Address;
-  billingAddress: Address;
-};
-
-type OrderWithCustomer = {
-  _id: string;
-  items: OrderItem[];
-  total: number;
-  customer: Customer;
-};
+type OrderItem = OrderWithCustomer["items"][number];
 
 export const handlePostPayment = internalAction({
   args: {
@@ -84,26 +53,30 @@ export const handlePostPayment = internalAction({
       );
     }
 
-    let invoiceId = "";
-    let invoicePdfUrl = "";
+    let invoiceId = order.invoiceId ?? "";
+    let invoicePdfUrl = order.invoicePdfUrl ?? "";
+    let invoiceFailed = false;
 
-    try {
-      const oblioInvoice = await createOblioInvoice(
-        order,
-        oblioApiEmail,
-        oblioApiSecret,
-        oblioApiCif
-      );
-      invoiceId = `${oblioInvoice.seriesName}-${oblioInvoice.number}`;
-      invoicePdfUrl = oblioInvoice.link;
+    if (!order.invoiceId) {
+      try {
+        const oblioInvoice = await createOblioInvoice(
+          order,
+          oblioApiEmail,
+          oblioApiSecret,
+          oblioApiCif
+        );
+        invoiceId = `${oblioInvoice.seriesName}-${oblioInvoice.number}`;
+        invoicePdfUrl = oblioInvoice.link;
 
-      await ctx.runMutation(internal.orders.setInvoiceData, {
-        orderId,
-        invoiceId,
-        invoicePdfUrl,
-      });
-    } catch (error) {
-      console.error("Oblio invoice creation failed:", error);
+        await ctx.runMutation(internal.orders.setInvoiceData, {
+          orderId,
+          invoiceId,
+          invoicePdfUrl,
+        });
+      } catch {
+        invoiceFailed = true;
+        console.error("Oblio invoice creation failed; manual verification required before retry");
+      }
     }
 
     const resend = new Resend(resendApiKey);
@@ -113,10 +86,10 @@ export const handlePostPayment = internalAction({
         from: fromEmail,
         to: adminEmail,
         subject: `🔔 Comandă nouă #${orderId.slice(-6)} - ${order.customer.firstName} ${order.customer.lastName}`,
-        html: generateAdminEmailHtml(order, invoicePdfUrl),
+        html: generateAdminEmailHtml(order, invoicePdfUrl, invoiceFailed),
       });
-    } catch (error) {
-      console.error("Admin email failed:", error);
+    } catch {
+      console.error("Admin email failed");
     }
 
     try {
@@ -126,85 +99,26 @@ export const handlePostPayment = internalAction({
         subject: "Mulțumim pentru comandă! 🌺",
         html: generateCustomerEmailHtml(order, invoicePdfUrl),
       });
-    } catch (error) {
-      console.error("Customer email failed:", error);
+    } catch {
+      console.error("Customer email failed");
     }
 
     console.log(`Post-payment processing completed for order ${orderId}`);
   },
 });
 
-async function createOblioInvoice(
-  order: OrderWithCustomer,
-  apiEmail: string,
-  apiSecret: string,
-  cif: string
-): Promise<OblioInvoiceResponse> {
-  const authHeader = `Bearer ${Buffer.from(`${apiEmail}:${apiSecret}`).toString("base64")}`;
-
-  const oblioPayload = {
-    cif: cif,
-    client: {
-      cif: "",
-      name: `${order.customer.firstName} ${order.customer.lastName}`,
-      address: order.customer.shippingAddress.street,
-      city: order.customer.shippingAddress.city,
-      state: order.customer.shippingAddress.county,
-      country: "Romania",
-      email: order.customer.email,
-      phone: "",
-      vatPayer: false,
-    },
-    issueDate: new Date().toISOString().split("T")[0],
-    currency: "RON",
-    language: "RO",
-    products: order.items.map((item: OrderItem) => ({
-      name: item.name,
-      price: item.price,
-      measuringUnit: "buc",
-      currency: "RON",
-      vatName: "Normala",
-      vatPercentage: 19,
-      vatIncluded: true,
-      quantity: item.quantity,
-      productType: "Produs",
-    })),
-    workStation: "Sediu",
+function generateAdminEmailHtml(order: OrderWithCustomer, invoicePdfUrl: string, invoiceFailed: boolean): string {
+  const shipping = order.shipping ?? {
+    firstName: order.customer.firstName,
+    lastName: order.customer.lastName,
+    phone: order.customer.phone,
+    address: order.customer.shippingAddress,
   };
-
-  const response = await fetch("https://www.oblio.eu/api/docs/invoice", {
-    method: "POST",
-    headers: {
-      Authorization: authHeader,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(oblioPayload),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Oblio API error: ${response.status} - ${errorText}`);
-  }
-
-  const result = await response.json();
-  
-  if (result.status !== "success" || !result.data) {
-    throw new Error(`Oblio API error: ${JSON.stringify(result)}`);
-  }
-
-  return {
-    seriesName: result.data.seriesName,
-    number: result.data.number,
-    link: result.data.link,
-  };
-}
-
-function generateAdminEmailHtml(order: OrderWithCustomer, invoicePdfUrl: string): string {
   const itemsHtml = order.items
     .map(
       (item: OrderItem) => `
     <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.name}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(item.name)}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${item.price.toFixed(2)} RON</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${(item.price * item.quantity).toFixed(2)} RON</td>
@@ -222,17 +136,18 @@ function generateAdminEmailHtml(order: OrderWithCustomer, invoicePdfUrl: string)
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
         <h1 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">🔔 Comandă nouă!</h1>
-        <p style="margin: 0; color: #6b7280;">Comandă #${order._id.slice(-8)}</p>
+        <p style="margin: 0; color: #6b7280;">Comandă #${escapeHtml(order._id.slice(-8))}</p>
       </div>
 
       <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
         <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #111827;">Detalii client</h2>
-        <p style="margin: 4px 0;"><strong>Nume:</strong> ${order.customer.firstName} ${order.customer.lastName}</p>
-        <p style="margin: 4px 0;"><strong>Email:</strong> ${order.customer.email}</p>
+        <p style="margin: 4px 0;"><strong>Nume:</strong> ${escapeHtml(shipping.firstName)} ${escapeHtml(shipping.lastName)}</p>
+        <p style="margin: 4px 0;"><strong>Email:</strong> ${escapeHtml(order.customer.email)}</p>
+        <p style="margin: 4px 0;"><strong>Telefon:</strong> ${escapeHtml(shipping.phone ?? order.customer.phone ?? "")}</p>
         <p style="margin: 4px 0;"><strong>Adresă livrare:</strong><br>
-          ${order.customer.shippingAddress.street}<br>
-          ${order.customer.shippingAddress.city}, ${order.customer.shippingAddress.county}<br>
-          ${order.customer.shippingAddress.postalCode}, ${order.customer.shippingAddress.country}
+          ${escapeHtml(shipping.address.street)}<br>
+          ${escapeHtml(shipping.address.city)}, ${escapeHtml(shipping.address.county)}<br>
+          ${escapeHtml(shipping.address.postalCode)}, ${escapeHtml(shipping.address.country)}
         </p>
       </div>
 
@@ -259,12 +174,13 @@ function generateAdminEmailHtml(order: OrderWithCustomer, invoicePdfUrl: string)
         </table>
       </div>
 
+      ${invoiceFailed ? '<p>Factura nu a putut fi confirmată. Verifică manual în Oblio înainte de orice reîncercare pentru a evita duplicarea.</p>' : ""}
       ${
         invoicePdfUrl
           ? `
       <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
         <p style="margin: 0 0 8px 0; font-weight: 600; color: #065f46;">✅ Factură Oblio generată</p>
-        <a href="${invoicePdfUrl}" style="color: #059669; text-decoration: underline;">Descarcă factura PDF</a>
+        <a href="${escapeHtml(invoicePdfUrl)}" style="color: #059669; text-decoration: underline;">Descarcă factura PDF</a>
       </div>
       `
           : ""
@@ -279,11 +195,17 @@ function generateAdminEmailHtml(order: OrderWithCustomer, invoicePdfUrl: string)
 }
 
 function generateCustomerEmailHtml(order: OrderWithCustomer, invoicePdfUrl: string): string {
+  const shipping = order.shipping ?? {
+    firstName: order.customer.firstName,
+    lastName: order.customer.lastName,
+    phone: order.customer.phone,
+    address: order.customer.shippingAddress,
+  };
   const itemsHtml = order.items
     .map(
       (item: OrderItem) => `
     <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.name}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(item.name)}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${(item.price * item.quantity).toFixed(2)} RON</td>
     </tr>
@@ -304,14 +226,14 @@ function generateCustomerEmailHtml(order: OrderWithCustomer, invoicePdfUrl: stri
       </div>
 
       <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #111827;">Bună, ${order.customer.firstName}!</h2>
+        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #111827;">Bună, ${escapeHtml(shipping.firstName)}!</h2>
         <p style="margin: 0 0 12px 0; color: #4b5563;">
-          Comanda ta #${order._id.slice(-8)} a fost procesată cu succes. Vei primi produsele la adresa:
+          Comanda ta #${escapeHtml(order._id.slice(-8))} a fost procesată cu succes. Vei primi produsele la adresa:
         </p>
         <div style="background: #f9fafb; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
-          <p style="margin: 0; font-weight: 500;">${order.customer.shippingAddress.street}</p>
-          <p style="margin: 4px 0 0 0;">${order.customer.shippingAddress.city}, ${order.customer.shippingAddress.county}</p>
-          <p style="margin: 4px 0 0 0;">${order.customer.shippingAddress.postalCode}, ${order.customer.shippingAddress.country}</p>
+          <p style="margin: 0; font-weight: 500;">${escapeHtml(shipping.address.street)}</p>
+          <p style="margin: 4px 0 0 0;">${escapeHtml(shipping.address.city)}, ${escapeHtml(shipping.address.county)}</p>
+          <p style="margin: 4px 0 0 0;">${escapeHtml(shipping.address.postalCode)}, ${escapeHtml(shipping.address.country)}</p>
         </div>
       </div>
 
@@ -342,7 +264,7 @@ function generateCustomerEmailHtml(order: OrderWithCustomer, invoicePdfUrl: stri
           ? `
       <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 20px; margin-bottom: 24px; text-align: center;">
         <p style="margin: 0 0 12px 0; font-weight: 600; color: #065f46;">📄 Factura ta fiscală</p>
-        <a href="${invoicePdfUrl}" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">Descarcă factura PDF</a>
+        <a href="${escapeHtml(invoicePdfUrl)}" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500;">Descarcă factura PDF</a>
       </div>
       `
           : ""

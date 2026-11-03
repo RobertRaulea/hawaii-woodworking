@@ -41,6 +41,7 @@ export default defineSchema({
     stripeCustomerId: v.optional(v.string()),
     isRegistered: v.optional(v.boolean()),
     email: v.string(),
+    phone: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
     shippingAddress: v.object({
@@ -124,6 +125,21 @@ export default defineSchema({
       v.object({
         firstName: v.string(),
         lastName: v.string(),
+        phone: v.optional(v.string()),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          county: v.string(),
+          postalCode: v.string(),
+          country: v.string(),
+        }),
+      }),
+    ),
+    billing: v.optional(
+      v.object({
+        firstName: v.string(),
+        lastName: v.string(),
+        phone: v.optional(v.string()),
         address: v.object({
           street: v.string(),
           city: v.string(),

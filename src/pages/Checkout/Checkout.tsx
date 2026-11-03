@@ -1,9 +1,10 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAction, useConvexAuth } from 'convex/react';
 import { useAuth } from '@clerk/clerk-react';
 import { ConvexError } from 'convex/values';
+import { useTranslation } from 'react-i18next';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { api } from '../../../convex/_generated/api';
 import type { CartItem } from '../../context/CartContext';
@@ -13,8 +14,36 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 export const Checkout: React.FC = () => {
+ const { t, i18n } = useTranslation();
+ const language = i18n.resolvedLanguage?.split('-')[0] ?? i18n.language?.split('-')[0];
+ const copy = {
+ ro: {
+ tariff: 'Costul transportului nu este încă stabilit. Plata este indisponibilă până la configurarea tarifului.',
+ test: 'TEST: plată simulată doar pentru produse. Tariful transportului nu este încă stabilit; nu se încasează bani și nu se livrează produse.',
+ country: 'Livrăm doar în România. Corectează țara adresei de livrare.',
+ edit: 'Corectează datele de livrare',
+ subtotal: 'Subtotal produse',
+ },
+ en: {
+ tariff: 'The shipping tariff is not yet confirmed. Payment is unavailable until the tariff is configured.',
+ test: 'TEST: simulated product-only payment. Shipping tariff pending; no money is collected and no products are shipped.',
+ country: 'Delivery is available only in Romania. Please correct the shipping country.',
+ edit: 'Correct shipping details',
+ subtotal: 'Product subtotal',
+ },
+ de: {
+ tariff: 'Die Versandkosten stehen noch nicht fest. Zahlungen sind bis zur Festlegung des Tarifs nicht verfügbar.',
+ test: 'TEST: simulierte Zahlung nur für Produkte. Versandkosten noch offen; es wird kein Geld eingezogen und nichts versendet.',
+ country: 'Die Lieferung ist nur innerhalb Rumäniens möglich. Bitte korrigiere das Lieferland.',
+ edit: 'Lieferdaten korrigieren',
+ subtotal: 'Zwischensumme Produkte',
+ },
+ }[language === 'en' || language === 'de' ? language : 'ro'];
  const { state } = useCart();
  const { shippingData } = useShipping();
+ const productionPaymentBlocked = import.meta.env?.VITE_APP_ENV === 'production';
+ const shippingCountry = shippingData?.shippingAddress.country.trim().normalize('NFC').toLowerCase();
+ const countryValid = shippingCountry === 'romania' || shippingCountry === 'românia' || shippingCountry === 'ro';
  const navigate = useNavigate();
  const [loading, setLoading] = useState(false);
  const { isLoaded, isSignedIn } = useAuth();
@@ -35,7 +64,7 @@ export const Checkout: React.FC = () => {
  );
 
  const handleCheckout = async () => {
- if (!shippingData || !authReady) return;
+ if (!shippingData || !authReady || productionPaymentBlocked || !countryValid) return;
  setLoading(true);
 
  try {
@@ -53,6 +82,7 @@ export const Checkout: React.FC = () => {
  items,
  customer: {
  email: shippingData.email,
+ phone: shippingData.phone,
  firstName: shippingData.firstName,
  lastName: shippingData.lastName,
  shippingAddress: shippingData.shippingAddress,
@@ -97,13 +127,23 @@ export const Checkout: React.FC = () => {
  </div>
  
  <div className="border-t border-stone-200 dark:border-stone-800 mt-4 pt-4 flex justify-between items-center">
- <span className="font-medium text-stone-900 dark:text-stone-50 ">Total</span>
+ <span className="font-medium text-stone-900 dark:text-stone-50 ">{t('checkout.productSubtotal', { defaultValue: copy.subtotal })}</span>
  <span className="text-lg font-semibold text-stone-900 dark:text-stone-50 ">{total.toFixed(2)} RON</span>
  </div>
  </Card>
+ <p id="shipping-tariff-notice" role="status" className="mt-6 text-sm text-stone-600 dark:text-stone-300">
+ {t(productionPaymentBlocked ? 'checkout.tariffPending' : 'checkout.testTariffPending', { defaultValue: productionPaymentBlocked ? copy.tariff : copy.test })}
+ </p>
+ {!countryValid && shippingData && (
+ <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">
+ {t('checkout.romaniaOnly', { defaultValue: copy.country })}{' '}
+ <Link className="underline" to="/shipping">{t('checkout.correctShipping', { defaultValue: copy.edit })}</Link>
+ </p>
+ )}
 
  <Button
- disabled={loading || total === 0 || !authReady}
+ disabled={loading || total === 0 || !authReady || !shippingData || !countryValid || productionPaymentBlocked}
+ aria-describedby="shipping-tariff-notice"
  onClick={handleCheckout}
  className="mt-8 h-auto w-full rounded-md bg-stone-900 px-6 py-3.5 text-sm font-medium tracking-wide text-white transition-all duration-200 hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white disabled:opacity-50"
  >

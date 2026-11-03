@@ -1,11 +1,12 @@
 import type React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { useQuery } from 'convex/react';
+import { useConvexAuth } from 'convex/react';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { useAdminQuery } from '../../hooks/useAdminQuery';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -59,7 +60,8 @@ export const MyOrderDetail: React.FC = () => {
  const { t, i18n } = useTranslation();
  const { id } = useParams<{ id: string }>();
  const { isSignedIn, isLoaded } = useAuth();
- const navigate = useNavigate();
+ const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
+ const language = i18n.language === 'de' ? 'de' : i18n.language === 'en' ? 'en' : 'ro';
 
  const STATUS_LABELS: Record<OrderStatus, string> = {
  pending: t('orders.pending'),
@@ -80,9 +82,11 @@ export const MyOrderDetail: React.FC = () => {
  });
  };
 
- const order = useQuery(
+ const { data: order, error } = useAdminQuery(
  api.orders.getMyOrderById,
- id ? { orderId: id as Id<'orders'> } : 'skip'
+ isLoaded && isSignedIn && isAuthenticated && !isAuthLoading && id
+ ? { orderId: id as Id<'orders'> }
+ : 'skip'
  );
 
  if (!isLoaded) {
@@ -94,8 +98,40 @@ export const MyOrderDetail: React.FC = () => {
  }
 
  if (!isSignedIn) {
- navigate('/login', { replace: true });
- return null;
+ return <Navigate to="/login" replace />;
+ }
+
+ if (error) {
+ return (
+ <div role="alert" className="mx-auto max-w-4xl px-4 py-12 text-center md:px-6">
+ <h1 className="font-serif text-2xl text-stone-900 dark:text-stone-50">
+ {t('common.error')}
+ </h1>
+ <p className="mt-3 text-stone-600 dark:text-stone-300">
+ {t('errors.loadFailed', {
+ defaultValue: {
+ ro: 'Datele nu pot fi încărcate. Te rugăm să reîncarci pagina.',
+ en: 'The data could not be loaded. Please reload the page.',
+ de: 'Die Daten konnten nicht geladen werden. Bitte lade die Seite neu.',
+ }[language],
+ })}
+ </p>
+ <div className="mt-6 flex flex-wrap justify-center gap-3">
+ <Button asChild variant="secondary">
+ <Link to="/my-orders">{t('orders.backToOrders')}</Link>
+ </Button>
+ <Button onClick={() => window.location.reload()}>
+ {t('common.reload', {
+ defaultValue: {
+ ro: 'Reîncarcă pagina',
+ en: 'Reload page',
+ de: 'Seite neu laden',
+ }[language],
+ })}
+ </Button>
+ </div>
+ </div>
+ );
  }
 
  if (order === undefined) {
