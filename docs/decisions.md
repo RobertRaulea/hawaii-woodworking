@@ -1,0 +1,21 @@
+# Decisions Memory
+
+Settled project decisions. Agents read this before planning and do not re-ask or contradict an entry. To add or change an entry, propose it to Robert with the ask tool and write it only after he agrees. Newest entries go at the bottom. Never record secrets here.
+
+Entry format: `YYYY-MM-DD — Decision. Why. (Status: confirmed | to confirm | deferred)`
+
+## Confirmed by Robert (2026-11-04)
+
+- 2026-11-04 — Sell in Romania only, prices in RON. Why: shipping and fiscal setup exist only for RO. (Status: confirmed)
+- 2026-11-04 — The company is a non-VAT payer; no VAT line on prices. Why: stated in the Terms and Conditions. Oblio and fiscal treatment still need an accountant check before launch. (Status: confirmed)
+- 2026-11-04 — TEST and production are separate environments on purpose. TEST exists so testers can try the whole shop with prod-like (cloned) data before any real sale. The store must be thoroughly tested on TEST before production goes live. No remote action (deploy, publish, seed, activation) without explicit approval. (Status: confirmed)
+- 2026-11-04 — Do not invent business values (shipping tariff, fiscal treatment, company data, payment methods). Ask, or list as a blocker. (Status: confirmed)
+- 2026-11-04 — Local skill folders under `.devin/` stay uncommitted. (Status: confirmed)
+- 2026-11-04 — Launch blockers are handled in a separate conversation. See `docs/agent-instructions/ecommerce-mvp.md`. (Status: confirmed)
+- 2026-11-04 — shadcn is not a dependency in `package.json`. Components are copied code in `src/components/ui/`; use the CLI via `npx shadcn@latest` only when needed. Do not overwrite existing components without approval (they carry POS, dark-mode, and Romanian-label customizations). (Status: confirmed)
+- 2026-11-04 — Dependencies were updated to latest within current majors, plus vite 8. Stay on React 18, Tailwind 3, ESLint 9, TypeScript 5, and lucide-react 0.x until after launch; majors are a post-launch audit item. Never bypass `.npmrc` `min-release-age=7`. (Status: confirmed)
+
+## Deferred until launch (do not work on now)
+
+- Analytics: PostHog EU opt-in reporting lives in the external PostHog dashboard, not in admin. The consent gate in code stays mandatory. Revisit only right before or during the production launch.
+- SEO: existing SEO work stands; any further SEO or ad decisions wait until launch time.

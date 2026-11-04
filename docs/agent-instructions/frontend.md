@@ -16,7 +16,7 @@ Read this for changes under `src/`. Preserve the existing UI and workflows unles
 - Use functional arrow components, React Hook Form for forms, lucide-react for icons, and shadcn/Radix primitives from `src/components/ui/`.
 - `cn()` lives in `src/utils/cn.utils.ts`; use existing variants and design tokens rather than duplicating controls.
 - Use `AdminDialog` for its existing operational dialog contract. The POS `PaymentDialog` intentionally remains a native `<dialog>`; do not migrate it casually.
-- Other intentional native/custom exceptions include simple filter selects, file/hidden inputs, `ImageCarousel`, and complex content card-buttons. See [the migration tracker](../shadcn-migration.md) for context, not as a mandate to resume completed migration work.
+- Other intentional native/custom exceptions include simple filter selects, file/hidden inputs, `ImageCarousel`, and complex content card-buttons. See [the migration tracker](../archive/shadcn-migration.md) for context, not as a mandate to resume completed migration work.
 - Toasts use `sonner`, with `Toaster` mounted in `App.tsx`; preserve operation feedback deduplication by `requestId`.
 - Implement loading, empty, error, disabled, and pending-operation states. Do not turn a failed read into an empty-success state.
 - Keep semantic HTML, keyboard navigation, focus behavior, and labels/aria-labels. Localize default English primitive labels when the surrounding UI is Romanian.

@@ -1,124 +1,46 @@
-# Prompting Guidelines
+# Prompting and Instruction-Writing Guide
 
-## Goal
+Use this for writing task prompts for agents and for editing `AGENTS.md` and the files it links. Sources: OpenAI GPT-5 prompting guide and Codex docs (https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_prompting_guide, https://agents.md/), Anthropic prompting best practices and Claude Code memory docs (https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices, https://code.claude.com/docs/en/best-practices, https://code.claude.com/docs/en/memory).
 
-Write prompts that are unambiguous, testable, and grounded in existing code so changes are small, safe, and consistent with project standards.
+## Writing agent instructions (AGENTS.md and linked docs)
 
-## Core Prompt Structure
+- Keep the root file short. Claude Code recommends under about 200 lines; Codex truncates combined instruction files at 32 KiB. Every line costs attention on every task.
+- Include only what the agent cannot infer from code: exact commands, non-obvious invariants, decisions already made, mistakes the agent already made twice.
+- Be specific and testable. A colleague with no context should be able to follow each rule. Replace "write clean code" with a concrete rule or delete it.
+- Give the reason behind a non-obvious rule. It produces better judgment at the edges.
+- Avoid contradictions between files. GPT-5 follows instructions strictly, so conflicting rules degrade results. Report a conflict instead of choosing silently.
+- Avoid emphatic wording (ALL CAPS, "NEVER EVER") except for real hard stops. Over-emphasis makes agents over-execute.
+- State done as commands and evidence ("run `npm run lint` and both `tsc` configs"), not as prose.
+- Instructions are guidance, not enforcement. For hard blocks (production deploys, destructive scripts), use approval gates or hooks, not only text.
+- Add a rule when the agent repeats a mistake or the same review comment appears twice. Remove rules that are stale. Put progressive detail in linked files.
+- Use `@AGENTS.md` as the only content of `CLAUDE.md`, so Claude Code and Codex read one source.
 
-Use this template when asking an agent to implement work:
+## Task prompt template
 
-```text
-Task: [short title]
-
-Context:
-- What is broken / missing
-- Where (file paths)
-- Expected behavior
-
-Constraints:
-- Follow .windsurfrules
-- TypeScript strict mode (no any)
-- Mobile-first Tailwind (default → md: → lg:)
-- Semantic HTML + accessibility
-
-Acceptance criteria:
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
-
-Files to read first:
-- path/to/file1
-- path/to/file2
-
-Testing:
-- Add/update tests: [paths]
-- Run focused tests with the repository Node loader/jsdom setup
-- Run relevant strict TypeScript checks
-- Run: npm run lint
-- Run: npm run build:test (when application changes need a bundle check)
-- State browser/integration checks not performed; no implicit sync/deploy
-```
-
-## High-Quality Prompt Patterns
-
-### Pattern: New Feature (with acceptance criteria)
+Robert's best results came from bounded, structured prompts. Use this shape:
 
 ```text
-Feature: Product detail page
-
-User story:
-As a shopper, I want to view product details so that I can decide to buy.
-
-Acceptance criteria:
-- [ ] Shows product name, price, description
-- [ ] Responsive layout (mobile/tablet/desktop)
-- [ ] Add to cart integrates with CartContext
-
-Files to reference:
-- src/hooks/useProducts.ts
-- src/context/CartContext.tsx
+OBIECTIV: [one sentence, visible outcome]
+CONTEXT: what is broken or missing, where (file paths), expected behavior
+REGULI: what to reuse, what not to touch, what not to invent ("Nu reconstrui", "Nu modifica producția")
+TESTE: tests to add or run, exact commands
+LIVRABIL: what to deliver, then "oprește-te"
+Files to read first: docs/decisions.md, [task files]
 ```
 
-### Pattern: Refactor (with constraints + guardrails)
+## Agent behavior to ask for
 
-```text
-Refactor: Checkout page
+- **Ask when blocked by missing context, act when the answer is in the repo.** Search the code first. Ask only for business values, UX choices, or approvals.
+- **Control scope.** Do what was asked. No extra features, refactors, or abstractions. Mention a nice-to-have in one line instead of building it.
+- **Parallelize independent reads and checks.** Do not parallelize edits on the same files.
+- **Persist until done.** Do not stop at a plan if the plan is approved; do not stop at "it compiles" if the symptom is not verified.
+- **Be honest about uncertainty.** Say what was not tested. Do not claim a result without evidence.
+- Use Context7 MCP for unfamiliar library APIs, and the Convex MCP for Convex questions, before guessing.
 
-Problem:
-Checkout.tsx is too large.
+## Anti-patterns
 
-Constraints:
-- Keep existing public behavior
-- No changes to API contracts
-- Preserve types
-
-Deliverables:
-- Extract components:
-  - CheckoutSummary.tsx
-  - CheckoutButton.tsx
-- Add tests for interactions
-```
-
-### Pattern: Debugging (repro steps + artifacts)
-
-```text
-Bug: Product images not displaying
-
-Steps:
-1. Go to /product/:id
-2. Expected: images render
-3. Actual: placeholders only
-
-Artifacts:
-- Console output: [paste]
-- Network tab: [paste]
-
-Relevant files:
-- src/pages/ProductDetail/ProductDetailPage.tsx
-- src/hooks/useProducts.ts
-```
-
-## Context Management
-
-### Provide file anchors
-When possible, reference exact files and functions.
-
-```text
-Read these before coding:
-- src/pages/Checkout/Checkout.tsx
-- convex/checkout.ts
-```
-
-### Reduce ambiguity
-If a requirement is subjective (design, UX copy), explicitly say:
-
-```text
-Ask me clarifying questions before you implement UI copy or layout decisions.
-```
-
-## Tooling Guidance
-
-- Prefer **small, incremental changes**.
-- Ask for **tests** when adding features or changing behavior; select commands from [testing guidance](testing.md).
-- For unfamiliar library usage, request **Context7 MCP** research first.
+- Long auto-generated instruction files that restate the code.
+- Vague rules ("follow best practices").
+- Rules that only say what not to do, with no description of the wanted behavior.
+- Brittle if/then decision trees where a clear principle works.
+- Historical pass counts or deployment claims written as current facts.
