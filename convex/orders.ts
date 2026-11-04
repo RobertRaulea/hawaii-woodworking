@@ -21,6 +21,7 @@ import {
   fulfillmentState,
   paymentStatus,
 } from "./lib/orders.utils";
+import { analyticsContextValidator, purchaseSnapshot } from "./lib/analytics.utils";
 
 interface PaymentResult {
   orderId: Id<"orders">;
@@ -154,6 +155,7 @@ export const getCheckoutSnapshot = internalQuery({
 export const createPendingOrder = internalMutation({
   args: {
     customerId: v.id("customers"),
+    analytics: v.optional(analyticsContextValidator),
     items: v.array(
       v.object({
         productId: v.id("products"),
@@ -203,6 +205,7 @@ export const createPendingOrder = internalMutation({
       stripeSessionId: args.stripeSessionId,
       shipping: args.shipping,
       billing: args.billing,
+      ...(args.analytics ? { analytics: args.analytics } : {}),
       createdAt: Date.now(),
     });
   },
@@ -253,7 +256,7 @@ export const markOrderPaid = internalMutation({
       status: cancelled ? "cancelled" : "paid",
       ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
     });
-    return applyOrderStock(
+    const result = await applyOrderStock(
       ctx,
       {
         ...order,
@@ -263,6 +266,23 @@ export const markOrderPaid = internalMutation({
       "system:stripe",
       cancelled,
     );
+    if (result.inventoryStatus === "applied" || result.inventoryStatus === "needs_review") {
+      const snapshot = purchaseSnapshot({
+        ...order,
+        status: cancelled ? "cancelled" : "paid",
+        paymentConfirmedAt,
+        inventoryStatus: result.inventoryStatus,
+      });
+      if (snapshot) {
+        try {
+          await ctx.scheduler.runAfter(0, internal.postPayment.capturePurchaseAnalytics, { snapshot });
+        } catch {
+          // Optional telemetry cannot roll back an otherwise successful payment.
+          console.error("Purchase analytics could not be scheduled");
+        }
+      }
+    }
+    return result;
   },
 });
 
@@ -283,6 +303,7 @@ const redactOrder = (
   invoiceId: undefined,
   invoicePdfUrl: undefined,
   postPaymentScheduledAt: undefined,
+  analytics: undefined,
   customer: customer
     ? detail
       ? {

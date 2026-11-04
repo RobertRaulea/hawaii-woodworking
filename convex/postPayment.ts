@@ -8,8 +8,40 @@ import { readEnvironment } from "./lib/environment";
 import { createOblioInvoice } from "./lib/oblio";
 import type { OrderWithCustomer } from "./lib/oblio";
 import { escapeHtml } from "../shared/seo/seo.utils";
+import { purchaseSnapshotValidator } from "./lib/analytics.utils";
+import { PURCHASE_RETRY_DELAYS_MS, sendPurchase } from "./lib/posthog";
 
 type OrderItem = OrderWithCustomer["items"][number];
+
+export const capturePurchaseAnalytics = internalAction({
+  args: {
+    snapshot: purchaseSnapshotValidator,
+    attempt: v.optional(v.number()),
+  },
+  handler: async (ctx, { snapshot, attempt = 0 }): Promise<string> => {
+    if (!Number.isSafeInteger(attempt) || attempt < 0 || attempt > PURCHASE_RETRY_DELAYS_MS.length) return "discarded";
+    try {
+      if (readEnvironment().name !== snapshot.context.environment) return "discarded";
+    } catch {
+      return "disabled";
+    }
+    const result = await sendPurchase(snapshot);
+    if (result === "retry" && attempt < PURCHASE_RETRY_DELAYS_MS.length) {
+      try {
+        await ctx.scheduler.runAfter(
+          PURCHASE_RETRY_DELAYS_MS[attempt],
+          internal.postPayment.capturePurchaseAnalytics,
+          { snapshot, attempt: attempt + 1 },
+        );
+        return "retry_scheduled";
+      } catch {
+        console.error("Purchase analytics retry could not be scheduled");
+      }
+    }
+    if (result === "retry") console.error("Purchase analytics delivery exhausted");
+    return result;
+  },
+});
 
 export const handlePostPayment = internalAction({
   args: {

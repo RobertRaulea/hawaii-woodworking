@@ -8,6 +8,9 @@ import { action } from './_generated/server';
 import type { CheckoutSnapshotLine } from './lib/inventory.utils';
 import { toCents } from './lib/pos.utils';
 import { requirePaymentEnvironment, resolveCheckoutOrigin } from './lib/environment';
+import { analyticsContextValidator } from './lib/analytics.utils';
+import { validAnalyticsContext } from '../shared/analytics';
+import type { AnalyticsContext } from '../shared/analytics';
 
 type CheckoutItem = {
   productId: Id<'products'>;
@@ -29,6 +32,7 @@ const addressValidator = v.object({
 export const createCheckoutSession = action({
   args: {
     origin: v.string(),
+    analytics: v.optional(analyticsContextValidator),
     items: v.array(
       v.object({
         productId: v.id('products'),
@@ -52,8 +56,10 @@ export const createCheckoutSession = action({
       origin,
       items,
       customer,
+      analytics,
     }: {
       origin: string;
+      analytics?: AnalyticsContext;
       items: CheckoutItem[];
       customer: {
         clerkUserId?: string;
@@ -249,6 +255,7 @@ export const createCheckoutSession = action({
       items: orderItems,
       total,
       stripeSessionId: session.id,
+      ...(validAnalyticsContext(analytics, paymentEnvironment.name) ? { analytics } : {}),
       shipping: {
         firstName: customer.firstName,
         lastName: customer.lastName,

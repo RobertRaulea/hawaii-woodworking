@@ -10,6 +10,7 @@ import { api } from '../../../convex/_generated/api';
 import type { CartItem } from '../../context/CartContext';
 import { useCart } from '../../context/CartContext';
 import { useShipping } from '../../context/ShippingContext';
+import { getAnalyticsContext, trackAnalytics } from '../../utils/analytics.utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -23,6 +24,12 @@ export const Checkout: React.FC = () => {
  country: 'Livrăm doar în România. Corectează țara adresei de livrare.',
  edit: 'Corectează datele de livrare',
  subtotal: 'Subtotal produse',
+ empty: 'Coșul este gol.',
+ payButton: 'Plătește cu cardul',
+ redirecting: 'Se redirecționează...',
+ connecting: 'Se conecteaza contul...',
+ stripeUrlMissing: 'URL sesiune Stripe indisponibilă',
+ paymentError: 'Nu am putut iniția plata. Te rugăm să încerci din nou.',
  },
  en: {
  tariff: 'The shipping tariff is not yet confirmed. Payment is unavailable until the tariff is configured.',
@@ -30,6 +37,12 @@ export const Checkout: React.FC = () => {
  country: 'Delivery is available only in Romania. Please correct the shipping country.',
  edit: 'Correct shipping details',
  subtotal: 'Product subtotal',
+ empty: 'Your cart is empty.',
+ payButton: 'Pay by card',
+ redirecting: 'Redirecting...',
+ connecting: 'Signing you in...',
+ stripeUrlMissing: 'Stripe session URL unavailable',
+ paymentError: 'We could not start the payment. Please try again.',
  },
  de: {
  tariff: 'Die Versandkosten stehen noch nicht fest. Zahlungen sind bis zur Festlegung des Tarifs nicht verfügbar.',
@@ -37,6 +50,12 @@ export const Checkout: React.FC = () => {
  country: 'Die Lieferung ist nur innerhalb Rumäniens möglich. Bitte korrigiere das Lieferland.',
  edit: 'Lieferdaten korrigieren',
  subtotal: 'Zwischensumme Produkte',
+ empty: 'Ihr Warenkorb ist leer.',
+ payButton: 'Mit Karte zahlen',
+ redirecting: 'Weiterleitung...',
+ connecting: 'Konto wird angemeldet...',
+ stripeUrlMissing: 'Stripe-Sitzungs-URL nicht verfügbar',
+ paymentError: 'Wir konnten die Zahlung nicht starten. Bitte versuche es erneut.',
  },
  }[language === 'en' || language === 'de' ? language : 'ro'];
  const { state } = useCart();
@@ -77,6 +96,9 @@ export const Checkout: React.FC = () => {
  ? shippingData.shippingAddress
  : shippingData.billingAddress;
 
+ // Optional consent-bound attribution context; never transmitted without consent.
+ const analytics = getAnalyticsContext();
+
  const response = await createCheckoutSession({
  origin: window.location.origin,
  items,
@@ -89,19 +111,39 @@ export const Checkout: React.FC = () => {
  billingAddress,
  newsletter: shippingData.newsletter,
  },
+ ...(analytics ? { analytics } : {}),
  });
 
- if (!response?.url) {
- alert('URL sesiune Stripe indisponibilă');
+ // A usable redirect target is a parseable HTTPS URL without credentials.
+ const checkoutUrl = (() => {
+ try {
+ const url = new URL(String(response?.url ?? ''));
+ return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
+ } catch {
+ return null;
+ }
+ })();
+
+ if (!checkoutUrl) {
+ trackAnalytics('checkout_initiation_failed', {
+ error_code: 'checkout_initiation_failed',
+ surface: 'checkout',
+ });
+ alert(t('checkout.stripeUrlMissing', { defaultValue: copy.stripeUrlMissing }));
  return;
  }
 
- window.location.href = response.url;
+ trackAnalytics('checkout_started', { surface: 'checkout' });
+ window.location.href = checkoutUrl;
  } catch (error) {
+ trackAnalytics('checkout_initiation_failed', {
+ error_code: 'checkout_initiation_failed',
+ surface: 'checkout',
+ });
  const message =
  error instanceof ConvexError && typeof error.data === 'string'
  ? error.data
- : 'Nu am putut iniția plata. Te rugăm să încerci din nou.';
+ : t('checkout.paymentError', { defaultValue: copy.paymentError });
  alert(message);
  } finally {
  setLoading(false);
@@ -110,10 +152,10 @@ export const Checkout: React.FC = () => {
 
  return (
  <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
- <h1 className="font-serif text-3xl font-medium text-stone-900 dark:text-stone-50 mb-8">Finalizare comandă</h1>
+ <h1 className="font-serif text-3xl font-medium text-stone-900 dark:text-stone-50 mb-8">{t('checkout.title')}</h1>
  
  <Card className="rounded-lg border-stone-200 dark:border-stone-800 p-6 shadow-none">
- {state.items.length === 0 && <p className="text-stone-500 dark:text-stone-400 text-sm">Coșul este gol.</p>}
+ {state.items.length === 0 && <p className="text-stone-500 dark:text-stone-400 text-sm">{t('checkout.empty', { defaultValue: copy.empty })}</p>}
  <div className="space-y-0">
  {state.items.map((item: CartItem) => (
  <div key={item.id} className="flex justify-between items-center py-4 border-b border-stone-100 dark:border-stone-800 last:border-b-0">
@@ -147,7 +189,11 @@ export const Checkout: React.FC = () => {
  onClick={handleCheckout}
  className="mt-8 h-auto w-full rounded-md bg-stone-900 px-6 py-3.5 text-sm font-medium tracking-wide text-white transition-all duration-200 hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white disabled:opacity-50"
  >
- {loading ? 'Se redirecționează...' : !authReady ? 'Se conecteaza contul...' : 'Plătește cu cardul'}
+ {loading
+ ? t('checkout.redirecting', { defaultValue: copy.redirecting })
+ : !authReady
+ ? t('checkout.connecting', { defaultValue: copy.connecting })
+ : t('checkout.payButton', { defaultValue: copy.payButton })}
  </Button>
  </div>
  );

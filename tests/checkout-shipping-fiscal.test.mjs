@@ -210,6 +210,28 @@ test('Oblio uses form OAuth then Bearer invoice, numeric 200, billing snapshot, 
   assert.equal(calls.length, 4, 'each invocation obtains a fresh token');
 });
 
+test('checkout carries only consented same-environment browser attribution and never exposes it to Stripe metadata', async () => {
+  const analytics = {
+    consent: true, distinctId: 'browser-fixture-id', sessionId: 'session-fixture-id', environment: 'test',
+  };
+  const valid = checkoutContext();
+  await createCheckoutSession._handler(valid.ctx, { ...args(), analytics });
+  const stored = valid.mutations.find(([name]) => name === 'orders:createPendingOrder')[1];
+  assert.deepEqual(stored.analytics, analytics);
+  const stripeSession = stripeCalls.find(([name]) => name === 'session')[1];
+  assert.equal(JSON.stringify(stripeSession).includes(analytics.distinctId), false);
+  assert.equal(JSON.stringify(stripeSession).includes(analytics.sessionId), false);
+  for (const invalid of [
+    undefined, { ...analytics, consent: false }, { ...analytics, environment: 'production' },
+    { ...analytics, distinctId: 'private@example.invalid' },
+  ]) {
+    const attempt = checkoutContext();
+    await createCheckoutSession._handler(attempt.ctx, { ...args(), analytics: invalid });
+    const pending = attempt.mutations.find(([name]) => name === 'orders:createPendingOrder')[1];
+    assert.equal('analytics' in pending, false);
+  }
+});
+
 test('legacy fiscal fallback uses billing, never mutable shipping', async () => {
   const calls = mockOblio();
   const legacy = order();

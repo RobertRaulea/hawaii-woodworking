@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { analyticsContextValidator } from "./lib/analytics.utils";
 
 // Convex schema for Hawaii Woodworking
 export default defineSchema({
@@ -89,6 +90,7 @@ export default defineSchema({
     invoicePdfUrl: v.optional(v.string()),
     createdAt: v.number(),
     paymentConfirmedAt: v.optional(v.number()),
+    analytics: v.optional(analyticsContextValidator),
     inventoryStatus: v.optional(
       v.union(
         v.literal("pending"),

@@ -119,7 +119,13 @@
     "placeOrder": "Place Order",
     "processing": "Processing...",
     "success": "Order placed successfully!",
-    "error": "An error occurred. Please try again."
+    "error": "An error occurred. Please try again.",
+    "empty": "Your cart is empty.",
+    "payButton": "Pay by card",
+    "redirecting": "Redirecting...",
+    "connecting": "Signing you in...",
+    "stripeUrlMissing": "Stripe session URL unavailable",
+    "paymentError": "We could not start the payment. Please try again."
   },
   "shipping": {
     "title": "Shipping Information",
@@ -290,5 +296,18 @@
     "passwordMismatch": "Passwords do not match",
     "invalidPhone": "Invalid phone number",
     "invalidPostalCode": "Invalid postal code"
+  },
+  "analytics": {
+    "title": "Usage analytics",
+    "description": "With your consent we use PostHog (EU) for pseudonymous statistics about traffic and product interactions. We never collect form contents, passwords or card data, and session recording is disabled. You can change or withdraw your choice anytime from the settings button.",
+    "accept": "Accept analytics",
+    "reject": "Reject analytics",
+    "settings": "Analytics settings",
+    "privacyLink": "Privacy policy"
+  },
+  "login": {
+    "title": "Sign in to your account",
+    "subtitle": "Use your existing account to check out faster.",
+    "continueWithout": "Continue without an account →"
   }
 }

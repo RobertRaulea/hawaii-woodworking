@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,6 +32,11 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
 import { SITE_URL } from '../../constants/site.constants';
+import {
+  getAnalyticsStatus,
+  subscribeAnalytics,
+  trackAnalytics,
+} from '../../utils/analytics.utils';
 import { buildProductSeo } from '../../../shared/seo/seo.utils';
 
 export const ProductDetailPage: React.FC = () => {
@@ -52,6 +57,19 @@ export const ProductDetailPage: React.FC = () => {
 
   const [quantity, setQuantity] = useState(1);
   useEffect(() => setQuantity(1), [productId]);
+
+  const analyticsStatus = useSyncExternalStore(subscribeAnalytics, getAnalyticsStatus);
+  const viewedKeyRef = useRef<string | null>(null);
+  const loadedProductId = product?._id ?? null;
+  useEffect(() => {
+    // product_viewed fires only for a loaded product, once per product id per
+    // consent session; failed or pending queries never emit it.
+    if (!analyticsStatus.ready || !loadedProductId) return;
+    const key = `${loadedProductId}#${analyticsStatus.epoch}`;
+    if (viewedKeyRef.current === key) return;
+    viewedKeyRef.current = key;
+    trackAnalytics('product_viewed', { product_id: loadedProductId, surface: 'storefront' });
+  }, [analyticsStatus.ready, analyticsStatus.epoch, loadedProductId]);
 
   const productImages = useMemo(() => {
     if (product?.imageUrls && product.imageUrls.length > 0) {

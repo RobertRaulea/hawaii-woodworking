@@ -1,9 +1,15 @@
 import type React from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { ShoppingCart, Minus, Plus, Trash2, XCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { CartItem } from '../../context/CartContext';
 import { useCart } from '../../context/CartContext';
+import {
+  getAnalyticsStatus,
+  subscribeAnalytics,
+  trackAnalytics,
+} from '../../utils/analytics.utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,6 +21,32 @@ export const Cart: React.FC = () => {
  const [searchParams, setSearchParams] = useSearchParams();
  const isCanceled = searchParams.get('canceled') === 'true';
  const cartImageFallback = 'https://placehold.co/100x100?text=No+Image';
+
+ const analyticsStatus = useSyncExternalStore(subscribeAnalytics, getAnalyticsStatus);
+ const viewedEpochRef = useRef<number | null>(null);
+ const canceledEpochRef = useRef<number | null>(null);
+
+ useEffect(() => {
+ if (analyticsStatus.ready && viewedEpochRef.current !== analyticsStatus.epoch) {
+ viewedEpochRef.current = analyticsStatus.epoch;
+ trackAnalytics('cart_viewed', {
+ item_count: state.items.reduce((sum, item) => sum + item.quantity, 0),
+ surface: 'storefront',
+ });
+ }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [analyticsStatus.epoch, analyticsStatus.ready]);
+
+ useEffect(() => {
+ // Stripe cancellation return marker only; it is not proof of a financial outcome.
+ if (analyticsStatus.ready && isCanceled && canceledEpochRef.current !== analyticsStatus.epoch) {
+ canceledEpochRef.current = analyticsStatus.epoch;
+ trackAnalytics('checkout_returned_from_stripe', {
+ return_reason: 'cancelled',
+ surface: 'storefront',
+ });
+ }
+ }, [analyticsStatus.epoch, analyticsStatus.ready, isCanceled]);
 
  const dismissCanceled = () => {
  searchParams.delete('canceled');

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from '@/components/ui/sonner';
+import { trackAnalytics } from '../utils/analytics.utils';
 import type { CartItem, CartState, CartAction, CartContextType } from '../types/cart.types';
 
 export type { CartItem } from '../types/cart.types';
@@ -69,6 +70,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
  if (!isTrackingStock) {
  dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity, stock, trackStock } });
+ trackAnalytics('add_to_cart', { product_id: item.id, quantity, surface: 'storefront' });
  toast.success(`${item.name} a fost adăugat în coș`, { duration: 3000 });
  return true;
  }
@@ -85,6 +87,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
  }
 
  dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity, stock, trackStock } });
+ trackAnalytics('add_to_cart', { product_id: item.id, quantity, surface: 'storefront' });
  toast.success(`${item.name} a fost adăugat în coș`, { duration: 3000 });
  return true;
  };

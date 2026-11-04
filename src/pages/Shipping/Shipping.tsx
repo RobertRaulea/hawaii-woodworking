@@ -11,6 +11,7 @@ import type { ShippingFormData } from '../../types/shipping.types';
 import { useCart } from '../../context/CartContext';
 import { useCustomerProfile } from '../../hooks/useCustomerProfile';
 import { SearchableSelect } from '../../components/SearchableSelect/SearchableSelect';
+import { identifyAnalytics, trackAnalytics } from '../../utils/analytics.utils';
 import { JUDETE, LOCALITATI_BY_JUDET } from '../../constants/romania.constants';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -309,6 +310,7 @@ export const Shipping: React.FC = () => {
  const payload = prepareFormData(data);
 
  setShippingData({ ...payload, password: undefined });
+ trackAnalytics('form_submitted', { form_name: 'shipping', surface: 'shipping' });
  navigate('/checkout');
  };
 
@@ -387,6 +389,13 @@ export const Shipping: React.FC = () => {
  throw new Error('Contul nu are o sesiune activa. Conecteaza-te pentru a continua.');
  }
  await setActive({ session: newSessionId });
+
+ // Verified signup only: identify the new Clerk subject, then record completion.
+ const createdUserId = (result as { createdUserId?: unknown }).createdUserId;
+ if (typeof createdUserId === 'string' && createdUserId) {
+ identifyAnalytics(createdUserId);
+ }
+ trackAnalytics('signup_completed', { method: 'clerk', surface: 'shipping' });
 
  // Checkout persists the customer after Convex has authenticated the new Clerk session.
  setShowVerification(false);
