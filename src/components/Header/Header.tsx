@@ -67,19 +67,17 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  {t('nav.menu')}
  </SheetDescription>
  <div className="space-y-2">
- {navLinks.map(
- (link) =>
- !isActive(link.to) && (
+ {navLinks.map((link) => (
  <SheetClose asChild key={link.to}>
  <Link
  to={link.to}
- className="block rounded-full px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800"
+ aria-current={isActive(link.to) ? 'page' : undefined}
+ className={`block rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${isActive(link.to) ? 'bg-amber-500 text-stone-900' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'}`}
  >
  {link.label}
  </Link>
  </SheetClose>
- ),
- )}
+ ))}
  </div>
  <div className="mt-4 flex items-center justify-between border-t border-stone-200 pt-3 dark:border-stone-800">
  <span className="px-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
@@ -91,19 +89,17 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  </Sheet>
 
  {/* Left menu items - Desktop */}
- <div className="hidden md:flex items-center space-x-8">
- {navLinks.map(
- (link) =>
- !isActive(link.to) && (
+ <div className="hidden md:flex items-center md:space-x-0.5 lg:space-x-2 xl:space-x-8">
+ {navLinks.map((link) => (
  <Link
  key={link.to}
  to={link.to}
- className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive(link.to) ? 'bg-amber-500 text-white pointer-events-none' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'}`}
+ aria-current={isActive(link.to) ? 'page' : undefined}
+ className={`px-1.5 lg:px-2 xl:px-4 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all duration-200 ${isActive(link.to) ? 'bg-amber-500 text-stone-900' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'}`}
  >
  {link.label}
  </Link>
- ),
- )}
+ ))}
  </div>
 
  {/* Logo */}

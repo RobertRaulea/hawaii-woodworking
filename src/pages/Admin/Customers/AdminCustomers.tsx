@@ -113,7 +113,7 @@ export const AdminCustomers: React.FC = () => {
  return (
  <section className="space-y-8">
  <div>
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 mb-4">Clienți</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 mb-4">Clienți</h1>
 
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
  <Card className="rounded-lg">

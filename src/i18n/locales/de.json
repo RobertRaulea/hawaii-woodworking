@@ -119,7 +119,13 @@
     "placeOrder": "Bestellung aufgeben",
     "processing": "Wird verarbeitet...",
     "success": "Bestellung erfolgreich aufgegeben!",
-    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "empty": "Ihr Warenkorb ist leer.",
+    "payButton": "Mit Karte zahlen",
+    "redirecting": "Weiterleitung...",
+    "connecting": "Konto wird angemeldet...",
+    "stripeUrlMissing": "Stripe-Sitzungs-URL nicht verfügbar",
+    "paymentError": "Wir konnten die Zahlung nicht starten. Bitte versuche es erneut."
   },
   "shipping": {
     "title": "Versandinformationen",
@@ -290,5 +296,18 @@
     "passwordMismatch": "Passwörter stimmen nicht überein",
     "invalidPhone": "Ungültige Telefonnummer",
     "invalidPostalCode": "Ungültige Postleitzahl"
+  },
+  "analytics": {
+    "title": "Nutzungsstatistiken",
+    "description": "Mit deiner Zustimmung verwenden wir PostHog (EU) für pseudonyme Statistiken über Besucher und Produktinteraktionen. Wir erfassen niemals Formularinhalte, Passwörter oder Kartendaten, und die Sitzungsaufzeichnung ist deaktiviert. Du kannst deine Wahl jederzeit über die Einstellungen ändern oder widerrufen.",
+    "accept": "Statistiken akzeptieren",
+    "reject": "Statistiken ablehnen",
+    "settings": "Statistik-Einstellungen",
+    "privacyLink": "Datenschutzerklärung"
+  },
+  "login": {
+    "title": "Melde dich bei deinem Konto an",
+    "subtitle": "Nutze dein bestehendes Konto, um schneller zu bezahlen.",
+    "continueWithout": "Ohne Konto fortfahren →"
   }
 }

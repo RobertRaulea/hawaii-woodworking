@@ -21,6 +21,7 @@ import {
   fulfillmentState,
   paymentStatus,
 } from "./lib/orders.utils";
+import { analyticsContextValidator, purchaseSnapshot } from "./lib/analytics.utils";
 
 interface PaymentResult {
   orderId: Id<"orders">;
@@ -154,6 +155,7 @@ export const getCheckoutSnapshot = internalQuery({
 export const createPendingOrder = internalMutation({
   args: {
     customerId: v.id("customers"),
+    analytics: v.optional(analyticsContextValidator),
     items: v.array(
       v.object({
         productId: v.id("products"),
@@ -168,6 +170,21 @@ export const createPendingOrder = internalMutation({
       v.object({
         firstName: v.string(),
         lastName: v.string(),
+        phone: v.optional(v.string()),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          county: v.string(),
+          postalCode: v.string(),
+          country: v.string(),
+        }),
+      }),
+    ),
+    billing: v.optional(
+      v.object({
+        firstName: v.string(),
+        lastName: v.string(),
+        phone: v.optional(v.string()),
         address: v.object({
           street: v.string(),
           city: v.string(),
@@ -187,6 +204,8 @@ export const createPendingOrder = internalMutation({
       inventoryStatus: "pending",
       stripeSessionId: args.stripeSessionId,
       shipping: args.shipping,
+      billing: args.billing,
+      ...(args.analytics ? { analytics: args.analytics } : {}),
       createdAt: Date.now(),
     });
   },
@@ -237,7 +256,7 @@ export const markOrderPaid = internalMutation({
       status: cancelled ? "cancelled" : "paid",
       ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
     });
-    return applyOrderStock(
+    const result = await applyOrderStock(
       ctx,
       {
         ...order,
@@ -247,6 +266,23 @@ export const markOrderPaid = internalMutation({
       "system:stripe",
       cancelled,
     );
+    if (result.inventoryStatus === "applied" || result.inventoryStatus === "needs_review") {
+      const snapshot = purchaseSnapshot({
+        ...order,
+        status: cancelled ? "cancelled" : "paid",
+        paymentConfirmedAt,
+        inventoryStatus: result.inventoryStatus,
+      });
+      if (snapshot) {
+        try {
+          await ctx.scheduler.runAfter(0, internal.postPayment.capturePurchaseAnalytics, { snapshot });
+        } catch {
+          // Optional telemetry cannot roll back an otherwise successful payment.
+          console.error("Purchase analytics could not be scheduled");
+        }
+      }
+    }
+    return result;
   },
 });
 
@@ -267,6 +303,7 @@ const redactOrder = (
   invoiceId: undefined,
   invoicePdfUrl: undefined,
   postPaymentScheduledAt: undefined,
+  analytics: undefined,
   customer: customer
     ? detail
       ? {
@@ -731,5 +768,16 @@ export const getMyOrderById = query({
     if (!order || order.customerId !== customer._id) return null;
 
     return { ...order, customer };
+  },
+});
+
+export const getCheckoutConfirmation = query({
+  args: { sessionId: v.string() },
+  handler: async (ctx, { sessionId }) => {
+    if (!/^cs_(?:test_|live_)?[A-Za-z0-9]{16,240}$/.test(sessionId)) return null;
+    const order = await ctx.db.query('orders').withIndex('by_stripeSessionId', (q) => q.eq('stripeSessionId', sessionId)).first();
+    if (!order) return null;
+    const confirmed = paymentStatus(order) === 'paid';
+    return { state: order.status === 'cancelled' ? (confirmed ? 'review' as const : 'cancelled' as const) : confirmed ? (order.inventoryStatus === 'needs_review' ? 'review' as const : 'confirmed' as const) : 'pending' as const };
   },
 });

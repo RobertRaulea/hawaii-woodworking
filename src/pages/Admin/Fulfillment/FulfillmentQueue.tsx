@@ -206,7 +206,7 @@ export const FulfillmentQueue: React.FC = () => {
  <section className="max-w-5xl space-y-6">
  <header className="flex flex-wrap items-end justify-between gap-3">
  <div>
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
  Pregătire comenzi
  </h1>
  <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">

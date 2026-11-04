@@ -1,5 +1,7 @@
 import type React from 'react';
+
 import { Card } from '@/components/ui/card';
+import { BUSINESS } from '../../../shared/seo/seo.utils';
 
 export const LegalInformation: React.FC = () => {
  return (
@@ -10,28 +12,24 @@ export const LegalInformation: React.FC = () => {
  <section className="mb-8">
  <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Date de identificare</h2>
  <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 p-6 rounded-lg shadow-none">
- <p className="mb-2"><strong>Denumire companie:</strong> HAWAII WOODWORKING SIBIU SRL</p>
+ <p className="mb-2"><strong>Denumire companie:</strong> {BUSINESS.legalName}</p>
  <p className="mb-2"><strong>CUI:</strong> 48789961</p>
  <p className="mb-2"><strong>Număr înregistrare ONRC:</strong> J32/1718/2023</p>
- <p className="mb-2"><strong>Sediu social:</strong> Cristian, Str. XIII, Nr. 113, Jud. Sibiu</p>
+ <p className="mb-2"><strong>Sediu social:</strong> {BUSINESS.address}</p>
  <p className="mb-2"><strong>Capital social:</strong> 200 LEI</p>
- <p className="mb-2"><strong>Email:</strong> hawaiisibiu@gmail.com</p>
- <p className="mb-2"><strong>Telefon:</strong> 0748831477</p>
+ <p className="mb-2"><strong>Email:</strong> <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a></p>
+ <p className="mb-2"><strong>Telefon:</strong> <a href={BUSINESS.phoneHref}>{BUSINESS.phoneDisplay}</a></p>
  <p className="mb-2"><strong>Cont bancar:</strong> RO43BTRLRONCRT0CV5643601, deschis la Banca Transilvania</p>
  </Card>
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Autorizații și Licențe</h2>
+ <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Documente privind activitatea și materialele</h2>
  <p className="mb-4">
- SC Hawaii Woodworking SRL își desfășoară activitatea în conformitate cu legislația română în vigoare și 
- deține toate autorizațiile necesare pentru producția și comercializarea produselor de tâmplărie și mobilier:
+ Pentru informații și documente privind activitatea {BUSINESS.legalName}, materialele sau un anumit produs,
+ vă rugăm să ne contactați la <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.
+ Documentele disponibile și aplicabilitatea lor se confirmă pentru solicitarea concretă.
  </p>
- <ul className="list-disc pl-6 mb-4">
- <li>Autorizație de funcționare nr. 123/01.01.2020 emisă de Primăria Municipiului Sibiu</li>
- <li>Autorizație de mediu nr. 456/01.01.2020 emisă de Agenția pentru Protecția Mediului Sibiu</li>
- <li>Certificare FSC (Forest Stewardship Council) pentru utilizarea lemnului din surse responsabile</li>
- </ul>
  </section>
 
  <section className="mb-8">
@@ -42,27 +40,23 @@ export const LegalInformation: React.FC = () => {
  care le pot ajuta pe consumatori și pe comercianți să soluționeze litigiile dintre ei fără a recurge la instanțele de judecată.
  </p>
  <p className="mb-4">
- Platforma SOL (Soluționarea online a litigiilor) este un instrument online creat de Comisia Europeană 
- pentru a ajuta consumatorii și comercianții să își rezolve litigiile rezultate din tranzacțiile online.
- </p>
- <p className="mb-4">
  Pentru mai multe informații, accesați:
  </p>
  <ul className="list-disc pl-6 mb-4">
  <li>Website-ul Autorității Naționale pentru Protecția Consumatorilor: <a href="http://www.anpc.gov.ro/" target="_blank" rel="noopener noreferrer" className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300">www.anpc.gov.ro</a></li>
- <li>Platforma SOL: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300">https://ec.europa.eu/consumers/odr</a></li>
  </ul>
  </section>
 
  <section className="mb-8">
  <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Prelucrarea datelor cu caracter personal</h2>
  <p className="mb-4">
- SC Hawaii Woodworking SRL este înregistrată ca operator de date cu caracter personal la Autoritatea 
- Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal.
+ {BUSINESS.legalName}, cu sediul la {BUSINESS.address}, este operatorul datelor cu caracter personal
+ prelucrate prin acest site. Pentru solicitări privind datele personale, ne puteți contacta la
+ {' '}<a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.
  </p>
  <p className="mb-4">
- Datele personale sunt prelucrate în conformitate cu Regulamentul (UE) 2016/679 privind protecția 
- persoanelor fizice în ceea ce privește prelucrarea datelor cu caracter personal și privind libera 
+ Prelucrării datelor personale i se aplică Regulamentul (UE) 2016/679 privind protecția
+ persoanelor fizice în ceea ce privește prelucrarea datelor cu caracter personal și privind libera
  circulație a acestor date (GDPR).
  </p>
  <p className="mb-4">
@@ -85,7 +79,7 @@ export const LegalInformation: React.FC = () => {
  </div>
  
  <p className="text-sm text-gray-500 dark:text-stone-400 mt-12 text-center">
- Actualizat la data: 12.06.2025
+ Actualizat la data: 03.11.2026
  </p>
  </div>
  );

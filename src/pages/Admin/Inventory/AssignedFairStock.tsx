@@ -74,7 +74,7 @@ export const AssignedFairStock = ({ overview }: AssignedFairStockProps) => {
 
  return (
  <div>
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">Stocuri</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Stocuri</h1>
  <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
  Vezi doar stocul de la târgurile alocate. Alocările și transferurile se
  fac de către echipa de atelier.

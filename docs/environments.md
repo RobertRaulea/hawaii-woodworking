@@ -128,6 +128,11 @@ current deployment/provider state and obtain explicit approval before executing 
 3. Configure `APP_ENV=production`, production site/issuer, a LIVE Stripe key,
    separate live webhook and signing secret. Keep `CHECKOUT_ENABLED=false`
    until the explicit launch decision.
+   Production payment is also blocked in code: `convex/checkout.ts` throws when
+   `APP_ENV=production`, and `src/pages/Checkout/Checkout.tsx` disables the pay
+   button while `VITE_APP_ENV=production`. Both stay until the shipping tariff is
+   decided and implemented, so `CHECKOUT_ENABLED=true` alone does not enable sales.
+   See [the MVP checklist](agent-instructions/ecommerce-mvp.md).
 4. Copy `.env.production.example` to ignored `.env.production.local` for an
    authorized production build, or set equivalent variables on production hosting.
 5. Promote the tested CODE with production settings. Never copy test orders,

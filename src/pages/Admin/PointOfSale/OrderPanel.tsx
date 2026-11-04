@@ -294,7 +294,7 @@ export const OrderPanel = ({
  variant="ghost"
  disabled={disabled || cart.length === 0}
  onClick={onClear}
- className="h-auto min-h-11 w-full rounded-lg text-sm text-stone-500 dark:text-stone-400hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-stone-500 dark:hover:text-stone-400:"
+ className="h-auto min-h-11 w-full rounded-lg text-sm text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-stone-500 dark:hover:text-stone-400"
  >
  Goleste cosul
  </Button>

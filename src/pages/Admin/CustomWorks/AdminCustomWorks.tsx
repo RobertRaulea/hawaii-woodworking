@@ -135,7 +135,7 @@ export const AdminCustomWorks: React.FC = () => {
  <section className="mx-auto max-w-6xl">
  <div className="mb-8 border-b border-stone-200 dark:border-stone-800 pb-6">
  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700 dark:text-amber-400 ">Portofoliu</p>
- <h1 className="mt-2 font-serif text-3xl font-medium text-stone-900 dark:text-stone-50 ">Lucrări la comandă</h1>
+ <h1 className="mt-2 font-serif text-2xl md:text-3xl font-medium text-stone-900 dark:text-stone-50 ">Lucrări la comandă</h1>
  <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300 ">
  Publică proiectele finalizate cu fotografia, prețul și o descriere scurtă. Lucrările vor apărea în secțiunea publică „La comandă”.
  </p>
@@ -153,7 +153,7 @@ export const AdminCustomWorks: React.FC = () => {
  variant="ghost"
  size="icon"
  onClick={resetForm}
- className="rounded-full text-stone-500 dark:text-stone-400hover:text-stone-900 dark:hover:text-stone-50"
+ className="rounded-full text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-50"
  aria-label="Anulează editarea"
  >
  <X className="h-4 w-4" />
@@ -271,7 +271,7 @@ export const AdminCustomWorks: React.FC = () => {
  variant="ghost"
  size="icon"
  onClick={() => startEditing(asset)}
- className="h-auto w-auto self-start rounded-md p-2 text-stone-500 dark:text-stone-400hover:text-stone-900 dark:hover:text-stone-50"
+ className="h-auto w-auto self-start rounded-md p-2 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-50"
  aria-label={`Editează ${asset.title ?? asset.name}`}
  >
  <Pencil className="h-4 w-4" />

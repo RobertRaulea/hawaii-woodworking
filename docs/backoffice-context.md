@@ -5,7 +5,7 @@ Citește secțiunile relevante pentru sarcină. Numărătorile, rezultatele de t
 
 ## 1. Stack real (verificat)
 
-- Frontend: React 18 + TypeScript strict + Vite + Tailwind + React Router 7 + React Hook Form; icoane `lucide-react`; UI pe primitive shadcn/Radix din `src/components/ui/` (vezi `docs/shadcn-migration.md`).
+- Frontend: React 18 + TypeScript strict + Vite + Tailwind + React Router 7 + React Hook Form; icoane `lucide-react`; UI pe primitive shadcn/Radix din `src/components/ui/` (vezi `docs/archive/shadcn-migration.md`).
 - Auth: Clerk (`@clerk/clerk-react`) → JWT template `convex` → `convex/auth.config.ts` (`CLERK_JWT_ISSUER_DOMAIN`).
 - Backend/DB: Convex (`convex/`), plăți Stripe Checkout + webhook HTTP `/stripe-webhook`, post-plată Oblio (factură) + Resend (email).
 - Hosting: Vercel (`vercel.json`: rewrite SPA, cache și headere de securitate, inclusiv CSP Report-Only). GitHub: `RobertRaulea/hawaii-woodworking`. `.github/dependabot.yml` există; nu există workflow-uri CI în checkout-ul verificat.

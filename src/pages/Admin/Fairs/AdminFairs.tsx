@@ -86,7 +86,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-300 ">
  Puncte de vânzare
  </p>
- <h1 className="text-3xl font-semibold text-stone-900 dark:text-stone-50 ">Târguri</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Târguri</h1>
  <p className="mt-2 max-w-xl text-sm leading-6 text-stone-500 dark:text-stone-400 ">
  Pregătește punctele de vânzare aici. La târg, ecranul POS rămâne
  doar pentru vânzare.

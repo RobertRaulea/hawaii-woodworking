@@ -5,6 +5,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { ArrowLeft, Eye, ExternalLink, Edit, Trash2, X, Save } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
+import { customerSpend } from '../../../../convex/lib/orders.utils';
 import {
  AlertDialog,
  AlertDialogAction,
@@ -191,9 +192,7 @@ export const CustomerDetail: React.FC = () => {
  }
  };
 
- const totalSpent = customer.orders
- .filter((o: { status: string }) => o.status !== 'cancelled')
- .reduce((sum: number, o: { total: number }) => sum + o.total, 0);
+ const totalSpent = customerSpend(customer.orders);
 
  return (
  <section className="max-w-4xl space-y-6">
@@ -201,14 +200,14 @@ export const CustomerDetail: React.FC = () => {
  <div>
  <Link
  to="/admin/customers"
- className="inline-flex items-center gap-1 text-sm text-stone-500 dark:text-stone-400hover:text-stone-700 dark:hover:text-stone-300 mb-2 transition-colors"
+ className="inline-flex items-center gap-1 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 mb-2 transition-colors"
  >
  <ArrowLeft className="h-4 w-4" />
  Înapoi la clienți
  </Link>
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
  <div>
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
  {customer.firstName} {customer.lastName}
  </h1>
  <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{customer.email}</p>
@@ -379,7 +378,7 @@ export const CustomerDetail: React.FC = () => {
  </DialogTitle>
  <DialogClose
  aria-label="Închide"
- className="text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300:"
+ className="text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300"
  >
  <X className="h-5 w-5" />
  </DialogClose>

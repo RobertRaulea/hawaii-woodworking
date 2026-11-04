@@ -88,7 +88,7 @@ export const Catalog: React.FC = () => {
  <h1 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] text-stone-900 dark:text-stone-50 sm:text-5xl lg:text-6xl">
  {t('customWork.title')}
  </h1>
- <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600 dark:text-stone-300sm:text-base">
+ <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600 dark:text-stone-300 sm:text-base">
  {t('customWork.subtitle')}
  </p>
  <Button asChild variant="outline" className="mt-5 h-auto w-fit rounded-full border-amber-700/60 bg-transparent px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 hover:bg-amber-700/10 hover:text-amber-700 dark:border-amber-500/50 dark:text-amber-300 dark:hover:bg-amber-500/10 dark:hover:text-amber-200">

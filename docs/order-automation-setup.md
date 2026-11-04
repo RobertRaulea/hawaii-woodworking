@@ -67,11 +67,13 @@ Production deployment and provider activation require separate approval and the 
 
 ### Step 5: Test the Flow
 
-1. Place a test order on your site
-2. Complete payment with a Stripe test card (`4242 4242 4242 4242`)
-3. Check your admin email for the order notification
-4. Check the customer email for the thank-you message
-5. Verify the invoice was created in Oblio
+Email and Oblio invoices are disabled in TEST (`convex/postPayment.ts`), so this flow cannot be verified there. On TEST you can only confirm that the order is marked paid and stock is applied. Verifying emails and invoices requires the production runbook and explicit approval; do not create real invoices or emails as a smoke test.
+
+### Known limits
+
+- A failed email or Oblio call is logged and not retried. A failed invoice needs manual verification before any retry, to avoid duplicates.
+- A refund creates no Oblio credit note (storno) and no customer email; refunds are manual.
+- The customer email says the customer will receive an AWB email. That email is not implemented yet.
 
 ---
 

@@ -143,7 +143,7 @@ export const AdminProducts: React.FC = () => {
  return (
  <section>
  <div className="mb-6 flex items-center justify-between">
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">Produse</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Produse</h1>
  <Button
  asChild
  className="gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-medium hover:bg-amber-700"
@@ -230,13 +230,13 @@ export const AdminProducts: React.FC = () => {
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 ">
  Nume
  </TableHead>
- <TableHead className="hidden px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300md:table-cell">
+ <TableHead className="hidden px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 md:table-cell">
  Categorie
  </TableHead>
  <TableHead className="px-4 py-3 text-right font-medium text-stone-600 dark:text-stone-300 ">
  Preț
  </TableHead>
- <TableHead className="hidden px-4 py-3 text-center font-medium text-stone-600 dark:text-stone-300lg:table-cell">
+ <TableHead className="hidden px-4 py-3 text-center font-medium text-stone-600 dark:text-stone-300 lg:table-cell">
  Stoc
  </TableHead>
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 ">
@@ -267,7 +267,7 @@ export const AdminProducts: React.FC = () => {
  {product.sku || 'Fără SKU'}
  </p>
  </TableCell>
- <TableCell className="hidden px-4 py-3 text-stone-500 dark:text-stone-400md:table-cell">
+ <TableCell className="hidden px-4 py-3 text-stone-500 dark:text-stone-400 md:table-cell">
  {product.category ?? '—'}
  </TableCell>
  <TableCell className="px-4 py-3 text-right text-stone-700 dark:text-stone-300 ">

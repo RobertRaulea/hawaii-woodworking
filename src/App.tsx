@@ -2,9 +2,9 @@ import type React from 'react';
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home/Home';
-import { Products } from './pages/Products/Products';
 import { CartProvider } from './context/CartContext';
 import { ShippingProvider } from './context/ShippingContext';
 import MaintenanceGuard from './components/MaintenanceGuard/MaintenanceGuard';
@@ -13,8 +13,11 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { Toaster } from './components/ui/sonner';
 import { EnvironmentBanner } from './components/EnvironmentBanner/EnvironmentBanner';
 import { RouteSEO } from './components/SEO/RouteSEO';
+import { Analytics } from './components/Analytics/Analytics';
+import { AnalyticsConsent } from './components/Analytics/AnalyticsConsent';
 
 // Lazy-loaded pages
+const Products = lazy(() => import('./pages/Products/Products').then((m) => ({ default: m.Products })));
 const Cart = lazy(() => import('./pages/Cart/Cart').then((m) => ({ default: m.Cart })));
 const Catalog = lazy(() => import('./pages/Catalog/Catalog').then((m) => ({ default: m.Catalog })));
 const Services = lazy(() => import('./pages/Services/Services').then((m) => ({ default: m.Services })));
@@ -56,11 +59,14 @@ const Reports = lazy(() => import('./pages/Admin/Reports/Reports').then((m) => (
 const FulfillmentQueue = lazy(() => import('./pages/Admin/Fulfillment/FulfillmentQueue').then((m) => ({ default: m.FulfillmentQueue })));
 const FulfillmentDetail = lazy(() => import('./pages/Admin/Fulfillment/FulfillmentDetail').then((m) => ({ default: m.FulfillmentDetail })));
 
-const PageLoader: React.FC = () => (
+const PageLoader: React.FC = () => {
+ const { t } = useTranslation();
+ return (
  <div className="flex items-center justify-center min-h-[60vh]">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă...</p>
+ <p className="text-stone-500 dark:text-stone-400 ">{t('common.loading')}</p>
  </div>
-);
+ );
+};
 
 function App() {
  return (
@@ -69,6 +75,8 @@ function App() {
  <ShippingProvider>
  <Router>
  <EnvironmentBanner />
+ <Analytics />
+ <AnalyticsConsent />
  <RouteSEO />
  <ScrollToTop />
  <Toaster />

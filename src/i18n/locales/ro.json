@@ -119,7 +119,13 @@
     "placeOrder": "Plasează comanda",
     "processing": "Se procesează...",
     "success": "Comandă plasată cu succes!",
-    "error": "A apărut o eroare. Te rugăm să încerci din nou."
+    "error": "A apărut o eroare. Te rugăm să încerci din nou.",
+    "empty": "Coșul este gol.",
+    "payButton": "Plătește cu cardul",
+    "redirecting": "Se redirecționează...",
+    "connecting": "Se conecteaza contul...",
+    "stripeUrlMissing": "URL sesiune Stripe indisponibilă",
+    "paymentError": "Nu am putut iniția plata. Te rugăm să încerci din nou."
   },
   "shipping": {
     "title": "Informații de livrare",
@@ -290,5 +296,18 @@
     "passwordMismatch": "Parolele nu se potrivesc",
     "invalidPhone": "Număr de telefon invalid",
     "invalidPostalCode": "Cod poștal invalid"
+  },
+  "analytics": {
+    "title": "Statistici de utilizare",
+    "description": "Cu acordul tău folosim PostHog (UE) pentru statistici pseudonime despre trafic și interacțiunea cu produsele. Nu colectăm conținutul formularelor, parole sau date de card, iar înregistrarea sesiunilor este dezactivată. Îți poți modifica sau retrage acordul oricând din butonul de setări.",
+    "accept": "Accept statistici",
+    "reject": "Refuz statistici",
+    "settings": "Setări statistici",
+    "privacyLink": "Politica de confidențialitate"
+  },
+  "login": {
+    "title": "Conectează-te la contul tău",
+    "subtitle": "Folosește contul tău existent pentru a finaliza comanda mai rapid.",
+    "continueWithout": "Continuă fără cont →"
   }
 }

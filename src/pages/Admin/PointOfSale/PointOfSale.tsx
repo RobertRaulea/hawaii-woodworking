@@ -145,7 +145,7 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-800 dark:text-amber-300 ">
  Hawaii Woodworking
  </p>
- <h1 className="mt-1 text-2xl font-semibold">Vanzari la targ</h1>
+ <h1 className="mt-1 text-2xl font-medium font-serif">Vanzari la targ</h1>
  </div>
  </div>
  <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">

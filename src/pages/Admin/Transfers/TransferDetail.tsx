@@ -170,7 +170,7 @@ const TransferDetail = () => {
  ← Transferuri
  </Link>
  <div className="mt-1 flex flex-wrap items-center gap-3">
- <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
  Transfer {formatDate(transfer.createdAt)}
  </h1>
  <Badge

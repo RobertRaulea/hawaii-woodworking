@@ -309,13 +309,13 @@ export const ProductForm: React.FC = () => {
  <Button
  variant="ghost"
  onClick={() => navigate('/admin/products')}
- className="mb-4 h-auto gap-1 px-0 text-sm text-stone-500 dark:text-stone-400hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
+ className="mb-4 h-auto gap-1 px-0 text-sm text-stone-500 dark:text-stone-400 hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
  >
  <ArrowLeft className="h-4 w-4" />
  Înapoi la produse
  </Button>
 
- <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 mb-6">{pageTitle}</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 mb-6">{pageTitle}</h1>
 
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
  {/* Name */}

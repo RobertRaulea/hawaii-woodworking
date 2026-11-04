@@ -15,7 +15,7 @@ let createdEmail = '';
 const data: ShippingFormData = {
   email: 'tester@example.com', phone: '0712345678',
   firstName: 'Test', lastName: 'Client', password: 'Example-long-pass-42!',
-  shippingAddress: { street: 'Test Street 1', city: 'Berlin', county: 'Berlin', postalCode: '10115', country: 'Germany' },
+  shippingAddress: { street: 'Test Street 1', city: 'Sibiu', county: 'Sibiu', postalCode: '550000', country: 'România' },
   billingAddress: { street: 'Test Street 1', city: 'Berlin', county: 'Berlin', postalCode: '10115', country: 'Germany' },
   sameAsShipping: true, newsletter: false, acceptPolicy: true, createAccount: true,
 };

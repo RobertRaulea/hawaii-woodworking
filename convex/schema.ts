@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { analyticsContextValidator } from "./lib/analytics.utils";
 
 // Convex schema for Hawaii Woodworking
 export default defineSchema({
@@ -41,6 +42,7 @@ export default defineSchema({
     stripeCustomerId: v.optional(v.string()),
     isRegistered: v.optional(v.boolean()),
     email: v.string(),
+    phone: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
     shippingAddress: v.object({
@@ -88,6 +90,7 @@ export default defineSchema({
     invoicePdfUrl: v.optional(v.string()),
     createdAt: v.number(),
     paymentConfirmedAt: v.optional(v.number()),
+    analytics: v.optional(analyticsContextValidator),
     inventoryStatus: v.optional(
       v.union(
         v.literal("pending"),
@@ -124,6 +127,21 @@ export default defineSchema({
       v.object({
         firstName: v.string(),
         lastName: v.string(),
+        phone: v.optional(v.string()),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          county: v.string(),
+          postalCode: v.string(),
+          country: v.string(),
+        }),
+      }),
+    ),
+    billing: v.optional(
+      v.object({
+        firstName: v.string(),
+        lastName: v.string(),
+        phone: v.optional(v.string()),
         address: v.object({
           street: v.string(),
           city: v.string(),

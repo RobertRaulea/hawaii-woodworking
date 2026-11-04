@@ -12,7 +12,7 @@ const downloadImage = async (url: string): Promise<Blob> => {
     throw new Error('Demo image download failed or is not a supported image.');
   }
   const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
+  const chunks: Uint8Array<ArrayBuffer>[] = [];
   let size = 0;
   while (true) {
     const { value, done } = await reader.read();

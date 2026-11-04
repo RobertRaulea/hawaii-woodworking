@@ -235,7 +235,7 @@ const TransferForm = () => {
  >
  ← Transferuri
  </Link>
- <h1 className="mt-1 text-2xl font-semibold text-stone-900 dark:text-stone-50 ">
+ <h1 className="mt-1 text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
  {editing
  ? 'Editează transferul'
  : requestMode

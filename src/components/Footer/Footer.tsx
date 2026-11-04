@@ -2,6 +2,7 @@ import type React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { trackAnalytics } from '../../utils/analytics.utils';
 
 export const Footer: React.FC = () => {
  const { t } = useTranslation();
@@ -41,13 +42,13 @@ export const Footer: React.FC = () => {
  <div className="text-left md:text-right">
  <h4 className="font-serif text-white text-lg mb-5 tracking-wide">{t('footer.contact')}</h4>
  <ul className="space-y-3">
- <li><p className="text-sm">hawaiisibiu@gmail.com</p></li>
- <li><p className="text-sm">+40 748 831 477</p></li>
+ <li><a href="mailto:hawaiisibiu@gmail.com" onClick={() => trackAnalytics('cta_clicked', { cta_name: 'contact_email', surface: 'storefront' })} className="text-sm hover:text-amber-400 transition-colors duration-200">hawaiisibiu@gmail.com</a></li>
+ <li><a href="tel:+40748831477" onClick={() => trackAnalytics('cta_clicked', { cta_name: 'contact_phone', surface: 'storefront' })} className="text-sm hover:text-amber-400 transition-colors duration-200">+40 748 831 477</a></li>
  </ul>
  <div className="flex space-x-5 mt-6 justify-start md:justify-end">
- <a href="https://www.facebook.com/profile.php?id=100093461934429" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400hover:text-amber-400 transition-colors duration-200"><FaFacebook size={18} /></a>
- <a href="https://www.instagram.com/hawaii_woodworks/" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400hover:text-amber-400 transition-colors duration-200"><FaInstagram size={18} /></a>
- <a href="https://www.tiktok.com/@hawaii_woodworks" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400hover:text-amber-400 transition-colors duration-200"><FaTiktok size={18} /></a>
+ <a href="https://www.facebook.com/profile.php?id=100093461934429" aria-label="Facebook" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400 hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaFacebook size={18} aria-hidden="true" /></a>
+ <a href="https://www.instagram.com/hawaii_woodworks/" aria-label="Instagram" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400 hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaInstagram size={18} aria-hidden="true" /></a>
+ <a href="https://www.tiktok.com/@hawaii_woodworks" aria-label="TikTok" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400 hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaTiktok size={18} aria-hidden="true" /></a>
  </div>
  </div>
  </div>
@@ -65,7 +66,6 @@ export const Footer: React.FC = () => {
  {/* ANPC Links */}
  <div className="text-center space-y-0.5">
  <p><a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200">{t('footer.alternativeDispute')}</a></p>
- <p><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-stone-400 dark:text-stone-500 hover:text-amber-400 transition-colors duration-200">{t('footer.onlineDispute')}</a></p>
  </div>
  
  {/* Copyright */}
