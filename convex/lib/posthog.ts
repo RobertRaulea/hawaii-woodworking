@@ -1,3 +1,5 @@
+'use node';
+
 import { createHash } from 'node:crypto';
 
 import { readAnalyticsConfiguration, validAnalyticsContext } from '../../shared/analytics';
