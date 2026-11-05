@@ -278,7 +278,7 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  : 'w-0 opacity-0 pointer-events-none overflow-hidden'
  }`}
  >
- <div className="w-[280px]">
+ <div className="h-full w-[280px]">
  <ProductFilters
  categories={categories}
  selectedCategories={selectedCategories}
