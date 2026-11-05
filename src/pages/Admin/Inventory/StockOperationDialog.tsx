@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useConvex, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
@@ -7,10 +7,10 @@ import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { useProductThumbnails } from '../../../hooks/useProductThumbnails';
 import { Button } from '@/components/ui/button';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FieldError } from '@/components/ui/field';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { formatStock } from '../../../utils/inventory.utils';
 import { StockOperationFeedback } from './StockOperationFeedback';
@@ -71,6 +71,7 @@ export const StockOperationDialog = ({
  const [snapshotError, setSnapshotError] = useState('');
  const {
  register,
+ control,
  handleSubmit,
  watch,
  formState: { errors, isSubmitting },
@@ -197,18 +198,26 @@ export const StockOperationDialog = ({
  </div>
  <div>
  <Label htmlFor="stock-op-kind">Operațiune</Label>
- <NativeSelect
+ <Controller
+ name="kind"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="stock-op-kind"
  disabled={disabled}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg p-3 pr-9"
- {...register('kind')}
- >
- <NativeSelectOption value="receipt">Intrare</NativeSelectOption>
- <NativeSelectOption value="adjustment">Ajustare</NativeSelectOption>
- <NativeSelectOption value="count">Inventariere</NativeSelectOption>
- <NativeSelectOption value="threshold">Prag minim</NativeSelectOption>
- </NativeSelect>
+ className="rounded-lg p-3"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: 'receipt', label: 'Intrare' },
+ { value: 'adjustment', label: 'Ajustare' },
+ { value: 'count', label: 'Inventariere' },
+ { value: 'threshold', label: 'Prag minim' },
+ ]}
+ />
+ )}
+ />
  </div>
 
  {kind === 'receipt' ? (
@@ -241,20 +250,24 @@ export const StockOperationDialog = ({
  {kind === 'adjustment' || kind === 'count' ? (
  <div>
  <Label htmlFor="stock-op-location">Locație</Label>
- <NativeSelect
+ <Controller
+ name="location"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="stock-op-location"
  disabled={disabled}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg p-3 pr-9"
- {...register('location')}
- >
- <NativeSelectOption value="workshop">Atelier</NativeSelectOption>
- {activeFairs.map((fair) => (
- <NativeSelectOption key={fair._id} value={fair._id}>
- {fair.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ className="rounded-lg p-3"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: 'workshop', label: 'Atelier' },
+ ...activeFairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ]}
+ />
+ )}
+ />
  </div>
  ) : null}
 
@@ -284,19 +297,21 @@ export const StockOperationDialog = ({
  </div>
  <div>
  <Label htmlFor="stock-op-reason">Motiv</Label>
- <NativeSelect
+ <Controller
+ name="reason"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="stock-op-reason"
  disabled={disabled}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg p-3 pr-9"
- {...register('reason')}
- >
- {REASON_LABELS.map(([value, label]) => (
- <NativeSelectOption key={value} value={value}>
- {label}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ className="rounded-lg p-3"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={REASON_LABELS.map(([value, label]) => ({ value, label }))}
+ />
+ )}
+ />
  </div>
  </div>
  <div>

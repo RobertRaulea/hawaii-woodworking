@@ -20,11 +20,11 @@ import { useInventoryOperation } from '../../../hooks/useInventoryOperation';
 import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { useStockOperation } from '../../../hooks/useStockOperation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
  Table,
  TableBody,
@@ -280,50 +280,45 @@ const InventoryWorkspace = ({
  className="h-auto w-full rounded-lg px-3 py-2"
  aria-label="Caută produse"
  />
- <NativeSelect
+ <OptionSelect
  value={location}
- onChange={(event) => setLocation(event.target.value as StockLocation)}
+ onValueChange={(v) => setLocation(v as StockLocation)}
  wrapperClassName="w-full"
- className="rounded-lg px-3 py-2 pr-9"
+ className="rounded-lg px-3 py-2"
  aria-label="Locație"
- >
- <NativeSelectOption value="all">Toate locațiile</NativeSelectOption>
- <NativeSelectOption value="workshop">Atelier</NativeSelectOption>
- {fairs.map((fair) => (
- <NativeSelectOption key={fair._id} value={`fairs:${fair._id}`}>
- {fair.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
- <NativeSelect
+ options={[
+ { value: 'all', label: 'Toate locațiile' },
+ { value: 'workshop', label: 'Atelier' },
+ ...fairs.map((fair) => ({ value: `fairs:${fair._id}`, label: fair.name })),
+ ]}
+ />
+ <OptionSelect
  value={category}
- onChange={(event) => setCategory(event.target.value)}
+ onValueChange={(v) => setCategory(v)}
  wrapperClassName="w-full"
- className="rounded-lg px-3 py-2 pr-9"
+ className="rounded-lg px-3 py-2"
  aria-label="Categorie"
- >
- <NativeSelectOption value="">Toate categoriile</NativeSelectOption>
- {categories.map((item) => (
- <NativeSelectOption key={item} value={item}>
- {item}
- </NativeSelectOption>
- ))}
- </NativeSelect>
- <NativeSelect
+ options={[
+ { value: '', label: 'Toate categoriile' },
+ ...categories.map((item) => ({ value: item, label: item })),
+ ]}
+ />
+ <OptionSelect
  value={availability}
- onChange={(event) =>
- setAvailability(event.target.value as StockAvailability)
+ onValueChange={(v) =>
+ setAvailability(v as StockAvailability)
  }
  wrapperClassName="w-full"
- className="rounded-lg px-3 py-2 pr-9"
+ className="rounded-lg px-3 py-2"
  aria-label="Disponibilitate"
- >
- <NativeSelectOption value="all">Orice disponibilitate</NativeSelectOption>
- <NativeSelectOption value="available">Disponibil</NativeSelectOption>
- <NativeSelectOption value="low">Stoc scăzut</NativeSelectOption>
- <NativeSelectOption value="out">Fără stoc</NativeSelectOption>
- <NativeSelectOption value="reserved">Cu rezervări</NativeSelectOption>
- </NativeSelect>
+ options={[
+ { value: 'all', label: 'Orice disponibilitate' },
+ { value: 'available', label: 'Disponibil' },
+ { value: 'low', label: 'Stoc scăzut' },
+ { value: 'out', label: 'Fără stoc' },
+ { value: 'reserved', label: 'Cu rezervări' },
+ ]}
+ />
  </div>
  <div className="mt-4 overflow-x-auto">
  <Table className="min-w-full rounded-lg border border-border bg-card text-sm">

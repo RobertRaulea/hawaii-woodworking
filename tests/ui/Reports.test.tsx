@@ -5,6 +5,7 @@ import { getFunctionName } from 'convex/server';
 import assert from 'node:assert/strict';
 import { it, mock } from 'node:test';
 import { toCsv } from '../../src/utils/csv.utils';
+import { pickOption } from './optionSelect.helpers';
 
 const staffAdmin = { role: 'admin', userId: 'admin-1', homePath: '/admin' };
 const staffSeller = { role: 'seller', userId: 'user_sel', homePath: '/admin' };
@@ -209,7 +210,7 @@ it('Reports randează tabelele din sumar și schimbarea filtrelor actualizează 
     channel: 'all',
   });
 
-  await user.selectOptions(screen.getByLabelText('Canal'), 'online');
+  await pickOption(user, screen.getByLabelText('Canal'), 'Online');
   await waitFor(() =>
     assert.deepEqual(adminQueryArgs, {
       from: '2026-04-01',
@@ -233,7 +234,7 @@ it('selectarea unui târg forțează canalul POS și trimite fairId', async () =
     </MemoryRouter>,
   );
   await screen.findByText('Sumar vânzări');
-  await user.selectOptions(screen.getByLabelText('Locație'), 'fair-1');
+  await pickOption(user, screen.getByLabelText('Locație'), 'Targ Craciun');
   await waitFor(() =>
     assert.deepEqual(adminQueryArgs, {
       from: '2026-04-01',

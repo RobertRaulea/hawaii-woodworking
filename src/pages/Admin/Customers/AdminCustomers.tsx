@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../../components/OptionSelect';
 import {
  Table,
  TableBody,
@@ -167,16 +167,17 @@ export const AdminCustomers: React.FC = () => {
  </div>
  <div className="flex items-center gap-2">
  <Label htmlFor="typeFilter">Tip:</Label>
- <NativeSelect
+ <OptionSelect
  id="typeFilter"
  value={typeFilter}
- onChange={(e) => setTypeFilter(e.target.value as 'all' | 'registered' | 'guest')}
- className="min-h-0 rounded-lg px-3 py-1.5 pr-9"
- >
- <NativeSelectOption value="all">Toți</NativeSelectOption>
- <NativeSelectOption value="registered">Înregistrați</NativeSelectOption>
- <NativeSelectOption value="guest">Vizitatori</NativeSelectOption>
- </NativeSelect>
+ onValueChange={(v) => setTypeFilter(v as 'all' | 'registered' | 'guest')}
+ className="min-h-0 rounded-lg px-3 py-1.5"
+ options={[
+ { value: 'all', label: 'Toți' },
+ { value: 'registered', label: 'Înregistrați' },
+ { value: 'guest', label: 'Vizitatori' },
+ ]}
+ />
  </div>
  </div>
 

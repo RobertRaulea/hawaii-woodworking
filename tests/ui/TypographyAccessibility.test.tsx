@@ -11,6 +11,7 @@ import { initReactI18next } from 'react-i18next';
 
 import { CardTitle } from '../../src/components/ui/card';
 import type { ShippingFormData } from '../../src/types/shipping.types';
+import { pickOption } from './optionSelect.helpers';
 
 const resources = Object.fromEntries(
   ['ro', 'en', 'de'].map((language) => [
@@ -273,7 +274,7 @@ it('shipping contact, account and native address controls expose localized place
   render(<MemoryRouter><Shipping /></MemoryRouter>);
   for (const [id, autocomplete] of [
     ['email', 'email'], ['phone', 'tel'], ['firstName', 'given-name'], ['lastName', 'family-name'],
-    ['shippingCountry', 'shipping country-name'], ['shippingStreet', 'shipping street-address'],
+    ['shippingStreet', 'shipping street-address'],
     ['shippingCity', 'shipping address-level2'], ['shippingPostalCode', 'shipping postal-code'],
   ]) {
     assert.equal(document.getElementById(id)?.getAttribute('autocomplete'), autocomplete, id);
@@ -282,19 +283,27 @@ it('shipping contact, account and native address controls expose localized place
   assert.ok(screen.getByPlaceholderText('Prenume'));
   assert.ok(screen.getByPlaceholderText('Nume'));
   assert.equal(screen.queryByPlaceholderText('Street address'), null);
-  assert.deepEqual(
-    Array.from((document.getElementById('shippingCountry') as HTMLSelectElement).options).map((option) => option.value),
-    ['', 'România'],
+  await user.click(document.getElementById('shippingCountry') as HTMLElement);
+  await waitFor(() =>
+    assert.deepEqual(
+      screen.getAllByRole('option').map((option) => option.textContent),
+      ['Selectează...', 'România'],
+    ),
   );
+  await user.keyboard('{Escape}');
   await user.click(screen.getByRole('checkbox', { name: 'Aceeași cu adresa de livrare' }));
-  await user.selectOptions(document.getElementById('billingCountry') as HTMLSelectElement, 'Germany');
+  await pickOption(user, document.getElementById('billingCountry') as HTMLElement, 'Germany');
   for (const [id, autocomplete] of [
-    ['billingCountry', 'billing country-name'], ['billingStreet', 'billing street-address'],
+    ['billingStreet', 'billing street-address'],
     ['billingCounty', 'billing address-level1'], ['billingCity', 'billing address-level2'],
     ['billingPostalCode', 'billing postal-code'],
   ]) {
     assert.equal(document.getElementById(id)?.getAttribute('autocomplete'), autocomplete, id);
   }
+  assert.equal(
+    (document.querySelector('select[name="billingAddress.country"]') as HTMLSelectElement).getAttribute('autocomplete'),
+    'billing country-name',
+  );
   await user.click(screen.getByRole('checkbox', { name: 'Doresc să îmi creez un cont pentru comenzi viitoare' }));
   assert.equal(screen.getByLabelText(/Parolă/).getAttribute('autocomplete'), 'new-password');
   assert.equal(document.querySelector('input[type="checkbox"][required]'), null);

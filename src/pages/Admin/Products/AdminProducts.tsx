@@ -12,7 +12,7 @@ import { Empty } from '@/components/ui/empty';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../../components/OptionSelect';
 import {
  Table,
  TableBody,
@@ -190,36 +190,34 @@ export const AdminProducts: React.FC = () => {
  placeholder="Caută după nume sau SKU..."
  className="h-auto w-full rounded-lg px-3 py-2.5"
  />
- <NativeSelect
+ <OptionSelect
  aria-label="Categorie"
  value={categoryFilter}
- onChange={(e) => {
- setCategoryFilter(e.target.value);
+ onValueChange={(v) => {
+ setCategoryFilter(v);
  setPage(0);
  }}
- className="rounded-lg px-3 py-2.5 pr-9"
- >
- <NativeSelectOption value="">Toate categoriile</NativeSelectOption>
- {categories.map((name) => (
- <NativeSelectOption key={name} value={name}>
- {name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
- <NativeSelect
+ className="rounded-lg px-3 py-2.5"
+ options={[
+ { value: '', label: 'Toate categoriile' },
+ ...categories.map((name) => ({ value: name, label: name })),
+ ]}
+ />
+ <OptionSelect
  aria-label="Stare"
  value={statusFilter}
- onChange={(e) => {
- setStatusFilter(e.target.value as StatusFilter);
+ onValueChange={(v) => {
+ setStatusFilter(v as StatusFilter);
  setPage(0);
  }}
- className="rounded-lg px-3 py-2.5 pr-9"
- >
- <NativeSelectOption value="visible">Toate (fără arhivate)</NativeSelectOption>
- <NativeSelectOption value="active">Activ</NativeSelectOption>
- <NativeSelectOption value="inactive">Inactiv</NativeSelectOption>
- <NativeSelectOption value="archived">Arhivat</NativeSelectOption>
- </NativeSelect>
+ className="rounded-lg px-3 py-2.5"
+ options={[
+ { value: 'visible', label: 'Toate (fără arhivate)' },
+ { value: 'active', label: 'Activ' },
+ { value: 'inactive', label: 'Inactiv' },
+ { value: 'archived', label: 'Arhivat' },
+ ]}
+ />
  </div>
 
  <div className="overflow-x-auto rounded-lg border border-border bg-card">

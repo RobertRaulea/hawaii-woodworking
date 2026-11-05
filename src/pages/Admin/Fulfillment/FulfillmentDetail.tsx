@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Textarea } from "@/components/ui/textarea";
 import { ProductThumb } from "../../../components/ProductThumb";
 import { useProductThumbnails } from "../../../hooks/useProductThumbnails";
@@ -578,27 +578,24 @@ export const FulfillmentDetail: React.FC = () => {
  >
  Operator
  </Label>
- <NativeSelect
+ <OptionSelect
  id="reassign-target"
  value={reassignTarget}
- onChange={(event) => setReassignTarget(event.target.value)}
+ onValueChange={(v) => setReassignTarget(v)}
+ placeholder="Alege un operator…"
  wrapperClassName="mt-1 w-full"
- className="rounded-lg px-3 py-2 pr-9"
- >
- <NativeSelectOption value="" disabled>
- Alege un operator…
- </NativeSelectOption>
- {eligibleStaff.map((entry) => (
- <NativeSelectOption
- key={entry.userId}
- value={entry.userId}
- disabled={entry.userId === order.assignedTo}
- >
+ className="rounded-lg px-3 py-2"
+ options={eligibleStaff.map((entry) => ({
+ value: entry.userId,
+ label: (
+ <>
  {entry.name ?? entry.email}
  {entry.userId === order.assignedTo ? " (curent)" : ""}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ </>
+ ),
+ disabled: entry.userId === order.assignedTo,
+ }))}
+ />
  {directory.data === undefined ? (
  <p className="mt-2 text-xs text-muted-foreground">
  Se încarcă echipa…

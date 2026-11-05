@@ -13,10 +13,10 @@ import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { useTransferAction } from '../../../hooks/useTransferAction';
 import { SearchableSelect } from '../../../components/SearchableSelect/SearchableSelect';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FieldLabel } from '@/components/ui/field';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import {
  endpointFromValue,
@@ -203,16 +203,10 @@ const TransferForm = () => {
  void controller.start({ kind: 'created', from, to, lines, note });
  };
 
- const endpointOptions = (
- <>
- <NativeSelectOption value={WORKSHOP}>Atelier</NativeSelectOption>
- {fairs.map((fair) => (
- <NativeSelectOption key={fair._id} value={fair._id}>
- {fair.name}
- </NativeSelectOption>
- ))}
- </>
- );
+ const endpointOptions = [
+ { value: WORKSHOP, label: 'Atelier' },
+ ...fairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ];
 
  if (editing && detail === undefined)
  return <p className="text-sm text-muted-foreground">Se încarcă…</p>;
@@ -250,18 +244,23 @@ const TransferForm = () => {
  <FieldLabel variant="caps" htmlFor="transfer-to">
  Târg destinație
  </FieldLabel>
- <NativeSelect
+ <Controller
+ control={control}
+ name="to"
+ rules={{ required: 'Selectează târgul destinație.' }}
+ render={({ field }) => (
+ <OptionSelect
  id="transfer-to"
  wrapperClassName="w-full"
- {...register('to', { required: 'Selectează târgul destinație.' })}
- >
- <NativeSelectOption value="">Selectează…</NativeSelectOption>
- {fairs.map((fair) => (
- <NativeSelectOption key={fair._id} value={fair._id}>
- {fair.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: 'Selectează…' },
+ ...fairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ]}
+ />
+ )}
+ />
  {errors.to && (
  <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{errors.to.message}</p>
  )}
@@ -272,26 +271,39 @@ const TransferForm = () => {
  <FieldLabel variant="caps" htmlFor="transfer-from">
  Sursă
  </FieldLabel>
- <NativeSelect
+ <Controller
+ control={control}
+ name="from"
+ rules={{ required: true }}
+ render={({ field }) => (
+ <OptionSelect
  id="transfer-from"
  wrapperClassName="w-full"
- {...register('from', { required: true })}
- >
- {endpointOptions}
- </NativeSelect>
+ value={field.value}
+ onValueChange={field.onChange}
+ options={endpointOptions}
+ />
+ )}
+ />
  </div>
  <div>
  <FieldLabel variant="caps" htmlFor="transfer-to">
  Destinație
  </FieldLabel>
- <NativeSelect
+ <Controller
+ control={control}
+ name="to"
+ rules={{ required: 'Selectează destinația.' }}
+ render={({ field }) => (
+ <OptionSelect
  id="transfer-to"
  wrapperClassName="w-full"
- {...register('to', { required: 'Selectează destinația.' })}
- >
- <NativeSelectOption value="">Selectează…</NativeSelectOption>
- {endpointOptions}
- </NativeSelect>
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[{ value: '', label: 'Selectează…' }, ...endpointOptions]}
+ />
+ )}
+ />
  {errors.to && (
  <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{errors.to.message}</p>
  )}

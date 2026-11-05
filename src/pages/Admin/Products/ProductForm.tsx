@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Textarea } from '@/components/ui/textarea';
 import { compressImages } from '../../../utils/imageCompression.utils';
 import { SITE_URL } from '../../../constants/site.constants';
@@ -483,19 +483,23 @@ export const ProductForm: React.FC = () => {
  Se încarcă categoriile...
  </div>
  ) : categories && categories.length > 0 ? (
- <NativeSelect
+ <Controller
+ name="category"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="category"
  wrapperClassName="mt-1 w-full"
- className="rounded-lg px-3 py-2.5 pr-9"
- {...register('category')}
- >
- <NativeSelectOption value="">Alege o categorie</NativeSelectOption>
- {categories.map((cat) => (
- <NativeSelectOption key={cat._id} value={cat.name}>
- {cat.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ className="rounded-lg px-3 py-2.5"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: 'Alege o categorie' },
+ ...categories.map((cat) => ({ value: cat.name, label: cat.name })),
+ ]}
+ />
+ )}
+ />
  ) : (
  <Alert variant="warning" className="mt-1 text-amber-700 dark:text-amber-400 ">
  <AlertCircle className="size-4" />

@@ -5,6 +5,7 @@ import { getFunctionName } from 'convex/server';
 import assert from 'node:assert/strict';
 import { beforeEach, it, mock } from 'node:test';
 import { fair, product, operationMock } from './fixtures';
+import { pickOption } from './optionSelect.helpers';
 import type { Id } from '../../convex/_generated/dataModel';
 
 const query = mock.fn<(reference: unknown, args?: unknown) => unknown>(
@@ -172,10 +173,10 @@ it('AdminProducts filtrează după căutare, categorie și stare', async () => {
   assert.equal(screen.queryByText('Produs Vechi'), null);
 
   // Status filter shows archived.
-  await user.selectOptions(screen.getByLabelText('Stare'), 'archived');
+  await pickOption(user, screen.getByLabelText('Stare'), 'Arhivat');
   assert.ok(screen.getByText('Produs Vechi'));
   assert.equal(screen.queryByText('Magnet Sibiu'), null);
-  await user.selectOptions(screen.getByLabelText('Stare'), 'visible');
+  await pickOption(user, screen.getByLabelText('Stare'), 'Toate (fără arhivate)');
 
   // Search by SKU.
   await user.type(
@@ -187,7 +188,7 @@ it('AdminProducts filtrează după căutare, categorie și stare', async () => {
   await user.clear(screen.getByPlaceholderText(/Caută după nume sau SKU/));
 
   // Category filter.
-  await user.selectOptions(screen.getByLabelText('Categorie'), 'Crăciun');
+  await pickOption(user, screen.getByLabelText('Categorie'), 'Crăciun');
   assert.ok(screen.getByText('Ornament Brad'));
   assert.equal(screen.queryByText('Magnet Sibiu'), null);
   view.unmount();
@@ -313,6 +314,6 @@ it('PointOfSale preselectează târgul din ?fairId=', async () => {
   );
   const select = (await screen.findByLabelText(
     'Targul selectat',
-  )) as HTMLSelectElement;
-  assert.equal(select.value, 'fair-2');
+  )) as HTMLElement;
+  assert.equal(select.textContent, 'Târg Vară');
 });

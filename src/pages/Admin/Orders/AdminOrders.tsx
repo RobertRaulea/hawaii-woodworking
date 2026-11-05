@@ -5,11 +5,11 @@ import { Eye } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { cn } from '@/utils/cn.utils';
 import {
  Table,
@@ -212,43 +212,45 @@ export const AdminOrders: React.FC = () => {
  <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
  <div>
  <Label htmlFor="payment-filter">Stare plată</Label>
- <NativeSelect
+ <OptionSelect
  id="payment-filter"
  value={paymentFilter}
- onChange={(event) => {
- setPaymentFilter(event.target.value);
+ onValueChange={(v) => {
+ setPaymentFilter(v);
  resetPage();
  }}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg px-3 py-2 pr-9"
- >
- <NativeSelectOption value="all">Toate</NativeSelectOption>
- <NativeSelectOption value="pending">Neplătită</NativeSelectOption>
- <NativeSelectOption value="paid">Plătită</NativeSelectOption>
- <NativeSelectOption value="cancelled">Anulată</NativeSelectOption>
- </NativeSelect>
+ className="rounded-lg px-3 py-2"
+ options={[
+ { value: 'all', label: 'Toate' },
+ { value: 'pending', label: 'Neplătită' },
+ { value: 'paid', label: 'Plătită' },
+ { value: 'cancelled', label: 'Anulată' },
+ ]}
+ />
  </div>
  <div>
  <Label htmlFor="fulfillment-filter">Stare pregătire</Label>
- <NativeSelect
+ <OptionSelect
  id="fulfillment-filter"
  value={fulfillmentFilter}
- onChange={(event) => {
- setFulfillmentFilter(event.target.value);
+ onValueChange={(v) => {
+ setFulfillmentFilter(v);
  resetPage();
  }}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg px-3 py-2 pr-9"
- >
- <NativeSelectOption value="all">Toate</NativeSelectOption>
- <NativeSelectOption value="ready">De pregătit</NativeSelectOption>
- <NativeSelectOption value="preparing">În pregătire</NativeSelectOption>
- <NativeSelectOption value="packed">Ambalată</NativeSelectOption>
- <NativeSelectOption value="shipped">Expediată</NativeSelectOption>
- <NativeSelectOption value="delivered">Livrată</NativeSelectOption>
- <NativeSelectOption value="blocked">Blocată</NativeSelectOption>
- <NativeSelectOption value="cancelled">Anulată</NativeSelectOption>
- </NativeSelect>
+ className="rounded-lg px-3 py-2"
+ options={[
+ { value: 'all', label: 'Toate' },
+ { value: 'ready', label: 'De pregătit' },
+ { value: 'preparing', label: 'În pregătire' },
+ { value: 'packed', label: 'Ambalată' },
+ { value: 'shipped', label: 'Expediată' },
+ { value: 'delivered', label: 'Livrată' },
+ { value: 'blocked', label: 'Blocată' },
+ { value: 'cancelled', label: 'Anulată' },
+ ]}
+ />
  </div>
  </div>
  </div>

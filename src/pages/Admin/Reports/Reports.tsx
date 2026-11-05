@@ -8,10 +8,10 @@ import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { bucharestToday, monthStart } from '../../../utils/date.utils';
 import { downloadCsv, toCsv } from '../../../utils/csv.utils';
 import { Button } from '@/components/ui/button';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Alert } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
   Card,
   CardContent,
@@ -189,11 +189,10 @@ export const Reports: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="report-channel">Canal</Label>
-            <NativeSelect
+            <OptionSelect
               id="report-channel"
               value={channel}
-              onChange={(event) => {
-                const value = event.target.value;
+              onValueChange={(value) => {
                 const next = new URLSearchParams(searchParams);
                 if (value === 'all') next.delete('channel');
                 else next.set('channel', value);
@@ -202,20 +201,20 @@ export const Reports: React.FC = () => {
                 setProductPage(1);
               }}
               wrapperClassName="w-full"
-              className="flex h-9 min-h-9 bg-transparent px-3 py-1 pr-9 shadow-xs focus:border-input focus:ring-0 focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <NativeSelectOption value="all">Toate</NativeSelectOption>
-              <NativeSelectOption value="online">Online</NativeSelectOption>
-              <NativeSelectOption value="pos">POS</NativeSelectOption>
-            </NativeSelect>
+              className="flex h-9 min-h-9 bg-transparent px-3 py-1 shadow-xs focus:border-input focus:ring-0 focus-visible:ring-1 focus-visible:ring-ring"
+              options={[
+                { value: 'all', label: 'Toate' },
+                { value: 'online', label: 'Online' },
+                { value: 'pos', label: 'POS' },
+              ]}
+            />
           </div>
           <div>
             <Label htmlFor="report-location">Locație</Label>
-            <NativeSelect
+            <OptionSelect
               id="report-location"
               value={fairId ?? 'all'}
-              onChange={(event) => {
-                const value = event.target.value;
+              onValueChange={(value) => {
                 const next = new URLSearchParams(searchParams);
                 if (value === 'all') next.delete('fairId');
                 else {
@@ -226,15 +225,15 @@ export const Reports: React.FC = () => {
                 setProductPage(1);
               }}
               wrapperClassName="w-full"
-              className="flex h-9 min-h-9 bg-transparent px-3 py-1 pr-9 shadow-xs focus:border-input focus:ring-0 focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <NativeSelectOption value="all">Toate</NativeSelectOption>
-              {(fairs ?? []).map((fair) => (
-                <NativeSelectOption key={fair._id} value={fair._id}>
-                  {fair.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+              className="flex h-9 min-h-9 bg-transparent px-3 py-1 shadow-xs focus:border-input focus:ring-0 focus-visible:ring-1 focus-visible:ring-ring"
+              options={[
+                { value: 'all', label: 'Toate' },
+                ...(fairs ?? []).map((fair) => ({
+                  value: fair._id,
+                  label: fair.name,
+                })),
+              ]}
+            />
           </div>
         </CardContent>
       </Card>

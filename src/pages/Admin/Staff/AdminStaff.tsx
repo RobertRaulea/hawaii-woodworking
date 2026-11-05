@@ -1,14 +1,14 @@
 import { useMutation } from 'convex/react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { api } from '../../../../convex/_generated/api';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { inventoryError } from '../../../utils/inventory.utils';
 import { Alert } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 
 interface StaffFormValues {
  userId: string;
@@ -35,6 +35,7 @@ export const AdminStaff = () => {
  const save = useMutation(api.staff.setDirectoryEntry);
  const {
  register,
+ control,
  handleSubmit,
  reset,
  setError,
@@ -197,18 +198,26 @@ export const AdminStaff = () => {
  >
  Rol (opțional)
  </Label>
- <NativeSelect
+ <Controller
+ name="role"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="staff-role"
  disabled={isSubmitting}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg px-3 pr-9"
- {...register('role')}
- >
- <NativeSelectOption value="">—</NativeSelectOption>
- <NativeSelectOption value="seller">Vânzător</NativeSelectOption>
- <NativeSelectOption value="atelier">Atelier</NativeSelectOption>
- <NativeSelectOption value="admin">Administrator</NativeSelectOption>
- </NativeSelect>
+ className="rounded-lg px-3"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: '—' },
+ { value: 'seller', label: 'Vânzător' },
+ { value: 'atelier', label: 'Atelier' },
+ { value: 'admin', label: 'Administrator' },
+ ]}
+ />
+ )}
+ />
  </div>
  <Button
  disabled={isSubmitting}

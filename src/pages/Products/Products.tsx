@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../components/OptionSelect';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
 import { useTranslatedProducts } from '../../hooks/useTranslatedProducts';
@@ -114,8 +114,8 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  updateUrlParams(selectedCategories, min, max, sortBy);
  };
 
- const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
- const newSort = e.target.value as SortOption;
+ const handleSortChange = (value: string) => {
+ const newSort = value as SortOption;
  setSortBy(newSort);
  updateUrlParams(selectedCategories, priceRange.min, priceRange.max, newSort);
  };
@@ -255,16 +255,17 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  <Label htmlFor="sort" className="text-sm font-normal leading-5 text-stone-600 dark:text-stone-300 hidden sm:block">
  {t('filters.sortBy')}:
  </Label>
- <NativeSelect
+ <OptionSelect
  id="sort"
  value={sortBy}
- onChange={handleSortChange}
- className="rounded-full px-3 py-2 pr-9 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
- >
- <NativeSelectOption value="price-asc">{t('filters.priceAsc')}</NativeSelectOption>
- <NativeSelectOption value="price-desc">{t('filters.priceDesc')}</NativeSelectOption>
- <NativeSelectOption value="name-asc">{t('filters.nameAsc')}</NativeSelectOption>
- </NativeSelect>
+ onValueChange={handleSortChange}
+ className="rounded-full px-3 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+ options={[
+ { value: 'price-asc', label: t('filters.priceAsc') },
+ { value: 'price-desc', label: t('filters.priceDesc') },
+ { value: 'name-asc', label: t('filters.nameAsc') },
+ ]}
+ />
  </div>
  </div>
  </div>

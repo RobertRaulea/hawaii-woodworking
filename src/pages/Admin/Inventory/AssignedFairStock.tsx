@@ -9,9 +9,9 @@ import type { InventoryProduct } from '../../../types/inventory.types';
 import { useProductThumbnails } from '../../../hooks/useProductThumbnails';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
  Table,
  TableBody,
@@ -96,46 +96,39 @@ export const AssignedFairStock = ({ overview }: AssignedFairStockProps) => {
  className="h-auto w-full rounded-lg px-3 py-2"
  aria-label="Caută produse"
  />
- <NativeSelect
+ <OptionSelect
  value={selectedFair}
- onChange={(event) => setFairId(event.target.value as Id<'fairs'>)}
+ onValueChange={(v) => setFairId(v as Id<'fairs'>)}
  wrapperClassName="w-full"
- className="rounded-lg px-3 py-2 pr-9"
+ className="rounded-lg px-3 py-2"
  aria-label="Târg"
- >
- {overview.fairs.map((fair) => (
- <NativeSelectOption key={fair._id} value={fair._id}>
- {fair.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
- <NativeSelect
+ options={overview.fairs.map((fair) => ({ value: fair._id, label: fair.name }))}
+ />
+ <OptionSelect
  value={category}
- onChange={(event) => setCategory(event.target.value)}
+ onValueChange={(v) => setCategory(v)}
  wrapperClassName="w-full"
- className="rounded-lg px-3 py-2 pr-9"
+ className="rounded-lg px-3 py-2"
  aria-label="Categorie"
- >
- <NativeSelectOption value="">Toate categoriile</NativeSelectOption>
- {categories.map((item) => (
- <NativeSelectOption key={item} value={item}>
- {item}
- </NativeSelectOption>
- ))}
- </NativeSelect>
- <NativeSelect
+ options={[
+ { value: '', label: 'Toate categoriile' },
+ ...categories.map((item) => ({ value: item, label: item })),
+ ]}
+ />
+ <OptionSelect
  value={availability}
- onChange={(event) =>
- setAvailability(event.target.value as StockAvailability)
+ onValueChange={(v) =>
+ setAvailability(v as StockAvailability)
  }
  wrapperClassName="w-full"
- className="rounded-lg px-3 py-2 pr-9"
+ className="rounded-lg px-3 py-2"
  aria-label="Disponibilitate"
- >
- <NativeSelectOption value="all">Orice disponibilitate</NativeSelectOption>
- <NativeSelectOption value="available">Disponibil</NativeSelectOption>
- <NativeSelectOption value="out">Fără stoc</NativeSelectOption>
- </NativeSelect>
+ options={[
+ { value: 'all', label: 'Orice disponibilitate' },
+ { value: 'available', label: 'Disponibil' },
+ { value: 'out', label: 'Fără stoc' },
+ ]}
+ />
  </div>
  <div className="mt-4 overflow-x-auto">
  <Table className="min-w-full rounded-lg border border-border bg-card text-sm">

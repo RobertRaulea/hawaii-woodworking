@@ -6,6 +6,7 @@ import { Toaster } from "../../src/components/ui/sonner";
 import assert from "node:assert/strict";
 import { it, mock } from "node:test";
 import type { Id } from "../../convex/_generated/dataModel";
+import { pickOption } from './optionSelect.helpers';
 
 const staffAdmin = { role: "admin", userId: "admin-1", homePath: "/admin" };
 const staffAtelier = {
@@ -285,12 +286,12 @@ it("AdminOrders filtrează după căutare, stare plată și paginează", async (
   assert.ok(screen.getByText("Pagina 2 din 2"));
 
   // Payment filter narrows to the single unpaid order.
-  await user.selectOptions(screen.getByLabelText("Stare plată"), "pending");
+  await pickOption(user, screen.getByLabelText("Stare plată"), "Neplătită");
   await screen.findByText("#NUM00007");
   assert.equal(screen.queryByText("#NUM00025"), null);
 
   // Search by customer name.
-  await user.selectOptions(screen.getByLabelText("Stare plată"), "all");
+  await pickOption(user, screen.getByLabelText("Stare plată"), "Toate");
   await user.type(screen.getByLabelText("Caută"), "Popescu12");
   await screen.findByText("#NUM00012");
   assert.equal(screen.queryByText("#NUM00011"), null);
@@ -619,7 +620,7 @@ it("adminul poate realoca comanda din pagina de detalii", async () => {
   );
   await user.click(await screen.findByRole("button", { name: "Realocă" }));
   const dialog = await screen.findByRole("dialog");
-  await user.selectOptions(within(dialog).getByLabelText("Operator"), "user_b");
+  await pickOption(user, within(dialog).getByLabelText("Operator"), "Maria");
   await user.click(within(dialog).getByRole("button", { name: "Realocă" }));
   await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
   assert.equal(

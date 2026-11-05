@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import {
  Banknote,
  CreditCard,
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FieldError } from '@/components/ui/field';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { computeDiscountCents, formatMoney, parseMoney } from './pos.utils';
 import type { PosDiscountMode } from './pos.utils';
@@ -44,6 +44,7 @@ export const OrderPanel = ({
 }: OrderPanelProps) => {
  const {
  register,
+ control,
  watch,
  handleSubmit,
  formState: { errors },
@@ -183,19 +184,28 @@ export const OrderPanel = ({
  <Label htmlFor="pos-discount-mode" className="text-xs font-normal leading-4">
  Tip reducere
  </Label>
- <NativeSelect
+ <Controller
+ name="mode"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="pos-discount-mode"
  disabled={disabled}
  wrapperClassName="mt-1 w-full"
- className="rounded-lg p-2.5 pr-9"
- {...register('mode', {
- onChange: () => void trigger('amount'),
- })}
- >
- <NativeSelectOption value="fixed">Suma fixa (lei)</NativeSelectOption>
- <NativeSelectOption value="percent">Procent (%)</NativeSelectOption>
- <NativeSelectOption value="final">Pret convenit (total final)</NativeSelectOption>
- </NativeSelect>
+ className="rounded-lg p-2.5"
+ value={field.value}
+ onValueChange={(v) => {
+ field.onChange(v);
+ void trigger('amount');
+ }}
+ options={[
+ { value: 'fixed', label: 'Suma fixa (lei)' },
+ { value: 'percent', label: 'Procent (%)' },
+ { value: 'final', label: 'Pret convenit (total final)' },
+ ]}
+ />
+ )}
+ />
  <Label htmlFor="pos-discount" className="mt-3 block text-xs font-normal leading-4">
  {mode === 'percent'
  ? 'Reducere (%)'

@@ -7,8 +7,8 @@ import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { Badge } from '@/components/ui/badge';
 import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { cn } from '@/utils/cn.utils';
 import {
  Table,
@@ -104,32 +104,29 @@ const TransferList = () => {
  <div className="flex flex-wrap gap-3">
  <Label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
  Stare
- <NativeSelect
+ <OptionSelect
  value={status}
- onChange={(event) => updateParam('status', event.target.value)}
- >
- <NativeSelectOption value="all">Toate</NativeSelectOption>
- {TRANSFER_STATUS_ORDER.map((item) => (
- <NativeSelectOption key={item} value={item}>
- {TRANSFER_STATUS_LABELS[item]}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ onValueChange={(v) => updateParam('status', v)}
+ options={[
+ { value: 'all', label: 'Toate' },
+ ...TRANSFER_STATUS_ORDER.map((item) => ({
+ value: item,
+ label: TRANSFER_STATUS_LABELS[item],
+ })),
+ ]}
+ />
  </Label>
  <Label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
  Locație
- <NativeSelect
+ <OptionSelect
  value={location}
- onChange={(event) => updateParam('location', event.target.value)}
- >
- <NativeSelectOption value="all">Toate locațiile</NativeSelectOption>
- <NativeSelectOption value={WORKSHOP}>Atelier</NativeSelectOption>
- {fairs.map((fair) => (
- <NativeSelectOption key={fair._id} value={fair._id}>
- {fair.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ onValueChange={(v) => updateParam('location', v)}
+ options={[
+ { value: 'all', label: 'Toate locațiile' },
+ { value: WORKSHOP, label: 'Atelier' },
+ ...fairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ]}
+ />
  </Label>
  </div>
 

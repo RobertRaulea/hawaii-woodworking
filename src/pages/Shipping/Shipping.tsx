@@ -2,6 +2,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
+import type { Control, Path, RegisterOptions } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useSignUp } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +19,7 @@ import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { FieldError, FieldLabel } from '@/components/ui/field';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../components/OptionSelect';
 
 const COUNTRIES = [
  'România',
@@ -97,10 +98,12 @@ interface SelectFieldProps {
  label: string;
  id: string;
  options: readonly string[];
- autoComplete?: React.SelectHTMLAttributes<HTMLSelectElement>['autoComplete'];
+ autoComplete?: string;
  error?: string;
  required?: boolean;
- registration: ReturnType<ReturnType<typeof useForm>['register']>;
+ control: Control<ShippingFormData>;
+ name: Path<ShippingFormData>;
+ rules?: RegisterOptions<ShippingFormData>;
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({
@@ -110,34 +113,42 @@ const SelectField: React.FC<SelectFieldProps> = ({
  autoComplete,
  error,
  required = false,
- registration,
+ control,
+ name,
+ rules,
 }) => (
  <div>
  <FieldLabel variant="caps" htmlFor={id}>
  {label}
  {required && <span className="text-red-500 ml-0.5">*</span>}
  </FieldLabel>
- <NativeSelect
+ <Controller
+ control={control}
+ name={name}
+ rules={rules}
+ render={({ field }) => (
+ <OptionSelect
  id={id}
+ name={field.name}
  autoComplete={autoComplete}
  required={required}
- aria-invalid={error ? true : undefined}
+ invalid={!!error}
  aria-describedby={error ? `${id}-error` : undefined}
  wrapperClassName="w-full"
  className={
  error
- ? 'border-red-400 focus:ring-red-400/40 aria-invalid:border-red-400'
+ ? 'border-red-400 focus:ring-red-400/40'
  : 'border-stone-300 dark:border-stone-600 '
  }
- {...registration}
- >
- <NativeSelectOption value="">Selectează...</NativeSelectOption>
- {options.map((opt) => (
- <NativeSelectOption key={opt} value={opt}>
- {opt}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ value={typeof field.value === 'string' ? field.value : ''}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: 'Selectează...' },
+ ...options.map((opt) => ({ value: opt, label: opt })),
+ ]}
+ />
+ )}
+ />
  {error && <FieldError id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</FieldError>}
  </div>
 );
@@ -596,14 +607,16 @@ export const Shipping: React.FC = () => {
  options={['România']}
  error={errors.shippingAddress?.country?.message}
  required
- registration={register('shippingAddress.country', {
+ control={control}
+ name="shippingAddress.country"
+ rules={{
  required: 'Țara este obligatorie',
  validate: (value) => value === 'România' || countryCorrection,
  onChange: () => {
  setValue('shippingAddress.county', '');
  setValue('shippingAddress.city', '');
  },
- })}
+ }}
  />
  <p className="text-sm text-stone-600 dark:text-stone-300" role="status">
  {t('shipping.tariffPendingNotice', { defaultValue: shippingNotice[language === 'en' || language === 'de' ? language : 'ro'] })}
@@ -761,13 +774,15 @@ export const Shipping: React.FC = () => {
  options={COUNTRIES}
  error={errors.billingAddress?.country?.message}
  required
- registration={register('billingAddress.country', {
+ control={control}
+ name="billingAddress.country"
+ rules={{
  required: !sameAsShipping ? 'Țara este obligatorie' : false,
  onChange: () => {
  setValue('billingAddress.county', '');
  setValue('billingAddress.city', '');
  },
- })}
+ }}
  />
  <InputField
  label="Stradă"

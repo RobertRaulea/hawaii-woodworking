@@ -16,7 +16,7 @@ import { Alert } from '@/components/ui/alert';
 import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { ThemeToggle } from '../../../components/ThemeToggle';
 import { OrderPanel } from './OrderPanel';
 import { PaymentDialog } from './PaymentDialog';
@@ -157,30 +157,30 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  <Label htmlFor="pos-selected-fair" className="sr-only">
  Targul selectat
  </Label>
- <NativeSelect
+ <OptionSelect
  id="pos-selected-fair"
  value={fairId ?? ''}
  disabled={
  payment.blocked || cart.length > 0 || fairs === undefined
  }
- onChange={(event) => {
- setSelectedFair(event.target.value as Id<'fairs'>);
+ onValueChange={(v) => {
+ setSelectedFair(v as Id<'fairs'>);
  }}
  wrapperClassName="w-full max-w-64"
- className="truncate rounded-none border-0 bg-transparent pl-0 pr-9 font-medium shadow-none outline-none focus:ring-0 disabled:opacity-60 disabled:bg-transparent"
- >
- {!fairs?.length ? (
- <NativeSelectOption value="">Niciun targ configurat</NativeSelectOption>
- ) : null}
- {fairUnavailable ? (
- <NativeSelectOption value={fairId}>Târg arhivat</NativeSelectOption>
- ) : null}
- {fairs?.map((entry) => (
- <NativeSelectOption value={entry._id} key={entry._id}>
- {entry.name}
- </NativeSelectOption>
- ))}
- </NativeSelect>
+ className="truncate rounded-none border-0 bg-transparent pl-0 font-medium shadow-none outline-none focus:ring-0 disabled:opacity-60 disabled:bg-transparent"
+ options={[
+ ...(!fairs?.length
+ ? [{ value: '', label: 'Niciun targ configurat' }]
+ : []),
+ ...(fairUnavailable
+ ? [{ value: fairId!, label: 'Târg arhivat' }]
+ : []),
+ ...(fairs ?? []).map((entry) => ({
+ value: entry._id,
+ label: entry.name,
+ })),
+ ]}
+ />
  </div>
  <ThemeToggle className="size-11 shrink-0 rounded-xl border border-border bg-stone-50 p-0 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 [&_svg]:size-5" />
  </div>
