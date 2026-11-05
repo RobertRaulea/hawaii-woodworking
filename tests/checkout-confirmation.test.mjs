@@ -19,7 +19,7 @@ test('anonymous confirmation capability returns state only and never mutates ord
     paymentConfirmedAt: 1,
   });
   const before = structuredClone(db.all('orders'));
-  assert.deepEqual(await db.run(getCheckoutConfirmation, { sessionId }), { state: 'confirmed' });
+  assert.deepEqual(await db.run(getCheckoutConfirmation, { sessionId }), { state: 'confirmed', paymentMethod: null, total: 123 });
   assert.deepEqual(db.all('orders'), before);
   assert.equal(db.jobs().length, 0);
 });
@@ -53,7 +53,7 @@ test('confirmation follows real payment markers and legacy semantics, not the se
     db.identity(null);
     db.seed('orders', 'order', { stripeSessionId: sessionId, ...fields });
     const before = structuredClone(db.all('orders'));
-    assert.deepEqual(await db.run(getCheckoutConfirmation, { sessionId }), { state: expected }, JSON.stringify(fields));
+    assert.deepEqual(await db.run(getCheckoutConfirmation, { sessionId }), { state: expected, paymentMethod: fields.paymentMethod ?? null, total: fields.total }, JSON.stringify(fields));
     assert.deepEqual(db.all('orders'), before);
     assert.equal(db.jobs().length, 0);
   }

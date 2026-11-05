@@ -2,6 +2,8 @@ import type React from 'react';
 import { SignIn } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { WoodenLoginReveal } from '@/components/WoodenLoginReveal/WoodenLoginReveal';
+import { signInElements } from '@/utils/clerkAppearance.utils';
 import { useStaffAccess } from '../../hooks/useStaffAccess';
 
 export const AdminLogin: React.FC = () => {
@@ -33,25 +35,18 @@ export const AdminLogin: React.FC = () => {
  </Alert>
  )}
 
+ <WoodenLoginReveal className="w-fit max-w-full mx-auto">
  <SignIn
  routing="hash"
  afterSignInUrl="/admin"
  appearance={{
  elements: {
+ ...signInElements,
  rootBox: 'mx-auto w-full max-w-md',
- card: 'shadow-soft rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-50',
- headerTitle: 'font-serif text-stone-900 dark:text-stone-50',
- headerSubtitle: 'text-stone-500 dark:text-stone-400',
- socialButtonsBlockButton:
- 'border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-md',
- formFieldInput:
- 'border-stone-300 dark:border-stone-700 focus:ring-amber-500/40 focus:border-amber-500 rounded-md',
- formButtonPrimary:
- 'bg-stone-900 hover:bg-stone-800 text-white rounded-md dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white',
- footerActionLink: 'text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400',
  },
  }}
  />
+ </WoodenLoginReveal>
  </main>
  );
 };

@@ -213,6 +213,9 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  </tr>
  ))}
  </tbody>
+ {order.paymentMethod === 'cod' && (
+ <p className="font-bold text-lg border-2 border-red-600 text-red-600 p-2 inline-block">RAMBURS — de încasat la livrare</p>
+ )}
  {order.total !== undefined && (
  <tfoot>
  <tr className="border-t-2 border-stone-900">

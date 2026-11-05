@@ -15,6 +15,7 @@ let queryRequests: RequestForQueries = {};
 let language = 'ro';
 let shippingData: ShippingFormData;
 let profilePrefill = false;
+let clerkSignedIn = false;
 const action = mock.fn<(args: unknown) => Promise<{ url: null }>>(async () => ({ url: null }));
 const saveProfile = mock.fn<(args: unknown) => Promise<void>>(async () => {});
 
@@ -31,10 +32,12 @@ mock.module('convex/react', { namedExports: {
   },
   useAction: () => action,
   useMutation: () => saveProfile,
+  useQuery: () => undefined,
   useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }),
 } });
 mock.module('@clerk/clerk-react', { namedExports: {
-  useAuth: () => ({ isLoaded: true, isSignedIn: false }),
+  useAuth: () => ({ isLoaded: true, isSignedIn: clerkSignedIn }),
+  useUser: () => ({ isLoaded: true, isSignedIn: clerkSignedIn, user: null }),
   useSignUp: () => ({ isLoaded: true, signUp: null, setActive: async () => {} }),
 } });
 mock.module('../../src/context/CartContext.tsx', { namedExports: {
@@ -49,6 +52,7 @@ mock.module('../../src/context/ShippingContext.tsx', { namedExports: {
 mock.module('../../src/hooks/useCustomerProfile.ts', { namedExports: {
   useCustomerProfile: () => ({
     customer: profilePrefill ? { ...shippingData, newsletter: false } : null,
+    isLoading: false,
   }),
 } });
 const { ThankYou } = await import('../../src/pages/ThankYou/ThankYou');
@@ -75,6 +79,7 @@ beforeEach(() => {
   language = 'ro';
   queryRequests = {};
   profilePrefill = false;
+  clerkSignedIn = false;
   action.mock.resetCalls();
   saveProfile.mock.resetCalls();
   const address = { street: 'Street 1', city: 'Sibiu', county: 'Sibiu', postalCode: '550000', country: 'România' };
@@ -211,6 +216,7 @@ test('saved international shipping requires correction and cannot start payment'
 
 test('Shipping prefills the stored customer phone and retains Romania-only delivery options', async () => {
   profilePrefill = true;
+  clerkSignedIn = true;
   render(<MemoryRouter><Shipping /></MemoryRouter>);
   await waitFor(() => assert.equal((screen.getByLabelText(/Telefon/) as HTMLInputElement).value, '+40712345678'));
   const countries = document.getElementById('shippingCountry') as HTMLElement;
@@ -222,7 +228,7 @@ test('Shipping prefills the stored customer phone and retains Romania-only deliv
     ),
   );
   await userEvent.keyboard('{Escape}');
-  assert.ok(screen.getByRole('status').textContent?.includes('Costul transportului nu este încă stabilit'));
+  assert.ok(screen.getByRole('status').textContent?.includes('Transport: 25.00 RON'));
 });
 
 test('Shipping saves a trimmed phone with the profile, while an incompatible saved country is not silently converted', async () => {

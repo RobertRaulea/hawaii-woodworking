@@ -8,8 +8,13 @@ type Address = {
 
 export type OrderWithCustomer = {
   _id: string;
+  _creationTime?: number;
   items: { productId: string; name: string; price: number; quantity: number }[];
   total: number;
+  paymentMethod?: "card" | "cod";
+  paymentConfirmedAt?: number;
+  shippingCost?: number;
+  codFee?: number;
   invoiceId?: string;
   invoicePdfUrl?: string;
   shipping?: { firstName: string; lastName: string; phone?: string; address: Address };
@@ -76,6 +81,7 @@ export const createOblioInvoice = async (
   };
   const payload = {
     cif,
+    idempotencyKey: order._id,
     client: {
       cif: "",
       name: `${billing.firstName} ${billing.lastName}`,
@@ -90,15 +96,28 @@ export const createOblioInvoice = async (
     issueDate: new Date().toISOString().split("T")[0],
     currency: "RON",
     language: "RO",
-    products: order.items.map((item) => ({
-      name: item.name,
-      price: item.price,
-      measuringUnit: "buc",
-      currency: "RON",
-      vatIncluded: 1,
-      quantity: item.quantity,
-      productType: "Produs",
-    })),
+    products: [
+      ...order.items.map((item) => ({
+        name: item.name,
+        price: item.price,
+        measuringUnit: "buc",
+        currency: "RON",
+        vatIncluded: 1,
+        quantity: item.quantity,
+        productType: "Produs",
+      })),
+      ...((order.shippingCost ?? 0) > 0
+        ? [{
+            name: "Transport",
+            price: order.shippingCost as number,
+            measuringUnit: "buc",
+            currency: "RON",
+            vatIncluded: 1,
+            quantity: 1,
+            productType: "Produs",
+          }]
+        : []),
+    ],
     workStation: "Sediu",
   };
   const result = await readJson(await fetch("https://www.oblio.eu/api/docs/invoice", {

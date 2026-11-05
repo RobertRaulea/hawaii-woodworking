@@ -29,7 +29,7 @@ interface PaymentResult {
   alreadyProcessed: boolean;
 }
 
-const applyOrderStock = async (
+export const applyOrderStock = async (
   ctx: MutationCtx,
   order: Doc<"orders">,
   actorId = "system:stripe",
@@ -90,7 +90,11 @@ const applyOrderStock = async (
     const stockAfter = item.physicalStock - appliedQuantity;
     await ctx.db.patch(item.productId, { stock: stockAfter });
     await ctx.db.insert("stockMovements", {
-      requestId: `stripe:${order.stripeSessionId}`,
+      // COD orders already carry "cod:" in their order key; card uses stripe:.
+      requestId:
+        order.paymentMethod === "cod"
+          ? order.stripeSessionId
+          : `stripe:${order.stripeSessionId}`,
       productId: item.productId,
       location: "workshop",
       kind: "online_sale",
@@ -112,7 +116,8 @@ const applyOrderStock = async (
     });
   }
   await ctx.db.patch(order._id, {
-    status: reserveOnly ? order.status : "paid",
+    // COD stays "pending" (cash on delivery); card moves to "paid".
+    status: reserveOnly || order.paymentMethod === "cod" ? order.status : "paid",
     inventoryStatus: needsReview ? "needs_review" : "applied",
     inventoryAppliedAt: needsReview ? undefined : Date.now(),
     inventoryError:
@@ -165,6 +170,9 @@ export const createPendingOrder = internalMutation({
       }),
     ),
     total: v.number(),
+    paymentMethod: v.optional(v.union(v.literal("card"), v.literal("cod"))),
+    shippingCost: v.optional(v.number()),
+    codFee: v.optional(v.number()),
     stripeSessionId: v.string(),
     shipping: v.optional(
       v.object({
@@ -200,6 +208,9 @@ export const createPendingOrder = internalMutation({
       customerId: args.customerId,
       items: args.items,
       total: args.total,
+      paymentMethod: args.paymentMethod,
+      shippingCost: args.shippingCost,
+      codFee: args.codFee,
       status: "pending",
       inventoryStatus: "pending",
       stripeSessionId: args.stripeSessionId,
@@ -287,6 +298,14 @@ export const markOrderPaid = internalMutation({
 });
 
 const FULFILLABLE_STATUSES = new Set(["paid", "shipped", "delivered"]);
+
+// COD orders stay "pending" until delivery but are still visible to
+// fulfillment staff once their stock is applied.
+const fulfillmentVisible = (order: Doc<"orders">) =>
+  FULFILLABLE_STATUSES.has(order.status) ||
+  (order.paymentMethod === "cod" &&
+    order.status === "pending" &&
+    order.inventoryStatus === "applied");
 
 // Same keys as the admin view, with money, payment and customer
 // identifiers removed for fulfillment staff.
@@ -412,7 +431,13 @@ export const updateStatus = mutation({
         "Folosește acțiunile dedicate (Fulfillment sau Anulează). Plata se confirmă doar din Stripe.",
       );
     }
-    await ctx.db.patch(orderId, { status });
+    // COD cash is collected by the courier on delivery.
+    await ctx.db.patch(orderId, {
+      status,
+      ...(order.paymentMethod === "cod"
+        ? { paymentConfirmedAt: Date.now() }
+        : {}),
+    });
     return orderId;
   },
 });
@@ -483,6 +508,9 @@ export const cancel = mutation({
     }
 
     const paid = paymentStatus(order) === "paid";
+    // COD orders also hold applied stock; cancel restocks but is never a refund.
+    const codApplied =
+      order.paymentMethod === "cod" && order.inventoryStatus === "applied";
     const notes: string[] = [];
     const patch: Record<string, unknown> = {
       status: "cancelled",
@@ -492,7 +520,7 @@ export const cancel = mutation({
       assignedTo: undefined,
       assignedAt: undefined,
     };
-    if (paid) {
+    if (paid || codApplied) {
       const applied = order.inventoryAppliedItems ?? [];
       if (applied.length > 0) {
         for (const item of applied) {
@@ -524,7 +552,7 @@ export const cancel = mutation({
         );
       }
       patch.inventoryStatus = "released";
-      patch.refundStatus = "manual_required";
+      if (paid) patch.refundStatus = "manual_required";
     }
     if (notes.length > 0) eventNote = `${trimmed} — ${notes.join(" ")}`;
     await ctx.db.patch(orderId, patch);
@@ -628,7 +656,7 @@ export const getAll = query({
 
     const visible = manage
       ? orders
-      : orders.filter((order) => FULFILLABLE_STATUSES.has(order.status));
+      : orders.filter((order) => fulfillmentVisible(order));
 
     // Attach customer info to each order
     return await Promise.all(
@@ -669,7 +697,7 @@ export const getByDateRange = query({
       (o) =>
         o.createdAt >= startTime &&
         o.createdAt <= endTime &&
-        (manage || FULFILLABLE_STATUSES.has(o.status)),
+        (manage || fulfillmentVisible(o)),
     );
 
     return await Promise.all(
@@ -700,7 +728,7 @@ export const getById = query({
 
     const customer = await ctx.db.get(order.customerId);
     if (!hasPermission(staff.role, "orders.manage")) {
-      if (!FULFILLABLE_STATUSES.has(order.status)) return null;
+      if (!fulfillmentVisible(order)) return null;
       return redactOrder(order, customer, true);
     }
     return { ...order, customer };
@@ -774,10 +802,20 @@ export const getMyOrderById = query({
 export const getCheckoutConfirmation = query({
   args: { sessionId: v.string() },
   handler: async (ctx, { sessionId }) => {
-    if (!/^cs_(?:test_|live_)?[A-Za-z0-9]{16,240}$/.test(sessionId)) return null;
+    const isCard = /^cs_(?:test_|live_)?[A-Za-z0-9]{16,240}$/.test(sessionId);
+    const isCod = /^cod:[a-zA-Z0-9-]{16,100}$/.test(sessionId);
+    if (!isCard && !isCod) return null;
     const order = await ctx.db.query('orders').withIndex('by_stripeSessionId', (q) => q.eq('stripeSessionId', sessionId)).first();
     if (!order) return null;
     const confirmed = paymentStatus(order) === 'paid';
-    return { state: order.status === 'cancelled' ? (confirmed ? 'review' as const : 'cancelled' as const) : confirmed ? (order.inventoryStatus === 'needs_review' ? 'review' as const : 'confirmed' as const) : 'pending' as const };
+    const state =
+      order.status === 'cancelled'
+        ? (confirmed ? 'review' as const : 'cancelled' as const)
+        : order.paymentMethod === 'cod'
+          ? 'confirmed' as const
+          : confirmed
+            ? (order.inventoryStatus === 'needs_review' ? 'review' as const : 'confirmed' as const)
+            : 'pending' as const;
+    return { state, paymentMethod: order.paymentMethod ?? null, total: order.total };
   },
 });

@@ -60,6 +60,7 @@ export default defineSchema({
       country: v.string(),
     }),
     newsletter: v.boolean(),
+    newsletterConsentAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index("by_email", ["email"])
@@ -77,6 +78,11 @@ export default defineSchema({
       }),
     ),
     total: v.number(),
+    paymentMethod: v.optional(
+      v.union(v.literal("card"), v.literal("cod")),
+    ),
+    shippingCost: v.optional(v.number()),
+    codFee: v.optional(v.number()),
     status: v.union(
       v.literal("pending"),
       v.literal("paid"),
@@ -181,6 +187,16 @@ export default defineSchema({
     .index("by_createdAt", ["createdAt"])
     .index("by_inventoryStatus", ["inventoryStatus"])
     .index("by_stripeSessionId", ["stripeSessionId"]),
+
+  shippingSettings: defineTable({
+    flatRateCents: v.number(),
+    freeShippingThresholdCents: v.optional(v.number()),
+    codEnabled: v.boolean(),
+    codFeeCents: v.number(),
+    codMaxOrderCents: v.optional(v.number()),
+    updatedAt: v.number(),
+    updatedBy: v.string(),
+  }),
 
   siteAssets: defineTable({
     name: v.string(),

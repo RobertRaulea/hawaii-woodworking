@@ -137,6 +137,11 @@ export const FulfillmentDetail: React.FC = () => {
  <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
  Comanda <span className="font-mono">#{order.shortNumber}</span>
  </h1>
+ {order.paymentMethod === "cod" ? (
+ <span className="rounded-md border-2 border-red-600 px-3 py-1 text-sm font-bold text-red-600 dark:border-red-500 dark:text-red-400">
+ RAMBURS — de încasat la livrare
+ </span>
+ ) : null}
  <div className="flex items-center gap-2">
  <Button
  type="button"

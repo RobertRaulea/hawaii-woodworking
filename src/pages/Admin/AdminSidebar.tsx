@@ -1,7 +1,7 @@
 import type React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { UserButton } from '@clerk/clerk-react';
-import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, FolderTree, Hammer, Calculator, MapPin, Database, ArrowLeftRight, Truck, BarChart3 } from 'lucide-react';
+import { Package, ShoppingBag, Users, LayoutDashboard, ChevronLeft, FolderTree, Hammer, Calculator, MapPin, Database, ArrowLeftRight, Truck, BarChart3, Ship } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn.utils';
@@ -19,6 +19,7 @@ const NAV_ITEMS: readonly { to: string; label: string; icon: React.ElementType; 
  { to: '/admin/custom-works', label: 'La comandă', icon: Hammer, permission: 'catalog.manage' },
  { to: '/admin/fulfillment', label: 'Pregătire comenzi', icon: Truck, permission: 'orders.fulfill' },
  { to: '/admin/orders', label: 'Comenzi', icon: ShoppingBag, permission: 'orders.manage' },
+ { to: '/admin/shipping', label: 'Livrare', icon: Ship, permission: 'shipping.manage' },
  { to: '/admin/reports', label: 'Rapoarte', icon: BarChart3, permission: 'reports.view' },
  { to: '/admin/customers', label: 'Clienți', icon: Users, permission: 'customers.manage' },
  { to: '/admin/staff', label: 'Echipă', icon: Users, permission: 'staff.manage' },

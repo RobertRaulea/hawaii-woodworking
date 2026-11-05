@@ -369,6 +369,8 @@ export const markDelivered = mutation({
     await ctx.db.patch(orderId, {
       status: "delivered",
       deliveredAt: Date.now(),
+      // COD cash is collected by the courier on delivery.
+      ...(order.paymentMethod === "cod" ? { paymentConfirmedAt: Date.now() } : {}),
     });
     await insertEvent(ctx, {
       orderId,
@@ -430,6 +432,7 @@ export const queue = query({
           shippedAt: order.shippedAt,
           awb: order.awb,
           carrier: order.carrier,
+          paymentMethod: order.paymentMethod,
         };
       }),
     );
@@ -491,6 +494,7 @@ export const get = query({
         ...(includeMoney ? { price: item.price } : {}),
       })),
       ...(includeMoney ? { total: order.total } : {}),
+      paymentMethod: order.paymentMethod,
       checklist: order.checklist ?? [],
       recipient: shipping,
       awb: order.awb,

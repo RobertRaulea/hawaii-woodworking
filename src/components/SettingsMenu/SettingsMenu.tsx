@@ -64,7 +64,7 @@ export const SettingsMenu: React.FC = () => {
  afterSignOutUrl="/"
  appearance={{
  elements: {
- userButtonAvatarBox: 'h-8 w-8 shadow-sm ring-2 ring-white hover:ring-amber-100 transition-all'
+ userButtonAvatarBox: 'h-8 w-8 shadow-sm ring-2 ring-white dark:ring-stone-800 hover:ring-amber-100 dark:hover:ring-amber-900 transition-all'
  }
  }}
  />

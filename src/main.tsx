@@ -4,6 +4,7 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-react';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { ConvexReactClient } from 'convex/react';
 import { LanguageProvider } from './context/LanguageContext';
+import { clerkAppearance } from './utils/clerkAppearance.utils';
 import { validateFrontendEnvironment } from '../shared/environment';
 import App from './App.tsx';
 import './index.css';
@@ -14,7 +15,11 @@ const convex = new ConvexReactClient(environment.convexUrl);
 
 createRoot(document.getElementById('root')!).render(
  <StrictMode>
- <ClerkProvider publishableKey={environment.publishableKey} afterSignOutUrl="/">
+ <ClerkProvider
+ publishableKey={environment.publishableKey}
+ afterSignOutUrl="/"
+ appearance={clerkAppearance}
+ >
  <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
  <LanguageProvider>
  <App />

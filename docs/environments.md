@@ -14,7 +14,7 @@ verify live configuration separately before a release or payment activation.
 | Convex | `exuberant-fox-228` | `upbeat-lyrebird-218` |
 | Clerk | `choice-fowl-16.clerk.accounts.dev`, Development | `clerk.hawaiiproducts.ro`; verify Production instance/domain before launch |
 | Stripe | Hawaii sandbox `acct_1RYni5I8gZB3b1Rz`, test keys | Live business account, not activated by this rollout |
-| Fiscal invoices / order emails | Disabled | Configure and validate before launch |
+| Fiscal invoices / order emails | Emails sent via Resend; invoice simulated, no Oblio call | Real Oblio invoice; configure and validate before launch |
 
 The Vercel dashboard calls the stable deployment of the TEST project "Production".
 That is a hosting release label, NOT Stripe Live mode. Its `VITE_APP_ENV` remains
@@ -74,6 +74,9 @@ Do not use the legacy seed scripts or their destructive `--force` mode.
    sign in. Normal customers never receive admin access automatically.
 4. Use Stripe test card `4242 4242 4242 4242`, expiry `12/34`, and CVC `123`.
 5. No real money is charged, no fiscal invoice is issued, and no parcel is sent.
+   Admin and the customer do receive real confirmation emails (subjects start
+   with `[TEST]`); the customer email shows a simulated invoice, never a real
+   Oblio link.
 
 Clerk creates the login identity. Convex creates/links the customer using the
 authenticated identity at checkout. Stripe creates/reuses a billing Customer on

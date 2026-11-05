@@ -361,6 +361,11 @@ export const FulfillmentQueue: React.FC = () => {
  >
  {STATE_LABELS[order.state]}
  </Badge>
+ {order.paymentMethod === "cod" ? (
+ <Badge variant="destructive" className="px-2.5 py-0.5 text-xs font-bold">
+ RAMBURS
+ </Badge>
+ ) : null}
  {order.assignedTo ? (
  <AssigneeChip
  userId={order.assignedTo}

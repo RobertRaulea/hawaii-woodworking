@@ -53,6 +53,7 @@ let shippingDefaults: ShippingFormData | null = null;
 mock.module('@clerk/clerk-react', {
   namedExports: {
     useAuth: () => ({ isSignedIn: false }),
+    useUser: () => ({ isLoaded: true, isSignedIn: false, user: null }),
     useSignUp: () => ({ isLoaded: true, signUp: null, setActive: async () => {} }),
     SignIn: ({ appearance }: AppearanceProps) => (
       <div data-testid="signin-root" className={appearance.elements.rootBox}>
@@ -149,7 +150,7 @@ it('customer and staff Clerk titles use serif with matching stone light/dark car
   render(<MemoryRouter><AdminLogin /></MemoryRouter>);
   assert.ok(screen.getByRole('heading', { name: 'Conectare Clerk' }).classList.contains('font-serif'));
   assert.equal(screen.getByTestId('signin-card').className, customerCardClasses);
-  for (const className of ['bg-white', 'dark:bg-stone-900', 'border-stone-200', 'dark:border-stone-800']) {
+  for (const className of ['bg-white', 'dark:bg-black', 'border-stone-200', 'dark:border-stone-700']) {
     assert.ok(screen.getByTestId('signin-card').classList.contains(className));
   }
 });

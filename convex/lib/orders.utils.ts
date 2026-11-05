@@ -37,10 +37,14 @@ export const customerSpend = (orders: readonly Doc<"orders">[]): number =>
   ) / 100;
 
 export const isFulfillEligible = (order: Doc<"orders">) =>
-  order.status === "paid" &&
-  paymentStatus(order) === "paid" &&
-  (order.inventoryStatus === "applied" ||
-    order.inventoryStatus === undefined);
+  (order.status === "paid" &&
+    paymentStatus(order) === "paid" &&
+    (order.inventoryStatus === "applied" ||
+      order.inventoryStatus === undefined)) ||
+  // COD orders ship against applied stock; cash is collected on delivery.
+  (order.paymentMethod === "cod" &&
+    order.status !== "cancelled" &&
+    order.inventoryStatus === "applied");
 
 export const fulfillmentState = (order: Doc<"orders">): FulfillmentState => {
   if (order.status === "cancelled") return "cancelled";

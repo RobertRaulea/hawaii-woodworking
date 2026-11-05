@@ -37,9 +37,13 @@ const formatDate = (timestamp: number): string => {
 
 const formatPrice = (price: number): string => `${price.toFixed(2)} RON`;
 
+const csvCell = (value: string | number | undefined | null): string =>
+ `"${String(value ?? '').replace(/"/g, '""')}"`;
+
 export const AdminCustomers: React.FC = () => {
  const [search, setSearch] = useState('');
  const [typeFilter, setTypeFilter] = useState<'all' | 'registered' | 'guest'>('all');
+ const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'yes' | 'no'>('all');
  const [showNewsletterModal, setShowNewsletterModal] = useState(false);
  const customers = useQuery(api.customers.getAll);
  const newsletterSubscribers = useQuery(api.customers.getNewsletterSubscribers);
@@ -55,18 +59,28 @@ export const AdminCustomers: React.FC = () => {
  result = result.filter((c) => !c.isRegistered);
  }
 
+ if (newsletterFilter === 'yes') {
+ result = result.filter((c) => c.newsletter);
+ } else if (newsletterFilter === 'no') {
+ result = result.filter((c) => !c.newsletter);
+ }
+
  if (search.trim()) {
  const q = search.toLowerCase();
  result = result.filter(
  (c) =>
  c.firstName.toLowerCase().includes(q) ||
  c.lastName.toLowerCase().includes(q) ||
- c.email.toLowerCase().includes(q)
+ c.email.toLowerCase().includes(q) ||
+ (c.phone ?? '').toLowerCase().includes(q) ||
+ c.shippingAddress.street.toLowerCase().includes(q) ||
+ c.shippingAddress.city.toLowerCase().includes(q) ||
+ c.shippingAddress.county.toLowerCase().includes(q)
  );
  }
 
  return result;
- }, [customers, search, typeFilter]);
+ }, [customers, search, typeFilter, newsletterFilter]);
 
  if (customers === undefined) {
  return (
@@ -90,17 +104,21 @@ export const AdminCustomers: React.FC = () => {
  const handleDownloadCSV = () => {
  if (!newsletterSubscribers) return;
  const csvContent = [
- ['Email', 'Prenume', 'Nume', 'Tip', 'Data înscrierii'].join(','),
- ...newsletterSubscribers.map((sub) =>
- [
+ ['Email', 'Prenume', 'Nume', 'Telefon', 'Tip', 'Data înscrierii', 'Consimțământ'],
+ ...newsletterSubscribers.map((sub) => [
  sub.email,
  sub.firstName,
  sub.lastName,
+ sub.phone ?? '',
  sub.isRegistered ? 'Înregistrat' : 'Vizitator',
  new Date(sub.createdAt).toLocaleDateString('ro-RO'),
- ].join(',')
- ),
- ].join('\n');
+ sub.newsletterConsentAt
+ ? new Date(sub.newsletterConsentAt).toLocaleString('ro-RO')
+ : '',
+ ]),
+ ]
+ .map((row) => row.map(csvCell).join(','))
+ .join('\r\n');
 
  const blob = new Blob([csvContent], { type: 'text/csv' });
  const url = window.URL.createObjectURL(blob);
@@ -159,12 +177,13 @@ export const AdminCustomers: React.FC = () => {
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-stone-400 dark:text-stone-500 " />
  <Input
  type="text"
- placeholder="Caută după nume sau email..."
+ placeholder="Caută după nume, email, telefon sau adresă..."
  value={search}
  onChange={(e) => setSearch(e.target.value)}
  className="h-auto w-full pl-10 pr-4 py-2"
  />
  </div>
+ <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
  <div className="flex items-center gap-2">
  <Label htmlFor="typeFilter">Tip:</Label>
  <OptionSelect
@@ -178,6 +197,21 @@ export const AdminCustomers: React.FC = () => {
  { value: 'guest', label: 'Vizitatori' },
  ]}
  />
+ </div>
+ <div className="flex items-center gap-2">
+ <Label htmlFor="newsletterFilter">Newsletter:</Label>
+ <OptionSelect
+ id="newsletterFilter"
+ value={newsletterFilter}
+ onValueChange={(v) => setNewsletterFilter(v as 'all' | 'yes' | 'no')}
+ className="min-h-0 rounded-lg px-3 py-1.5"
+ options={[
+ { value: 'all', label: 'Toți' },
+ { value: 'yes', label: 'Abonați' },
+ { value: 'no', label: 'Neabonați' },
+ ]}
+ />
+ </div>
  </div>
  </div>
 
@@ -194,7 +228,10 @@ export const AdminCustomers: React.FC = () => {
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 ">Nume</TableHead>
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden md:table-cell">Email</TableHead>
+ <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden lg:table-cell">Telefon</TableHead>
+ <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden lg:table-cell">Adresă de livrare</TableHead>
  <TableHead className="px-4 py-3 text-center font-medium text-stone-600 dark:text-stone-300 ">Tip</TableHead>
+ <TableHead className="px-4 py-3 text-center font-medium text-stone-600 dark:text-stone-300 hidden md:table-cell">Newsletter</TableHead>
  <TableHead className="px-4 py-3 text-right font-medium text-stone-600 dark:text-stone-300 ">Comenzi</TableHead>
  <TableHead className="px-4 py-3 text-right font-medium text-stone-600 dark:text-stone-300 hidden lg:table-cell">Total cheltuit</TableHead>
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden lg:table-cell">Înscris</TableHead>
@@ -209,9 +246,23 @@ export const AdminCustomers: React.FC = () => {
  >
  <TableCell className="px-4 py-3 font-medium text-foreground">
  {customer.firstName} {customer.lastName}
+ {customer.phone && (
+ <span className="block text-xs font-normal text-muted-foreground lg:hidden">
+ {customer.phone}
+ </span>
+ )}
  </TableCell>
  <TableCell className="px-4 py-3 text-muted-foreground hidden md:table-cell">
  {customer.email}
+ </TableCell>
+ <TableCell className="px-4 py-3 text-stone-700 dark:text-stone-300 hidden lg:table-cell">
+ {customer.phone || '—'}
+ </TableCell>
+ <TableCell className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+ {customer.shippingAddress.street}, {customer.shippingAddress.city},{' '}
+ {customer.shippingAddress.county}
+ {customer.shippingAddress.country !== 'România' &&
+ `, ${customer.shippingAddress.country}`}
  </TableCell>
  <TableCell className="px-4 py-3 text-center">
  <Badge
@@ -224,6 +275,23 @@ export const AdminCustomers: React.FC = () => {
  >
  {customer.isRegistered ? 'Înregistrat' : 'Vizitator'}
  </Badge>
+ </TableCell>
+ <TableCell className="px-4 py-3 text-center hidden md:table-cell">
+ <Badge
+ variant="soft"
+ className={
+ customer.newsletter
+ ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 '
+ : undefined
+ }
+ >
+ {customer.newsletter ? 'Da' : 'Nu'}
+ </Badge>
+ {customer.newsletter && customer.newsletterConsentAt && (
+ <p className="mt-0.5 text-[11px] text-muted-foreground">
+ {formatDate(customer.newsletterConsentAt)}
+ </p>
+ )}
  </TableCell>
  <TableCell className="px-4 py-3 text-right text-stone-700 dark:text-stone-300 ">
  {customer.orderCount}
@@ -324,6 +392,8 @@ export const AdminCustomers: React.FC = () => {
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 ">Email</TableHead>
  <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden md:table-cell">Nume</TableHead>
+ <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden md:table-cell">Telefon</TableHead>
+ <TableHead className="px-4 py-3 text-left font-medium text-stone-600 dark:text-stone-300 hidden lg:table-cell">Consimțământ</TableHead>
  <TableHead className="px-4 py-3 text-center font-medium text-stone-600 dark:text-stone-300 hidden sm:table-cell">Tip</TableHead>
  </TableRow>
  </TableHeader>
@@ -338,6 +408,12 @@ export const AdminCustomers: React.FC = () => {
  </TableCell>
  <TableCell className="px-4 py-3 text-foreground hidden md:table-cell">
  {sub.firstName} {sub.lastName}
+ </TableCell>
+ <TableCell className="px-4 py-3 text-muted-foreground hidden md:table-cell">
+ {sub.phone || '—'}
+ </TableCell>
+ <TableCell className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+ {sub.newsletterConsentAt ? formatDate(sub.newsletterConsentAt) : '—'}
  </TableCell>
  <TableCell className="px-4 py-3 text-center hidden sm:table-cell">
  <Badge

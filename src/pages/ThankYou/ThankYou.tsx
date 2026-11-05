@@ -13,12 +13,19 @@ export const ThankYou: React.FC = () => {
  const { clearCart } = useCart();
  const [searchParams] = useSearchParams();
  const sessionId = searchParams.get('session_id') ?? '';
- const validSessionId = searchParams.getAll('session_id').length === 1 && /^cs_(?:test_|live_)?[A-Za-z0-9]{16,240}$/.test(sessionId);
+ const validSessionId = searchParams.getAll('session_id').length === 1 && /^(?:cs_(?:test_|live_)?[A-Za-z0-9]{16,240}|cod:[a-zA-Z0-9-]{16,100})$/.test(sessionId);
  const { data, error } = useAdminQuery(api.orders.getCheckoutConfirmation, validSessionId ? { sessionId } : 'skip');
  const state = !validSessionId || error || !data ? 'unconfirmed' : data.state;
+ const isCod = data?.paymentMethod === 'cod';
+ const codTotal = data?.total;
  const paymentReceived = state === 'confirmed' || state === 'review';
  const clearedSessions = useRef(new Set<string>());
  const language = i18n.resolvedLanguage?.split('-')[0] ?? i18n.language?.split('-')[0];
+ const codMessages = {
+ ro: ['Comandă înregistrată', `Comanda a fost înregistrată. Plata se face ramburs la livrare: ${(codTotal ?? 0).toFixed(2)} RON.`],
+ en: ['Order placed', `Your order has been placed. Pay cash on delivery: ${(codTotal ?? 0).toFixed(2)} RON.`],
+ de: ['Bestellung aufgegeben', `Ihre Bestellung wurde aufgegeben. Zahlung per Nachnahme: ${(codTotal ?? 0).toFixed(2)} RON.`],
+ };
  const messages = {
  ro: {
  unconfirmed: ['Plata nu este confirmată', 'Nu putem confirma plata. Dacă ai efectuat o plată, nu plăti din nou. Păstrează confirmarea Stripe și contactează echipa pentru verificare.'],
@@ -42,6 +49,9 @@ export const ThankYou: React.FC = () => {
  cancelled: ['Bestellung storniert — Zahlung unbestätigt', 'Die Bestellung ist storniert und die Zahlung ist nicht bestätigt. Wenn du bezahlt hast, kontaktiere unser Team zur Prüfung und zahle nicht erneut.'],
  },
  }[language === 'en' || language === 'de' ? language : 'ro'][state];
+ const displayMessages = isCod && state === 'confirmed'
+ ? codMessages[language === 'en' || language === 'de' ? language : 'ro']
+ : messages;
 
  useEffect(() => {
  if (!paymentReceived || clearedSessions.current.has(sessionId)) return;
@@ -57,9 +67,9 @@ export const ThankYou: React.FC = () => {
  ? <Check aria-hidden="true" className="w-8 h-8 text-emerald-500" strokeWidth={2} />
  : <HelpCircle aria-hidden="true" className="w-8 h-8 text-muted-foreground" strokeWidth={2} />}
  </div>
- <h1 className="font-serif text-3xl lg:text-4xl font-medium text-foreground mb-4">{t(`thankYou.confirmation.${state}.title`, { defaultValue: messages[0] })}</h1>
+ <h1 className="font-serif text-3xl lg:text-4xl font-medium text-foreground mb-4">{t(isCod && state === 'confirmed' ? 'thankYou.confirmation.cod.title' : `thankYou.confirmation.${state}.title`, { defaultValue: displayMessages[0] })}</h1>
  <p role="status" className="text-muted-foreground text-base leading-relaxed mb-10 max-w-md mx-auto">
- {t(`thankYou.confirmation.${state}.message`, { defaultValue: messages[1] })}
+ {t(isCod && state === 'confirmed' ? 'thankYou.confirmation.cod.message' : `thankYou.confirmation.${state}.message`, { defaultValue: displayMessages[1] })}
  </p>
  <Button
  asChild

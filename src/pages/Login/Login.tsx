@@ -2,6 +2,8 @@ import type React from 'react';
 import { SignIn, useAuth } from '@clerk/clerk-react';
 import { Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { WoodenLoginReveal } from '@/components/WoodenLoginReveal/WoodenLoginReveal';
+import { signInAppearance } from '@/utils/clerkAppearance.utils';
 
 export const Login: React.FC = () => {
  const { isSignedIn } = useAuth();
@@ -39,25 +41,13 @@ export const Login: React.FC = () => {
  </p>
 
  <div className="flex justify-center">
+ <WoodenLoginReveal className="w-fit max-w-full mx-auto">
  <SignIn
  routing="hash"
  afterSignInUrl="/shipping"
- appearance={{
- elements: {
- rootBox: 'mx-auto w-full',
- card: 'shadow-soft rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-50',
- headerTitle: 'font-serif text-stone-900 dark:text-stone-50 ',
- headerSubtitle: 'text-stone-500 dark:text-stone-400 ',
- socialButtonsBlockButton:
- 'border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-md',
- formFieldInput:
- 'border-stone-300 dark:border-stone-700 focus:ring-amber-500/40 focus:border-amber-500 rounded-md',
- formButtonPrimary:
- 'bg-stone-900 hover:bg-stone-800 text-white rounded-md dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white',
- footerActionLink: 'text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400',
- },
- }}
+ appearance={signInAppearance}
  />
+ </WoodenLoginReveal>
  </div>
 
  <div className="mt-8 text-center">
