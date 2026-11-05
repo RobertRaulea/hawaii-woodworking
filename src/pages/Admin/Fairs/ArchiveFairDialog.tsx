@@ -4,6 +4,7 @@ import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FieldError } from '@/components/ui/field';
 import { Button } from '@/components/ui/button';
 import {
  Table,
@@ -68,7 +69,7 @@ export const ArchiveFairDialog = ({
  <p role="status">Se verifică stocul și plățile...</p>
  ) : (
  <>
- <AlertTriangle className="mb-3 h-8 w-8 text-amber-700 dark:text-amber-400 " />
+ <AlertTriangle className="mb-3 size-8 text-amber-700 dark:text-amber-400 " />
  <h3 className="text-xl font-semibold">{data.fair.name}</h3>
  <p className="mb-5 mt-2 text-sm leading-6 text-stone-600 dark:text-stone-300 ">
  Produsele de mai jos vor fi returnate în stocul online. Târgul nu va
@@ -98,12 +99,12 @@ export const ArchiveFairDialog = ({
  </Alert>
  ) : null}
  {data.items.length ? (
- <div className="mb-5 overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 ">
+ <div className="mb-5 overflow-x-auto rounded-lg border border-border">
  <Table className="w-full text-sm">
  <TableCaption className="sr-only">
  Produsele returnate online la arhivare
  </TableCaption>
- <TableHeader className="bg-stone-50 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 ">
+ <TableHeader className="bg-stone-50 dark:bg-stone-800 text-xs text-muted-foreground">
  <TableRow>
  <TableHead className="p-3 text-left">Produs</TableHead>
  <TableHead className="p-3 text-right">De returnat</TableHead>
@@ -125,9 +126,9 @@ export const ArchiveFairDialog = ({
  {item.name}
  </span>
  {item.issue ? (
- <p role="alert" className="mt-1 text-xs text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-xs text-red-700 dark:text-red-400">
  {item.issue}
- </p>
+ </FieldError>
  ) : null}
  </TableCell>
  <TableCell className="p-3 text-right tabular-nums">
@@ -142,7 +143,7 @@ export const ArchiveFairDialog = ({
  </Table>
  </div>
  ) : (
- <p className="mb-5 rounded-lg bg-stone-100 dark:bg-stone-800 p-4 text-sm">
+ <p className="mb-5 rounded-lg bg-muted p-4 text-sm">
  Târgul nu mai are produse în stoc.
  </p>
  )}

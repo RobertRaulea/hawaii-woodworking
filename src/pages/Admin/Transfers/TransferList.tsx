@@ -5,7 +5,11 @@ import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { Badge } from '@/components/ui/badge';
+import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
+import { OptionSelect } from '../../../components/OptionSelect';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/utils/cn.utils';
 import {
  Table,
  TableBody,
@@ -19,25 +23,30 @@ import {
  TRANSFER_STATUS_ORDER,
  WORKSHOP,
 } from '../../../utils/transfer.utils';
+import type { TransferStatus } from '../../../types/transfers.types';
 const formatDate = (timestamp: number) =>
  new Date(timestamp).toLocaleString('ro-RO', {
  dateStyle: 'short',
  timeStyle: 'short',
  });
 
-const selectClass =
- 'rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3.5 py-2.5 text-sm text-stone-900 dark:text-stone-50 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40';
-
-const badgeClass = (status: string) =>
- `inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
- status === 'received'
- ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 '
- : status === 'cancelled'
- ? 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 '
- : status === 'in_transit' || status === 'partially_received'
- ? 'bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 '
- : 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 '
- }`;
+const TRANSFER_STATUS_BADGE: Record<
+ TransferStatus,
+ { variant: 'emerald' | 'stone' | 'amber' | 'soft'; className?: string }
+> = {
+ requested: { variant: 'amber' },
+ draft: { variant: 'amber' },
+ in_transit: {
+ variant: 'soft',
+ className: 'bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 ',
+ },
+ partially_received: {
+ variant: 'soft',
+ className: 'bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 ',
+ },
+ received: { variant: 'emerald' },
+ cancelled: { variant: 'stone' },
+};
 
 const TransferList = () => {
  const { can } = useStaffAccess();
@@ -66,7 +75,7 @@ const TransferList = () => {
  return (
  <section className="space-y-5">
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Transferuri</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Transferuri</h1>
  <div className="flex flex-wrap gap-2">
  {can('transfers.request') && (
  <Button
@@ -80,12 +89,12 @@ const TransferList = () => {
  </Button>
  )}
  {can('transfers.execute') && (
- <Button
+ <Button variant="brand"
  asChild
- className="gap-1.5 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="gap-1.5 rounded-md"
  >
  <Link to="/admin/transfers/new">
- <Plus className="h-4 w-4" /> Transfer nou
+ <Plus className="size-4" /> Transfer nou
  </Link>
  </Button>
  )}
@@ -93,52 +102,47 @@ const TransferList = () => {
  </div>
 
  <div className="flex flex-wrap gap-3">
- <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
+ <Label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
  Stare
- <select
- className={selectClass}
+ <OptionSelect
  value={status}
- onChange={(event) => updateParam('status', event.target.value)}
- >
- <option value="all">Toate</option>
- {TRANSFER_STATUS_ORDER.map((item) => (
- <option key={item} value={item}>
- {TRANSFER_STATUS_LABELS[item]}
- </option>
- ))}
- </select>
- </label>
- <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
+ onValueChange={(v) => updateParam('status', v)}
+ options={[
+ { value: 'all', label: 'Toate' },
+ ...TRANSFER_STATUS_ORDER.map((item) => ({
+ value: item,
+ label: TRANSFER_STATUS_LABELS[item],
+ })),
+ ]}
+ />
+ </Label>
+ <Label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
  Locație
- <select
- className={selectClass}
+ <OptionSelect
  value={location}
- onChange={(event) => updateParam('location', event.target.value)}
- >
- <option value="all">Toate locațiile</option>
- <option value={WORKSHOP}>Atelier</option>
- {fairs.map((fair) => (
- <option key={fair._id} value={fair._id}>
- {fair.name}
- </option>
- ))}
- </select>
- </label>
+ onValueChange={(v) => updateParam('location', v)}
+ options={[
+ { value: 'all', label: 'Toate locațiile' },
+ { value: WORKSHOP, label: 'Atelier' },
+ ...fairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ]}
+ />
+ </Label>
  </div>
 
  {transfers === undefined ? (
- <p className="text-sm text-stone-500 dark:text-stone-400 ">Se încarcă…</p>
+ <p className="text-sm text-muted-foreground">Se încarcă…</p>
  ) : transfers.length === 0 ? (
- <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 p-8 text-center">
- <ArrowLeftRight className="mx-auto h-8 w-8 text-stone-300" />
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <Empty className="gap-0 flex-initial rounded-lg border border-dashed border-stone-300 dark:border-stone-700 p-8 text-center">
+ <ArrowLeftRight className="mx-auto size-8 text-stone-300" />
+ <p className="mt-2 text-sm text-muted-foreground">
  Nu există transferuri pentru filtrele selectate.
  </p>
- </div>
+ </Empty>
  ) : (
- <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 ">
+ <div className="overflow-x-auto rounded-lg border border-border">
  <Table className="min-w-full text-sm">
- <TableHeader className="bg-stone-50 dark:bg-stone-800 text-left text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
+ <TableHeader className="bg-stone-50 dark:bg-stone-800 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
  <TableRow className="hover:bg-stone-50 dark:hover:bg-stone-900">
  <TableHead className="px-4 py-3">Creat</TableHead>
  <TableHead className="px-4 py-3">De la</TableHead>
@@ -155,7 +159,7 @@ const TransferList = () => {
  <TableCell className="whitespace-nowrap px-4 py-3 text-stone-600 dark:text-stone-300 ">
  <Link
  to={`/admin/transfers/${transfer._id}`}
- className="font-medium text-stone-900 dark:text-stone-50 hover:text-amber-700 dark:hover:text-amber-400"
+ className="font-medium text-foreground hover:text-amber-700 dark:hover:text-amber-400"
  >
  {formatDate(transfer.createdAt)}
  </Link>
@@ -167,8 +171,11 @@ const TransferList = () => {
  <TableCell className="px-4 py-3">{transfer.inTransitUnits}</TableCell>
  <TableCell className="px-4 py-3">
  <Badge
- variant="soft"
- className={badgeClass(transfer.status)}
+ variant={TRANSFER_STATUS_BADGE[transfer.status].variant}
+ className={cn(
+ 'font-medium',
+ TRANSFER_STATUS_BADGE[transfer.status].className
+ )}
  >
  {TRANSFER_STATUS_LABELS[transfer.status]}
  </Badge>

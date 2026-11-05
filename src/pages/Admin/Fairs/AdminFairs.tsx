@@ -9,6 +9,7 @@ import { useInventoryOperation } from '../../../hooks/useInventoryOperation';
 import { bucharestToday, monthStart } from '../../../utils/date.utils';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { InventoryFeedback } from '../Inventory/InventoryFeedback';
 import { FairForm } from './FairForm';
@@ -86,8 +87,8 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-300 ">
  Puncte de vânzare
  </p>
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Târguri</h1>
- <p className="mt-2 max-w-xl text-sm leading-6 text-stone-500 dark:text-stone-400 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Târguri</h1>
+ <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
  Pregătește punctele de vânzare aici. La târg, ecranul POS rămâne
  doar pentru vânzare.
  </p>
@@ -101,7 +102,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  }}
  className="h-auto min-h-12 gap-2 rounded-xl px-5 py-3 text-sm font-semibold"
  >
- <Plus className="h-5 w-5" /> Adaugă târg
+ <Plus className="size-5" /> Adaugă târg
  </Button>
  </header>
  {!operation.online ? (
@@ -129,21 +130,21 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <AlertDescription>{error}</AlertDescription>
  </Alert>
  ) : !fairs ? (
- <p role="status" className="py-12 text-center text-stone-500 dark:text-stone-400 ">
+ <p role="status" className="py-12 text-center text-muted-foreground">
  Se încarcă târgurile...
  </p>
  ) : (
  <>
  <nav
  aria-label="Starea târgurilor"
- className="flex gap-2 border-b border-stone-200 dark:border-stone-800 pb-4"
+ className="flex gap-2 border-b border-border pb-4"
  >
  <Button
  type="button"
  variant={filter === 'active' ? 'secondary' : 'outline'}
  aria-pressed={filter === 'active'}
  onClick={() => setFilter('active')}
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  Active ({active})
  </Button>
@@ -152,25 +153,25 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  variant={filter === 'archived' ? 'secondary' : 'outline'}
  aria-pressed={filter === 'archived'}
  onClick={() => setFilter('archived')}
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  Arhivate ({fairs.length - active})
  </Button>
  </nav>
  {!visible?.length ? (
- <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-10 text-center">
- <MapPin className="mx-auto mb-3 h-9 w-9 text-stone-300" />
+ <Empty className="gap-0 flex-initial rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-card p-10 text-center">
+ <MapPin className="mx-auto mb-3 size-9 text-stone-300" />
  <p className="font-medium text-stone-700 dark:text-stone-300 ">
  Nu există târguri {filter === 'active' ? 'active' : 'arhivate'}.
  </p>
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-sm text-muted-foreground">
  {filter === 'active'
  ? 'Adaugă primul târg pentru a începe pregătirea stocului.'
  : 'Arhivarea păstrează istoricul și returnează stocul online.'}
  </p>
- </div>
+ </Empty>
  ) : (
- <ul className="overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <ul className="overflow-hidden rounded-2xl border border-border bg-card">
  {visible.map((fair) => {
  const status = fairStatus(fair);
  return (
@@ -180,15 +181,15 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  >
  <div className="flex items-start gap-3">
  <div
- className={`rounded-xl p-3 ${fair.active ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 ' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 '}`}
+ className={`rounded-xl p-3 ${fair.active ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 ' : 'bg-stone-100 dark:bg-stone-800 text-muted-foreground '}`}
  >
- <MapPin className="h-5 w-5" />
+ <MapPin className="size-5" />
  </div>
  <div>
- <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50 ">
+ <h2 className="text-lg font-semibold text-foreground">
  {fair.name}
  </h2>
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-xs text-muted-foreground">
  {status} · {fairPeriod(fair)}
  {!fair.active && fair.archivedAt
  ? ` · arhivat la ${new Date(fair.archivedAt).toLocaleDateString('ro-RO')} · istoric păstrat`
@@ -197,7 +198,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500 ">
  Locație de inventar: stocul propriu al târgului
  </p>
- <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-0.5 text-xs text-muted-foreground">
  {reportError
  ? reportError
  : (() => {
@@ -214,7 +215,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <Button
  asChild
  variant="outline"
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link to={`/admin/pos?fairId=${fair._id}`}>
  Deschide POS
@@ -223,7 +224,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <Button
  asChild
  variant="outline"
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link to={`/admin/inventory?fairId=${fair._id}`}>
  Stoc
@@ -232,7 +233,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <Button
  asChild
  variant="outline"
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link to={`/admin/transfers?location=${fair._id}`}>
  Transferuri
@@ -241,7 +242,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <Button
  asChild
  variant="outline"
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link
  to={`/admin/transfers/new?from=workshop&to=${fair._id}`}
@@ -252,7 +253,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  <Button
  asChild
  variant="outline"
- className="min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link
  to={`/admin/reports?channel=pos&fairId=${fair._id}&from=${fairReportRange(fair, day).from}&to=${fairReportRange(fair, day).to}`}
@@ -269,7 +270,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  aria-label={`Editează ${fair.name}`}
  className="min-h-11 gap-2 rounded-lg px-4 text-sm"
  >
- <SquarePen className="h-4 w-4" /> Editează
+ <SquarePen className="size-4" /> Editează
  </Button>
  <Button
  type="button"
@@ -279,7 +280,7 @@ const FairWorkspace = ({ actorId }: FairWorkspaceProps) => {
  aria-label={`Arhivează ${fair.name}`}
  className="min-h-11 gap-2 rounded-lg px-4 text-sm text-amber-900 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/60"
  >
- <Archive className="h-4 w-4" /> Arhivează
+ <Archive className="size-4" /> Arhivează
  </Button>
  </>
  ) : null}

@@ -79,7 +79,7 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  />
  <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 md:py-14 lg:px-12 lg:py-20">
  <nav aria-label="Breadcrumb" className="mb-8 lg:mb-10">
- <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+ <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
  {crumbs.map((crumb) => (
  <li key={crumb.to} className="flex items-center gap-x-1.5">
  <Link to={crumb.to} className="transition-colors hover:text-amber-700 dark:hover:text-amber-400">
@@ -98,7 +98,7 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-amber-800 dark:text-amber-300">
  {content.eyebrow}
  </p>
- <h1 className="font-serif text-3xl font-medium leading-[1.08] text-stone-900 dark:text-stone-50 sm:text-4xl lg:text-5xl">
+ <h1 className="font-serif text-3xl font-medium leading-[1.08] text-foreground sm:text-4xl lg:text-5xl">
  {content.heading}
  </h1>
  <p className="mt-4 text-sm leading-7 text-stone-600 dark:text-stone-300 sm:text-base">
@@ -115,7 +115,7 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  to={card.href}
  className="group flex h-full flex-col border border-stone-300/80 bg-white/60 p-5 transition-colors hover:border-amber-700/60 hover:bg-white/90 dark:border-stone-700/80 dark:bg-stone-900/40 dark:hover:border-amber-500/50 dark:hover:bg-stone-900/70 sm:p-6"
  >
- <span className="font-serif text-xl text-stone-900 dark:text-stone-50 sm:text-2xl">
+ <span className="font-serif text-xl text-foreground sm:text-2xl">
  {card.title}
  </span>
  <span className="mt-3 flex-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
@@ -134,7 +134,7 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  <div className="space-y-12 md:space-y-16">
  {content.sections.map((section) => (
  <section key={section.heading} className="max-w-3xl">
- <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 lg:text-3xl">
+ <h2 className="font-serif text-2xl font-medium text-foreground lg:text-3xl">
  {section.heading}
  </h2>
  {section.paragraphs?.map((paragraph) => (
@@ -156,7 +156,7 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  ))}
 
  <section className="max-w-3xl">
- <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 lg:text-3xl">
+ <h2 className="font-serif text-2xl font-medium text-foreground lg:text-3xl">
  {content.faqTitle}
  </h2>
  <Accordion type="single" collapsible className="mt-5">
@@ -174,7 +174,7 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  </section>
 
  <section className="border border-stone-300/80 bg-white/60 p-6 dark:border-stone-700/80 dark:bg-stone-900/40 sm:p-8">
- <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 lg:text-3xl">
+ <h2 className="font-serif text-2xl font-medium text-foreground lg:text-3xl">
  {content.ctaTitle}
  </h2>
  <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600 dark:text-stone-300 sm:text-base">
@@ -183,18 +183,18 @@ export const ServiceLanding: React.FC<ServiceLandingProps> = ({ copy, page }) =>
  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
  <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto">
  <a href={BUSINESS.phoneHref} aria-label={`${copy.contact.callLabel}: ${BUSINESS.phoneDisplay}`}>
- <Phone className="h-4 w-4" />
+ <Phone className="size-4" />
  {copy.contact.callLabel}: {BUSINESS.phoneDisplay}
  </a>
  </Button>
- <Button asChild size="lg" className="w-full bg-amber-600 hover:bg-amber-700 sm:w-auto">
+ <Button variant="brand" asChild size="lg" className="w-full sm:w-auto">
  <a href={emailHref}>
- <Mail className="h-4 w-4" />
+ <Mail className="size-4" />
  {copy.contact.emailLabel}
  </a>
  </Button>
  </div>
- <p className="mt-3 text-xs text-stone-500 dark:text-stone-400">{BUSINESS.email}</p>
+ <p className="mt-3 text-xs text-muted-foreground">{BUSINESS.email}</p>
  </section>
  </div>
  </div>

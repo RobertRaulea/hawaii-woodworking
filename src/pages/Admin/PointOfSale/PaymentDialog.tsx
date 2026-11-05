@@ -5,6 +5,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FieldError } from '@/components/ui/field';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { useProductThumbnails } from '../../../hooks/useProductThumbnails';
 import { formatMoney, parseMoney } from './pos.utils';
@@ -57,7 +58,7 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  aria-labelledby="pos-payment-title"
  aria-describedby="pos-payment-description"
  onCancel={(event) => event.preventDefault()}
- className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl bg-white dark:bg-stone-900 p-0 text-stone-900 dark:text-stone-50 shadow-2xl backdrop:bg-stone-950/60"
+ className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl bg-card p-0 text-foreground shadow-2xl backdrop:bg-stone-950/60"
  >
  <div className="p-6 md:p-8">
  <Icon
@@ -93,7 +94,7 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  solicita automat o noua plata.
  </Alert>
  ) : null}
- <div className="mb-5 flex items-center justify-between rounded-xl bg-stone-100 dark:bg-stone-800 p-4">
+ <div className="mb-5 flex items-center justify-between rounded-xl bg-muted p-4">
  <span>De incasat</span>
  <strong className="text-2xl">{formatMoney(total)}</strong>
  </div>
@@ -105,7 +106,7 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  <ProductThumb
  src={thumbnails.get(item.productId)}
  alt={item.name}
- className="h-8 w-8"
+ className="size-8"
  />
  {item.quantity} × {item.name}
  </span>
@@ -181,9 +182,9 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  })}
  />
  {errors.received ? (
- <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-2 text-red-700 dark:text-red-400">
  {errors.received.message}
- </p>
+ </FieldError>
  ) : null}
  <div
  className="mt-3 flex justify-between text-emerald-800 dark:text-emerald-300 "
@@ -240,10 +241,10 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  Plata neefectuata / refuzata · Inapoi la cos
  </Button>
  ) : null}
- <p className="mt-5 break-all text-[11px] text-stone-500 dark:text-stone-400 ">
+ <p className="mt-5 break-all text-[11px] text-muted-foreground">
  Referinta: {pending.args.requestId}
  </p>
- <p className="mt-2 text-xs leading-5 text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-xs leading-5 text-muted-foreground">
  Documentele fiscale se emit separat. Retururile nu sterg vanzarea
  initiala.
  </p>

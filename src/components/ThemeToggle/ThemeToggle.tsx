@@ -19,9 +19,9 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
  aria-pressed={isDark}
  >
  {isDark ? (
- <Sun className="h-6 w-6 text-amber-400 transition-transform duration-300" />
+ <Sun className="size-6 text-amber-400 transition-transform duration-300" />
  ) : (
- <Moon className="h-6 w-6 transition-transform duration-300" />
+ <Moon className="size-6 transition-transform duration-300" />
  )}
  </Button>
  );

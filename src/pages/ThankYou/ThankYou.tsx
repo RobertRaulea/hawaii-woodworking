@@ -52,19 +52,19 @@ export const ThankYou: React.FC = () => {
  return (
  <div className="max-w-2xl mx-auto px-6 lg:px-8 py-20 lg:py-28 text-center">
  <div className="animate-fade-in-up">
- <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-8">
+ <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-8">
  {paymentReceived
  ? <Check aria-hidden="true" className="w-8 h-8 text-emerald-500" strokeWidth={2} />
- : <HelpCircle aria-hidden="true" className="w-8 h-8 text-stone-500 dark:text-stone-400" strokeWidth={2} />}
+ : <HelpCircle aria-hidden="true" className="w-8 h-8 text-muted-foreground" strokeWidth={2} />}
  </div>
- <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-4">{t(`thankYou.confirmation.${state}.title`, { defaultValue: messages[0] })}</h1>
- <p role="status" className="text-stone-500 dark:text-stone-400 text-base leading-relaxed mb-10 max-w-md mx-auto">
+ <h1 className="font-serif text-3xl lg:text-4xl font-medium text-foreground mb-4">{t(`thankYou.confirmation.${state}.title`, { defaultValue: messages[0] })}</h1>
+ <p role="status" className="text-muted-foreground text-base leading-relaxed mb-10 max-w-md mx-auto">
  {t(`thankYou.confirmation.${state}.message`, { defaultValue: messages[1] })}
  </p>
  <Button
  asChild
  variant="outline"
- className="h-auto rounded-md border-stone-900 dark:border-stone-400 px-8 py-2.5 text-sm font-medium text-stone-900 dark:text-stone-50 transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
+ className="h-auto rounded-md border-stone-900 dark:border-stone-400 px-8 py-2.5 text-sm font-medium text-foreground transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
  >
  <Link to="/">{t('thankYou.backToHome')}</Link>
  </Button>

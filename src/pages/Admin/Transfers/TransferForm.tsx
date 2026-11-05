@@ -13,9 +13,10 @@ import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { useTransferAction } from '../../../hooks/useTransferAction';
 import { SearchableSelect } from '../../../components/SearchableSelect/SearchableSelect';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import {
  endpointFromValue,
@@ -35,10 +36,6 @@ interface TransferFormValues {
  lines: LineForm[];
 }
 
-const fieldClass =
- 'w-full rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3.5 py-2.5 text-sm text-stone-900 dark:text-stone-50 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40';
-const labelClass =
- 'block text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-1.5';
 
 const TransferForm = () => {
  const { id } = useParams();
@@ -206,22 +203,16 @@ const TransferForm = () => {
  void controller.start({ kind: 'created', from, to, lines, note });
  };
 
- const endpointOptions = (
- <>
- <option value={WORKSHOP}>Atelier</option>
- {fairs.map((fair) => (
- <option key={fair._id} value={fair._id}>
- {fair.name}
- </option>
- ))}
- </>
- );
+ const endpointOptions = [
+ { value: WORKSHOP, label: 'Atelier' },
+ ...fairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ];
 
  if (editing && detail === undefined)
- return <p className="text-sm text-stone-500 dark:text-stone-400 ">Se încarcă…</p>;
+ return <p className="text-sm text-muted-foreground">Se încarcă…</p>;
  if (editing && detail === null)
  return (
- <p className="text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm text-muted-foreground">
  Transferul nu este disponibil pentru acest cont.
  </p>
  );
@@ -235,7 +226,7 @@ const TransferForm = () => {
  >
  ← Transferuri
  </Link>
- <h1 className="mt-1 text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
+ <h1 className="mt-1 text-2xl md:text-3xl font-medium font-serif text-foreground">
  {editing
  ? 'Editează transferul'
  : requestMode
@@ -246,25 +237,30 @@ const TransferForm = () => {
 
  <form
  onSubmit={handleSubmit(onSubmit)}
- className="space-y-5 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5"
+ className="space-y-5 rounded-lg border border-border bg-card p-5"
  >
  {requestMode && !editing ? (
  <div>
- <Label htmlFor="transfer-to" className={labelClass}>
+ <FieldLabel variant="caps" htmlFor="transfer-to">
  Târg destinație
- </Label>
- <select
+ </FieldLabel>
+ <Controller
+ control={control}
+ name="to"
+ rules={{ required: 'Selectează târgul destinație.' }}
+ render={({ field }) => (
+ <OptionSelect
  id="transfer-to"
- className={fieldClass}
- {...register('to', { required: 'Selectează târgul destinație.' })}
- >
- <option value="">Selectează…</option>
- {fairs.map((fair) => (
- <option key={fair._id} value={fair._id}>
- {fair.name}
- </option>
- ))}
- </select>
+ wrapperClassName="w-full"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: 'Selectează…' },
+ ...fairs.map((fair) => ({ value: fair._id, label: fair.name })),
+ ]}
+ />
+ )}
+ />
  {errors.to && (
  <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{errors.to.message}</p>
  )}
@@ -272,29 +268,42 @@ const TransferForm = () => {
  ) : (
  <div className="grid gap-4 md:grid-cols-2">
  <div>
- <Label htmlFor="transfer-from" className={labelClass}>
+ <FieldLabel variant="caps" htmlFor="transfer-from">
  Sursă
- </Label>
- <select
+ </FieldLabel>
+ <Controller
+ control={control}
+ name="from"
+ rules={{ required: true }}
+ render={({ field }) => (
+ <OptionSelect
  id="transfer-from"
- className={fieldClass}
- {...register('from', { required: true })}
- >
- {endpointOptions}
- </select>
+ wrapperClassName="w-full"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={endpointOptions}
+ />
+ )}
+ />
  </div>
  <div>
- <Label htmlFor="transfer-to" className={labelClass}>
+ <FieldLabel variant="caps" htmlFor="transfer-to">
  Destinație
- </Label>
- <select
+ </FieldLabel>
+ <Controller
+ control={control}
+ name="to"
+ rules={{ required: 'Selectează destinația.' }}
+ render={({ field }) => (
+ <OptionSelect
  id="transfer-to"
- className={fieldClass}
- {...register('to', { required: 'Selectează destinația.' })}
- >
- <option value="">Selectează…</option>
- {endpointOptions}
- </select>
+ wrapperClassName="w-full"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[{ value: '', label: 'Selectează…' }, ...endpointOptions]}
+ />
+ )}
+ />
  {errors.to && (
  <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{errors.to.message}</p>
  )}
@@ -303,7 +312,7 @@ const TransferForm = () => {
  )}
 
  <fieldset className="space-y-3">
- <legend className={labelClass}>Produse</legend>
+ <legend className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1.5">Produse</legend>
  {fields.map((field, index) => (
  <div key={field.id} className="flex items-start gap-3">
  <div className="grow">
@@ -326,12 +335,11 @@ const TransferForm = () => {
  />
  </div>
  <div className="w-28">
- <Label
+ <FieldLabel variant="caps"
  htmlFor={`transfer-qty-${index}`}
- className={labelClass}
  >
  Cantitate
- </Label>
+ </FieldLabel>
  <Input
  id={`transfer-qty-${index}`}
  type="number"
@@ -354,9 +362,9 @@ const TransferForm = () => {
  onClick={() => remove(index)}
  disabled={fields.length <= 1}
  aria-label="Șterge produsul"
- className="mt-7 h-10 w-10 rounded-md"
+ className="mt-7 size-10 rounded-md"
  >
- <Trash2 className="h-4 w-4" />
+ <Trash2 className="size-4" />
  </Button>
  </div>
  ))}
@@ -370,14 +378,14 @@ const TransferForm = () => {
  disabled={fields.length >= 50}
  className="gap-1.5 rounded-md px-3 py-2 text-sm"
  >
- <Plus className="h-4 w-4" /> Adaugă produs
+ <Plus className="size-4" /> Adaugă produs
  </Button>
  </fieldset>
 
  <div>
- <Label htmlFor="transfer-note" className={labelClass}>
+ <FieldLabel variant="caps" htmlFor="transfer-note">
  Notă (opțional)
- </Label>
+ </FieldLabel>
  <Textarea
  id="transfer-note"
  rows={2}
@@ -415,16 +423,16 @@ const TransferForm = () => {
  type="button"
  variant="outline"
  onClick={() => navigate(-1)}
- className="rounded-md px-4 py-2 text-sm"
+ className="rounded-md"
  >
  Renunță
  </Button>
- <Button
+ <Button variant="brand"
  type="submit"
  disabled={
  controller.busy || controller.blocked || !controller.online
  }
- className="rounded-md bg-amber-600 px-5 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-md px-5"
  >
  {controller.busy
  ? 'Se trimite…'

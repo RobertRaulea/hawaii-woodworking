@@ -74,7 +74,7 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
  <div>
  <Label
  htmlFor="price-min"
- className="block text-xs text-stone-500 dark:text-stone-400 mb-1.5 font-medium uppercase tracking-wide"
+ className="block text-xs text-muted-foreground mb-1.5 font-medium uppercase tracking-wide"
  >
  Min
  </Label>
@@ -93,7 +93,7 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
  <div>
  <Label
  htmlFor="price-max"
- className="block text-xs text-stone-500 dark:text-stone-400 mb-1.5 font-medium uppercase tracking-wide"
+ className="block text-xs text-muted-foreground mb-1.5 font-medium uppercase tracking-wide"
  >
  Max
  </Label>

@@ -6,6 +6,7 @@ import { ImagePlus, Pencil, X } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -133,18 +134,18 @@ export const AdminCustomWorks: React.FC = () => {
 
  return (
  <section className="mx-auto max-w-6xl">
- <div className="mb-8 border-b border-stone-200 dark:border-stone-800 pb-6">
+ <div className="mb-8 border-b border-border pb-6">
  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700 dark:text-amber-400 ">Portofoliu</p>
- <h1 className="mt-2 font-serif text-2xl md:text-3xl font-medium text-stone-900 dark:text-stone-50 ">Lucrări la comandă</h1>
+ <h1 className="mt-2 font-serif text-2xl md:text-3xl font-medium text-foreground">Lucrări la comandă</h1>
  <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300 ">
  Publică proiectele finalizate cu fotografia, prețul și o descriere scurtă. Lucrările vor apărea în secțiunea publică „La comandă”.
  </p>
  </div>
 
  <div className="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
- <form onSubmit={handleSubmit(onSubmit)} className="h-fit rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-sm md:p-6">
+ <form onSubmit={handleSubmit(onSubmit)} className="h-fit rounded-xl border border-border bg-card p-5 shadow-sm md:p-6">
  <div className="mb-5 flex items-center justify-between">
- <h2 className="font-serif text-xl text-stone-900 dark:text-stone-50 ">
+ <h2 className="font-serif text-xl text-foreground">
  {editingAsset ? 'Editează lucrarea' : 'Adaugă o lucrare'}
  </h2>
  {editingAsset && (
@@ -153,10 +154,10 @@ export const AdminCustomWorks: React.FC = () => {
  variant="ghost"
  size="icon"
  onClick={resetForm}
- className="rounded-full text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-50"
+ className="rounded-full text-muted-foreground hover:text-foreground"
  aria-label="Anulează editarea"
  >
- <X className="h-4 w-4" />
+ <X className="size-4" />
  </Button>
  )}
  </div>
@@ -167,19 +168,19 @@ export const AdminCustomWorks: React.FC = () => {
  ) : editingAsset ? (
  <img src={editingAsset.url} alt={editingAsset.title ?? 'Lucrare existentă'} className="h-44 w-full object-cover" />
  ) : (
- <span className="flex flex-col items-center gap-2 px-4 py-8 text-sm text-stone-500 dark:text-stone-400 ">
- <ImagePlus className="h-7 w-7 text-amber-700 dark:text-amber-400 " />
+ <span className="flex flex-col items-center gap-2 px-4 py-8 text-sm text-muted-foreground">
+ <ImagePlus className="size-7 text-amber-700 dark:text-amber-400 " />
  Încarcă fotografia lucrării
  </span>
  )}
- <input
+ <Input
  type="file"
  accept="image/*"
  className="sr-only"
  onChange={(event) => handleFileChange(event.target.files?.[0])}
  />
  </label>
- {editingAsset && <p className="-mt-3 mb-4 text-xs text-stone-500 dark:text-stone-400 ">Alege o fotografie nouă pentru a o înlocui pe cea actuală.</p>}
+ {editingAsset && <p className="-mt-3 mb-4 text-xs text-muted-foreground">Alege o fotografie nouă pentru a o înlocui pe cea actuală.</p>}
 
  <div className="space-y-4">
  <div>
@@ -245,36 +246,36 @@ export const AdminCustomWorks: React.FC = () => {
 
  <div>
  <div className="mb-4 flex items-end justify-between">
- <h2 className="font-serif text-xl text-stone-900 dark:text-stone-50 ">Lucrări publicate</h2>
- <span className="text-xs text-stone-500 dark:text-stone-400 ">{displayedAssets.length} în galerie</span>
+ <h2 className="font-serif text-xl text-foreground">Lucrări publicate</h2>
+ <span className="text-xs text-muted-foreground">{displayedAssets.length} în galerie</span>
  </div>
  {assets === undefined ? (
- <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-8 text-center text-sm text-stone-500 dark:text-stone-400 ">Se încarcă lucrările...</div>
+ <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Se încarcă lucrările...</div>
  ) : displayedAssets.length === 0 ? (
- <div className="rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-8 text-center text-sm text-stone-500 dark:text-stone-400 ">
+ <Empty className="gap-0 flex-initial rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-card p-8 text-center text-sm text-muted-foreground">
  Nu ai publicat încă nicio lucrare.
- </div>
+ </Empty>
  ) : (
  <div className="space-y-3">
  {displayedAssets.map((asset) => (
- <article key={asset._id} className="flex gap-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-3 shadow-sm">
+ <article key={asset._id} className="flex gap-4 rounded-xl border border-border bg-card p-3 shadow-sm">
  <img src={asset.url} alt={asset.title ?? asset.name} className="h-20 w-24 shrink-0 rounded-lg object-cover" />
  <div className="min-w-0 flex-1 py-1">
- <h3 className="truncate font-medium text-stone-900 dark:text-stone-50 ">{asset.title ?? asset.name}</h3>
+ <h3 className="truncate font-medium text-foreground">{asset.title ?? asset.name}</h3>
  <p className="mt-1 text-sm font-semibold text-amber-800 dark:text-amber-300 ">
  {asset.price === undefined ? 'Preț necompletat' : `${asset.price.toFixed(2)} RON`}
  </p>
- {asset.description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-stone-500 dark:text-stone-400 ">{asset.description}</p>}
+ {asset.description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{asset.description}</p>}
  </div>
  <Button
  type="button"
  variant="ghost"
  size="icon"
  onClick={() => startEditing(asset)}
- className="h-auto w-auto self-start rounded-md p-2 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-50"
+ className="h-auto w-auto self-start rounded-md p-2 text-muted-foreground hover:text-foreground"
  aria-label={`Editează ${asset.title ?? asset.name}`}
  >
- <Pencil className="h-4 w-4" />
+ <Pencil className="size-4" />
  </Button>
  </article>
  ))}

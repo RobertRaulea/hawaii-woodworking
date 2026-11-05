@@ -8,6 +8,8 @@ import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { bucharestToday, monthStart } from '../../../utils/date.utils';
 import { downloadCsv, toCsv } from '../../../utils/csv.utils';
 import { Button } from '@/components/ui/button';
+import { OptionSelect } from '../../../components/OptionSelect';
+import { Alert } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -58,7 +60,7 @@ const SectionCard = ({
       <div>
         <CardTitle className="text-lg">{title}</CardTitle>
         {note ? (
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             {note}
           </p>
         ) : null}
@@ -69,7 +71,7 @@ const SectionCard = ({
         size="sm"
         onClick={() => downloadCsv(filename, toCsv(csv()))}
       >
-        <Download className="h-4 w-4" /> Export CSV
+        <Download className="size-4" /> Export CSV
       </Button>
     </CardHeader>
     <CardContent>{children}</CardContent>
@@ -136,9 +138,9 @@ export const Reports: React.FC = () => {
 
   if (error) {
     return (
-      <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">
+      <Alert variant="destructive" className="rounded-xl border-0 dark:bg-red-50 dark:text-red-800">
         {error}
-      </p>
+      </Alert>
     );
   }
 
@@ -157,10 +159,10 @@ export const Reports: React.FC = () => {
   return (
     <section className="mx-auto max-w-6xl space-y-6">
       <header>
-        <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50">
+        <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
           Rapoarte
         </h1>
-        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           Vânzări și încasări pe perioadă, fus orar Europe/Bucharest.
         </p>
       </header>
@@ -187,11 +189,10 @@ export const Reports: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="report-channel">Canal</Label>
-            <select
+            <OptionSelect
               id="report-channel"
               value={channel}
-              onChange={(event) => {
-                const value = event.target.value;
+              onValueChange={(value) => {
                 const next = new URLSearchParams(searchParams);
                 if (value === 'all') next.delete('channel');
                 else next.set('channel', value);
@@ -199,20 +200,21 @@ export const Reports: React.FC = () => {
                 setSearchParams(next);
                 setProductPage(1);
               }}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <option value="all">Toate</option>
-              <option value="online">Online</option>
-              <option value="pos">POS</option>
-            </select>
+              wrapperClassName="w-full"
+              className="flex h-9 min-h-9 bg-transparent px-3 py-1 shadow-xs focus:border-input focus:ring-0 focus-visible:ring-1 focus-visible:ring-ring"
+              options={[
+                { value: 'all', label: 'Toate' },
+                { value: 'online', label: 'Online' },
+                { value: 'pos', label: 'POS' },
+              ]}
+            />
           </div>
           <div>
             <Label htmlFor="report-location">Locație</Label>
-            <select
+            <OptionSelect
               id="report-location"
               value={fairId ?? 'all'}
-              onChange={(event) => {
-                const value = event.target.value;
+              onValueChange={(value) => {
                 const next = new URLSearchParams(searchParams);
                 if (value === 'all') next.delete('fairId');
                 else {
@@ -222,21 +224,22 @@ export const Reports: React.FC = () => {
                 setSearchParams(next);
                 setProductPage(1);
               }}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <option value="all">Toate</option>
-              {(fairs ?? []).map((fair) => (
-                <option key={fair._id} value={fair._id}>
-                  {fair.name}
-                </option>
-              ))}
-            </select>
+              wrapperClassName="w-full"
+              className="flex h-9 min-h-9 bg-transparent px-3 py-1 shadow-xs focus:border-input focus:ring-0 focus-visible:ring-1 focus-visible:ring-ring"
+              options={[
+                { value: 'all', label: 'Toate' },
+                ...(fairs ?? []).map((fair) => ({
+                  value: fair._id,
+                  label: fair.name,
+                })),
+              ]}
+            />
           </div>
         </CardContent>
       </Card>
 
       {data === undefined ? (
-        <p className="text-sm text-stone-500 dark:text-stone-400">
+        <p className="text-sm text-muted-foreground">
           Se încarcă raportul…
         </p>
       ) : (
@@ -477,7 +480,7 @@ export const Reports: React.FC = () => {
               ]}
             >
               {data.posByFair.length === 0 ? (
-                <p className="text-sm text-stone-500 dark:text-stone-400">
+                <p className="text-sm text-muted-foreground">
                   Nicio vânzare POS în perioada selectată.
                 </p>
               ) : (

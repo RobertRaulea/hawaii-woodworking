@@ -31,10 +31,10 @@ export const Login: React.FC = () => {
 
  return (
  <div className="max-w-md mx-auto px-6 py-16 lg:py-20">
- <h1 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 mb-2 text-center">
+ <h1 className="font-serif text-2xl font-medium text-foreground mb-2 text-center">
  {t('login.title', { defaultValue: copy.title })}
  </h1>
- <p className="text-stone-500 dark:text-stone-400 text-sm mb-10 text-center">
+ <p className="text-muted-foreground text-sm mb-10 text-center">
  {t('login.subtitle', { defaultValue: copy.subtitle })}
  </p>
 

@@ -20,6 +20,7 @@ import { useInventoryOperation } from '../../../hooks/useInventoryOperation';
 import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { useStockOperation } from '../../../hooks/useStockOperation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -167,19 +168,19 @@ const InventoryWorkspace = ({
  overview?.products.filter((product) => product.invalidStock).length ?? 0;
 
  if (!overview)
- return <p className="text-sm text-stone-500 dark:text-stone-400 ">Se încarcă stocurile...</p>;
+ return <p className="text-sm text-muted-foreground">Se încarcă stocurile...</p>;
  const fairs = overview.fairs;
 
  return (
  <div>
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Stocuri</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Stocuri</h1>
  <div className="flex gap-2">
  {can('products.posOptions') ? (
  <Button
  asChild
  variant="outline"
- className="rounded-lg px-3 py-2 text-sm font-medium"
+ className="rounded-lg px-3"
  >
  <Link to="/admin/pos">Deschide POS</Link>
  </Button>
@@ -188,7 +189,7 @@ const InventoryWorkspace = ({
  <Button
  asChild
  variant="outline"
- className="rounded-lg px-3 py-2 text-sm font-medium"
+ className="rounded-lg px-3"
  >
  <Link to="/admin/fairs">Gestionează târgurile</Link>
  </Button>
@@ -196,7 +197,7 @@ const InventoryWorkspace = ({
  {can('catalog.manage') ? (
  <Button
  asChild
- className="rounded-lg px-3 py-2 text-sm font-medium"
+ className="rounded-lg px-3"
  >
  <Link to="/admin/products/new">Produs nou</Link>
  </Button>
@@ -248,7 +249,7 @@ const InventoryWorkspace = ({
  <Card className="rounded-lg">
  <CardContent className="p-4">
  <dl>
- <dt className="text-sm text-stone-500 dark:text-stone-400 ">Produse</dt>
+ <dt className="text-sm text-muted-foreground">Produse</dt>
  <dd className="mt-1 text-xl font-semibold">{totalProducts}</dd>
  </dl>
  </CardContent>
@@ -256,7 +257,7 @@ const InventoryWorkspace = ({
  <Card className="rounded-lg">
  <CardContent className="p-4">
  <dl>
- <dt className="text-sm text-stone-500 dark:text-stone-400 ">Stoc scăzut</dt>
+ <dt className="text-sm text-muted-foreground">Stoc scăzut</dt>
  <dd className="mt-1 text-xl font-semibold">{lowCount}</dd>
  </dl>
  </CardContent>
@@ -264,7 +265,7 @@ const InventoryWorkspace = ({
  <Card className="rounded-lg">
  <CardContent className="p-4">
  <dl>
- <dt className="text-sm text-stone-500 dark:text-stone-400 ">Stocuri invalide</dt>
+ <dt className="text-sm text-muted-foreground">Stocuri invalide</dt>
  <dd className="mt-1 text-xl font-semibold">{invalidCount}</dd>
  </dl>
  </CardContent>
@@ -279,50 +280,48 @@ const InventoryWorkspace = ({
  className="h-auto w-full rounded-lg px-3 py-2"
  aria-label="Caută produse"
  />
- <select
+ <OptionSelect
  value={location}
- onChange={(event) => setLocation(event.target.value as StockLocation)}
- className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm"
+ onValueChange={(v) => setLocation(v as StockLocation)}
+ wrapperClassName="w-full"
+ className="rounded-lg px-3 py-2"
  aria-label="Locație"
- >
- <option value="all">Toate locațiile</option>
- <option value="workshop">Atelier</option>
- {fairs.map((fair) => (
- <option key={fair._id} value={`fairs:${fair._id}`}>
- {fair.name}
- </option>
- ))}
- </select>
- <select
+ options={[
+ { value: 'all', label: 'Toate locațiile' },
+ { value: 'workshop', label: 'Atelier' },
+ ...fairs.map((fair) => ({ value: `fairs:${fair._id}`, label: fair.name })),
+ ]}
+ />
+ <OptionSelect
  value={category}
- onChange={(event) => setCategory(event.target.value)}
- className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm"
+ onValueChange={(v) => setCategory(v)}
+ wrapperClassName="w-full"
+ className="rounded-lg px-3 py-2"
  aria-label="Categorie"
- >
- <option value="">Toate categoriile</option>
- {categories.map((item) => (
- <option key={item} value={item}>
- {item}
- </option>
- ))}
- </select>
- <select
+ options={[
+ { value: '', label: 'Toate categoriile' },
+ ...categories.map((item) => ({ value: item, label: item })),
+ ]}
+ />
+ <OptionSelect
  value={availability}
- onChange={(event) =>
- setAvailability(event.target.value as StockAvailability)
+ onValueChange={(v) =>
+ setAvailability(v as StockAvailability)
  }
- className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm"
+ wrapperClassName="w-full"
+ className="rounded-lg px-3 py-2"
  aria-label="Disponibilitate"
- >
- <option value="all">Orice disponibilitate</option>
- <option value="available">Disponibil</option>
- <option value="low">Stoc scăzut</option>
- <option value="out">Fără stoc</option>
- <option value="reserved">Cu rezervări</option>
- </select>
+ options={[
+ { value: 'all', label: 'Orice disponibilitate' },
+ { value: 'available', label: 'Disponibil' },
+ { value: 'low', label: 'Stoc scăzut' },
+ { value: 'out', label: 'Fără stoc' },
+ { value: 'reserved', label: 'Cu rezervări' },
+ ]}
+ />
  </div>
  <div className="mt-4 overflow-x-auto">
- <Table className="min-w-full rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-sm">
+ <Table className="min-w-full rounded-lg border border-border bg-card text-sm">
  <TableHeader className="bg-stone-50 dark:bg-stone-800 ">
  <TableRow className="hover:bg-stone-50 dark:hover:bg-stone-900">
  <TableHead className="px-3 py-2 text-left font-medium text-stone-600 dark:text-stone-300 ">
@@ -369,25 +368,25 @@ const InventoryWorkspace = ({
  alt={product.name}
  />
  <div className="min-w-0">
- <p className="font-medium text-stone-900 dark:text-stone-50 ">
+ <p className="font-medium text-foreground">
  {product.name}
  {product.status === 'archived' ? (
  <Badge
- variant="soft"
- className="ml-2 rounded bg-stone-200 dark:bg-stone-700 px-1.5 py-0.5 text-[10px] font-medium uppercase text-stone-600 dark:text-stone-300 "
+ variant="stone"
+ className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase"
  >
  Arhivat
  </Badge>
  ) : product.status === 'inactive' ? (
  <Badge
- variant="warning"
- className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-800 dark:text-amber-300 "
+ variant="amber"
+ className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase"
  >
  Inactiv
  </Badge>
  ) : null}
  </p>
- <p className="text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="text-xs text-muted-foreground">
  {product.sku || 'Fără SKU'}
  {product.category ? ` · ${product.category}` : ''}
  </p>
@@ -425,7 +424,7 @@ const InventoryWorkspace = ({
  Stoc invalid
  </span>
  ) : !product.trackStock ? (
- <span className="text-xs font-medium text-stone-500 dark:text-stone-400 ">
+ <span className="text-xs font-medium text-muted-foreground">
  Stoc neurmărit
  </span>
  ) : low ? (
@@ -433,7 +432,7 @@ const InventoryWorkspace = ({
  Stoc scăzut
  </span>
  ) : (
- <span className="text-xs text-stone-500 dark:text-stone-400 ">OK</span>
+ <span className="text-xs text-muted-foreground">OK</span>
  )}
  </TableCell>
  <TableCell className="px-3 py-2">
@@ -442,10 +441,9 @@ const InventoryWorkspace = ({
  <Button
  type="button"
  variant="outline"
- size="sm"
+ size="xs"
  onClick={() => setStockDialogProduct(product)}
  disabled={product.invalidStock || !operation.online}
- className="h-auto min-h-0 rounded px-2 py-1 text-xs font-medium"
  >
  Stoc
  </Button>
@@ -453,9 +451,8 @@ const InventoryWorkspace = ({
  <Button
  type="button"
  variant="outline"
- size="sm"
+ size="xs"
  onClick={() => setHistoryProduct(product.id)}
- className="h-auto min-h-0 rounded px-2 py-1 text-xs font-medium"
  >
  Istoric
  </Button>
@@ -463,8 +460,7 @@ const InventoryWorkspace = ({
  <Button
  asChild
  variant="outline"
- size="sm"
- className="h-auto min-h-0 rounded px-2 py-1 text-xs font-medium"
+ size="xs"
  >
  <Link
  to={`/admin/transfers/new?productId=${product.id}&from=${selectedFair ?? 'workshop'}`}
@@ -477,9 +473,8 @@ const InventoryWorkspace = ({
  <Button
  type="button"
  variant="outline"
- size="sm"
+ size="xs"
  onClick={() => setOptionsDialogProduct(product)}
- className="h-auto min-h-0 rounded px-2 py-1 text-xs font-medium"
  >
  Opțiuni POS
  </Button>
@@ -493,7 +488,7 @@ const InventoryWorkspace = ({
  </Table>
  </div>
  {filtered.length === 0 ? (
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm text-muted-foreground">
  Niciun produs nu corespunde căutării.
  </p>
  ) : null}

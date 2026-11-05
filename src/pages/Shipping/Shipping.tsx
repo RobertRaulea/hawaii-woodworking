@@ -2,6 +2,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
+import type { Control, Path, RegisterOptions } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, useSignUp } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FieldError, FieldLabel } from '@/components/ui/field';
+import { OptionSelect } from '../../components/OptionSelect';
 
 const COUNTRIES = [
  'România',
@@ -71,10 +73,10 @@ const InputField: React.FC<InputFieldProps> = ({
  registration,
 }) => (
  <div>
- <Label htmlFor={id} className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
+ <FieldLabel variant="caps" htmlFor={id}>
  {label}
  {required && <span className="text-red-500 ml-0.5">*</span>}
- </Label>
+ </FieldLabel>
  <Input
  id={id}
  type={type}
@@ -88,7 +90,7 @@ const InputField: React.FC<InputFieldProps> = ({
  }`}
  {...registration}
  />
- {error && <p id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
+ {error && <FieldError id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</FieldError>}
  </div>
 );
 
@@ -96,10 +98,12 @@ interface SelectFieldProps {
  label: string;
  id: string;
  options: readonly string[];
- autoComplete?: React.SelectHTMLAttributes<HTMLSelectElement>['autoComplete'];
+ autoComplete?: string;
  error?: string;
  required?: boolean;
- registration: ReturnType<ReturnType<typeof useForm>['register']>;
+ control: Control<ShippingFormData>;
+ name: Path<ShippingFormData>;
+ rules?: RegisterOptions<ShippingFormData>;
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({
@@ -109,32 +113,43 @@ const SelectField: React.FC<SelectFieldProps> = ({
  autoComplete,
  error,
  required = false,
- registration,
+ control,
+ name,
+ rules,
 }) => (
  <div>
- <Label htmlFor={id} className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
+ <FieldLabel variant="caps" htmlFor={id}>
  {label}
  {required && <span className="text-red-500 ml-0.5">*</span>}
- </Label>
- <select
+ </FieldLabel>
+ <Controller
+ control={control}
+ name={name}
+ rules={rules}
+ render={({ field }) => (
+ <OptionSelect
  id={id}
+ name={field.name}
  autoComplete={autoComplete}
  required={required}
- aria-invalid={error ? true : undefined}
+ invalid={!!error}
  aria-describedby={error ? `${id}-error` : undefined}
- className={`w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 dark:text-stone-50 bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all duration-200 ${
- error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300 dark:border-stone-600 '
- }`}
- {...registration}
- >
- <option value="">Selectează...</option>
- {options.map((opt) => (
- <option key={opt} value={opt}>
- {opt}
- </option>
- ))}
- </select>
- {error && <p id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400 ">{error}</p>}
+ wrapperClassName="w-full"
+ className={
+ error
+ ? 'border-red-400 focus:ring-red-400/40'
+ : 'border-stone-300 dark:border-stone-600 '
+ }
+ value={typeof field.value === 'string' ? field.value : ''}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: 'Selectează...' },
+ ...options.map((opt) => ({ value: opt, label: opt })),
+ ]}
+ />
+ )}
+ />
+ {error && <FieldError id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</FieldError>}
  </div>
 );
 
@@ -256,12 +271,12 @@ export const Shipping: React.FC = () => {
  if (cartState.items.length === 0) {
  return (
  <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16 text-center">
- <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 mb-2">Coșul tău este gol</h2>
- <p className="text-stone-500 dark:text-stone-400 text-sm mb-8">Adaugă produse înainte de a continua.</p>
+ <h2 className="font-serif text-2xl font-medium text-foreground mb-2">Coșul tău este gol</h2>
+ <p className="text-muted-foreground text-sm mb-8">Adaugă produse înainte de a continua.</p>
  <Button
  variant="outline"
  onClick={() => navigate('/products')}
- className="h-auto rounded-md border-stone-900 dark:border-stone-400 px-8 py-2.5 text-sm font-medium text-stone-900 dark:text-stone-50 transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
+ className="h-auto rounded-md border-stone-900 dark:border-stone-400 px-8 py-2.5 text-sm font-medium text-foreground transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
  >
  Înapoi la produse
  </Button>
@@ -437,9 +452,9 @@ export const Shipping: React.FC = () => {
  if (showVerification) {
  return (
  <div className="max-w-md mx-auto px-6 py-16">
- <Card className="rounded-lg border-stone-200 dark:border-stone-800 p-8 shadow-none">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-2">Verifică adresa de email</h2>
- <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">
+ <Card className="rounded-lg border-border p-8 shadow-none">
+ <h2 className="font-serif text-xl font-medium text-foreground mb-2">Verifică adresa de email</h2>
+ <p className="text-sm text-muted-foreground mb-6">
  Am trimis un cod de verificare la <strong>{pendingFormData?.email}</strong>.
  Introdu codul pentru a crea contul și a continua.
  </p>
@@ -478,7 +493,7 @@ export const Shipping: React.FC = () => {
  setVerificationError('');
  setPendingFormData(null);
  }}
- className="mt-3 h-auto w-full p-0 text-sm text-stone-500 dark:text-stone-400 transition-colors hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
+ className="mt-3 h-auto w-full p-0 text-sm text-muted-foreground transition-colors hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
  >
  Înapoi la formular
  </Button>
@@ -489,12 +504,12 @@ export const Shipping: React.FC = () => {
 
  return (
  <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
- <h1 className="font-serif text-3xl font-medium text-stone-900 dark:text-stone-50 mb-2">Informații de livrare</h1>
- <p className="text-stone-500 dark:text-stone-400 text-sm mb-10">
+ <h1 className="font-serif text-3xl font-medium text-foreground mb-2">Informații de livrare</h1>
+ <p className="text-muted-foreground text-sm mb-10">
  Completează datele de mai jos pentru a continua comanda.
  </p>
 
- <div className="text-sm text-stone-500 dark:text-stone-400 mb-6">
+ <div className="text-sm text-muted-foreground mb-6">
  <Link to="/login" className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400 font-medium underline">
  Ai deja cont? Conectează-te
  </Link>
@@ -503,7 +518,7 @@ export const Shipping: React.FC = () => {
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
  {/* Contact */}
  <section>
- <h2 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-50 mb-5 pb-2 border-b border-stone-200 dark:border-stone-800 ">
+ <h2 className="font-serif text-lg font-medium text-foreground mb-5 pb-2 border-b border-border">
  Contact
  </h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -548,7 +563,7 @@ export const Shipping: React.FC = () => {
 
  {/* Name */}
  <section>
- <h2 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-50 mb-5 pb-2 border-b border-stone-200 dark:border-stone-800 ">
+ <h2 className="font-serif text-lg font-medium text-foreground mb-5 pb-2 border-b border-border">
  Nume
  </h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -581,7 +596,7 @@ export const Shipping: React.FC = () => {
 
  {/* Shipping Address */}
  <section>
- <h2 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-50 mb-5 pb-2 border-b border-stone-200 dark:border-stone-800 ">
+ <h2 className="font-serif text-lg font-medium text-foreground mb-5 pb-2 border-b border-border">
  Adresă de livrare
  </h2>
  <div className="space-y-4">
@@ -592,14 +607,16 @@ export const Shipping: React.FC = () => {
  options={['România']}
  error={errors.shippingAddress?.country?.message}
  required
- registration={register('shippingAddress.country', {
+ control={control}
+ name="shippingAddress.country"
+ rules={{
  required: 'Țara este obligatorie',
  validate: (value) => value === 'România' || countryCorrection,
  onChange: () => {
  setValue('shippingAddress.county', '');
  setValue('shippingAddress.city', '');
  },
- })}
+ }}
  />
  <p className="text-sm text-stone-600 dark:text-stone-300" role="status">
  {t('shipping.tariffPendingNotice', { defaultValue: shippingNotice[language === 'en' || language === 'de' ? language : 'ro'] })}
@@ -725,7 +742,7 @@ export const Shipping: React.FC = () => {
 
  {/* Billing Address */}
  <section>
- <h2 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-50 mb-5 pb-2 border-b border-stone-200 dark:border-stone-800 ">
+ <h2 className="font-serif text-lg font-medium text-foreground mb-5 pb-2 border-b border-border">
  Adresă de facturare
  </h2>
  <Controller
@@ -739,7 +756,7 @@ export const Shipping: React.FC = () => {
  onCheckedChange={field.onChange}
  onBlur={field.onBlur}
  ref={field.ref}
- className="h-4 w-4"
+ className="size-4"
  />
  <span className="text-sm text-stone-700 dark:text-stone-300 ">
  Aceeași cu adresa de livrare
@@ -757,13 +774,15 @@ export const Shipping: React.FC = () => {
  options={COUNTRIES}
  error={errors.billingAddress?.country?.message}
  required
- registration={register('billingAddress.country', {
+ control={control}
+ name="billingAddress.country"
+ rules={{
  required: !sameAsShipping ? 'Țara este obligatorie' : false,
  onChange: () => {
  setValue('billingAddress.county', '');
  setValue('billingAddress.city', '');
  },
- })}
+ }}
  />
  <InputField
  label="Stradă"
@@ -884,7 +903,7 @@ export const Shipping: React.FC = () => {
 
  {/* Options */}
  <section>
- <h2 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-50 mb-5 pb-2 border-b border-stone-200 dark:border-stone-800 ">
+ <h2 className="font-serif text-lg font-medium text-foreground mb-5 pb-2 border-b border-border">
  Opțiuni
  </h2>
  <div className="space-y-3">
@@ -900,7 +919,7 @@ export const Shipping: React.FC = () => {
  onCheckedChange={field.onChange}
  onBlur={field.onBlur}
  ref={field.ref}
- className="mt-0.5 h-4 w-4"
+ className="mt-0.5 size-4"
  />
  <span className="text-sm text-stone-700 dark:text-stone-300 ">
  Doresc să primesc newsletter-ul cu noutăți și oferte speciale
@@ -924,7 +943,7 @@ export const Shipping: React.FC = () => {
  ref={field.ref}
  aria-invalid={errors.acceptPolicy ? true : undefined}
  aria-describedby={errors.acceptPolicy ? 'acceptPolicy-error' : undefined}
- className="mt-0.5 h-4 w-4"
+ className="mt-0.5 size-4"
  />
  <span className="text-sm text-stone-700 dark:text-stone-300 ">
  Am citit și accept{' '}
@@ -960,7 +979,7 @@ export const Shipping: React.FC = () => {
  onCheckedChange={field.onChange}
  onBlur={field.onBlur}
  ref={field.ref}
- className="mt-0.5 h-4 w-4"
+ className="mt-0.5 size-4"
  />
  <span className="text-sm text-stone-700 dark:text-stone-300 ">
  Doresc să îmi creez un cont pentru comenzi viitoare
@@ -994,12 +1013,12 @@ export const Shipping: React.FC = () => {
 
  {/* Submit */}
  <div id="clerk-captcha" />
- <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-stone-200 dark:border-stone-800 ">
+ <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
  <Button
  type="button"
  variant="ghost"
  onClick={() => navigate('/cart')}
- className="h-auto p-0 text-sm text-stone-500 dark:text-stone-400 transition-colors hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
+ className="h-auto p-0 text-sm text-muted-foreground transition-colors hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
  >
  ← Înapoi la coș
  </Button>

@@ -19,7 +19,7 @@ const UnderConstruction: React.FC<UnderConstructionProps> = ({ expectedDate }) =
  <div className="absolute inset-0 bg-black/50" />
  <div className="text-center max-w-md relative z-10">
  <div className="w-16 h-16 rounded-full bg-amber-500/90 flex items-center justify-center mx-auto mb-8">
- <Wrench className="h-7 w-7 text-white" />
+ <Wrench className="size-7 text-white" />
  </div>
  <h1 className="font-serif text-3xl sm:text-4xl font-medium text-white mb-4">
  Site Under Construction

@@ -6,6 +6,7 @@ import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FieldError } from '@/components/ui/field';
 import { inventoryError } from '../../../utils/inventory.utils';
 
 interface FairFormValues {
@@ -60,7 +61,7 @@ export const FairForm = ({ disabled, onCreated, fair }: FairFormProps) => {
  }
  })}
  >
- <p className="mb-5 text-sm leading-6 text-stone-500 dark:text-stone-400 ">
+ <p className="mb-5 text-sm leading-6 text-muted-foreground">
  Fiecare târg are propriul stoc. {fair ? 'Modificarea' : 'Crearea'} unui
  târg nu mută automat produse din online.
  </p>
@@ -80,9 +81,9 @@ export const FairForm = ({ disabled, onCreated, fair }: FairFormProps) => {
  })}
  />
  {errors.name ? (
- <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-2 text-red-700 dark:text-red-400">
  {errors.name.message}
- </p>
+ </FieldError>
  ) : null}
  <div className="mt-4 grid gap-4 sm:grid-cols-2">
  <div>
@@ -111,9 +112,9 @@ export const FairForm = ({ disabled, onCreated, fair }: FairFormProps) => {
  </div>
  </div>
  {error ? (
- <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-2 text-red-700 dark:text-red-400">
  {error}
- </p>
+ </FieldError>
  ) : null}
  <Button
  variant="secondary"

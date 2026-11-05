@@ -46,16 +46,16 @@ export const Footer: React.FC = () => {
  <li><a href="tel:+40748831477" onClick={() => trackAnalytics('cta_clicked', { cta_name: 'contact_phone', surface: 'storefront' })} className="text-sm hover:text-amber-400 transition-colors duration-200">+40 748 831 477</a></li>
  </ul>
  <div className="flex space-x-5 mt-6 justify-start md:justify-end">
- <a href="https://www.facebook.com/profile.php?id=100093461934429" aria-label="Facebook" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400 hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaFacebook size={18} aria-hidden="true" /></a>
- <a href="https://www.instagram.com/hawaii_woodworks/" aria-label="Instagram" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400 hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaInstagram size={18} aria-hidden="true" /></a>
- <a href="https://www.tiktok.com/@hawaii_woodworks" aria-label="TikTok" target="_blank" rel="noopener noreferrer" className="text-stone-500 dark:text-stone-400 hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaTiktok size={18} aria-hidden="true" /></a>
+ <a href="https://www.facebook.com/profile.php?id=100093461934429" aria-label="Facebook" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaFacebook size={18} aria-hidden="true" /></a>
+ <a href="https://www.instagram.com/hawaii_woodworks/" aria-label="Instagram" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaInstagram size={18} aria-hidden="true" /></a>
+ <a href="https://www.tiktok.com/@hawaii_woodworks" aria-label="TikTok" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-amber-400 dark:hover:text-amber-400 transition-colors duration-200"><FaTiktok size={18} aria-hidden="true" /></a>
  </div>
  </div>
  </div>
 
  {/* Divider */}
  <div className="mt-14 pt-8 border-t border-stone-800">
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-stone-500 dark:text-stone-400 ">
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-muted-foreground">
  {/* Legal Details */}
  <div className="text-center md:text-left space-y-0.5">
  <p className="font-medium text-stone-400 dark:text-stone-500 ">HAWAII WOODWORKING SIBIU SRL</p>

@@ -6,11 +6,11 @@ import { BUSINESS } from '../../../shared/seo/seo.utils';
 export const LegalInformation: React.FC = () => {
  return (
  <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
- <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-10 text-center">Informații Legale</h1>
+ <h1 className="font-serif text-3xl lg:text-4xl font-medium text-foreground mb-10 text-center">Informații Legale</h1>
  
  <div className="prose prose-amber max-w-none">
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Date de identificare</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">Date de identificare</h2>
  <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 p-6 rounded-lg shadow-none">
  <p className="mb-2"><strong>Denumire companie:</strong> {BUSINESS.legalName}</p>
  <p className="mb-2"><strong>CUI:</strong> 48789961</p>
@@ -24,7 +24,7 @@ export const LegalInformation: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Documente privind activitatea și materialele</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">Documente privind activitatea și materialele</h2>
  <p className="mb-4">
  Pentru informații și documente privind activitatea {BUSINESS.legalName}, materialele sau un anumit produs,
  vă rugăm să ne contactați la <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.
@@ -33,7 +33,7 @@ export const LegalInformation: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Soluționarea alternativă a litigiilor (SAL)</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">Soluționarea alternativă a litigiilor (SAL)</h2>
  <p className="mb-4">
  Conform legislației în vigoare, vă informăm că aveți posibilitatea de a recurge la soluționarea alternativă a 
  litigiilor. Entitățile SAL sunt centre independente, imparțiale, transparente, eficace, rapide și echitabile, 
@@ -48,7 +48,7 @@ export const LegalInformation: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Prelucrarea datelor cu caracter personal</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">Prelucrarea datelor cu caracter personal</h2>
  <p className="mb-4">
  {BUSINESS.legalName}, cu sediul la {BUSINESS.address}, este operatorul datelor cu caracter personal
  prelucrate prin acest site. Pentru solicitări privind datele personale, ne puteți contacta la
@@ -66,7 +66,7 @@ export const LegalInformation: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">Documente legale</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">Documente legale</h2>
  <p className="mb-4">
  Vă rugăm să consultați următoarele documente pentru informații suplimentare:
  </p>

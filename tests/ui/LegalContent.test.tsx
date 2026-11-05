@@ -44,7 +44,7 @@ for (const { Component, title } of legalPages) {
     const { container } = render(<MemoryRouter><Component /></MemoryRouter>);
     const heading = screen.getByRole('heading', { level: 1, name: title });
     assert.equal(screen.getAllByRole('heading', { level: 1 }).length, 1);
-    for (const className of ['font-serif', 'text-stone-900', 'dark:text-stone-50']) {
+    for (const className of ['font-serif', 'text-foreground']) {
       assert.ok(heading.classList.contains(className));
     }
     const text = container.textContent ?? '';

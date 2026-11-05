@@ -47,7 +47,7 @@ export const OrderInventoryReview = ({ order }: OrderInventoryReviewProps) => {
  return (
  <section aria-label="Inventar de verificat">
  <Alert variant="warning" className="rounded-xl p-5">
- <AlertTriangle className="h-6 w-6" />
+ <AlertTriangle className="size-6" />
  <AlertTitle>Plată confirmată · Stoc de verificat</AlertTitle>
  <AlertDescription>
  <p className="mt-2 leading-6">{order.inventoryError}</p>
@@ -96,7 +96,7 @@ export const OrderInventoryReview = ({ order }: OrderInventoryReviewProps) => {
  <ProductThumb
  src={thumbnails.get(item.productId)}
  alt={item.name}
- className="h-8 w-8"
+ className="size-8"
  />
  <span>
  {item.quantity} × {item.name}

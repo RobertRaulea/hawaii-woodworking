@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  ];
 
  return (
- <header className={`sticky top-0 z-50 border-b border-stone-200/70 dark:border-stone-800/70 bg-white/80 dark:bg-stone-900/80 text-stone-900 dark:text-stone-50 backdrop-blur-md transition-all duration-300 ${scrolled ? 'py-0 shadow-soft' : 'py-2'}`}>
+ <header className={`sticky top-0 z-50 border-b border-stone-200/70 dark:border-stone-800/70 bg-white/80 dark:bg-stone-900/80 text-foreground backdrop-blur-md transition-all duration-300 ${scrolled ? 'py-0 shadow-soft' : 'py-2'}`}>
  <nav className="relative z-20">
  <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
  <div className="flex items-center justify-between h-12 sm:h-14 md:h-16">
@@ -46,19 +46,19 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  <SheetTrigger asChild>
  <Button
  variant="ghost"
- className="md:hidden relative z-30 h-auto w-auto rounded-full p-2 hover:bg-stone-100 dark:hover:bg-stone-800 [&_svg]:size-6"
+ className="md:hidden relative z-30 h-auto w-auto rounded-full p-2 hover:bg-muted [&_svg]:size-6"
  aria-label={t('nav.menu')}
  >
  {isMenuOpen ? (
- <X className="h-6 w-6 text-stone-900 dark:text-stone-50 transition-transform duration-300" />
+ <X className="size-6 text-foreground transition-transform duration-300" />
  ) : (
- <Menu className="h-6 w-6 text-stone-900 dark:text-stone-50 transition-transform duration-300" />
+ <Menu className="size-6 text-foreground transition-transform duration-300" />
  )}
  </Button>
  </SheetTrigger>
  <SheetContent
  side="top"
- className="border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 px-4 pb-5 pt-16 backdrop-blur-sm md:hidden"
+ className="border-border bg-white/95 dark:bg-stone-900/95 px-4 pb-5 pt-16 backdrop-blur-sm md:hidden"
  >
  <SheetTitle className="sr-only">
  {t('nav.menu')}
@@ -67,19 +67,18 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  {t('nav.menu')}
  </SheetDescription>
  <div className="space-y-2">
- {navLinks.map((link) => (
+ {navLinks.filter((link) => !isActive(link.to)).map((link) => (
  <SheetClose asChild key={link.to}>
  <Link
  to={link.to}
- aria-current={isActive(link.to) ? 'page' : undefined}
- className={`block rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${isActive(link.to) ? 'bg-amber-500 text-stone-900' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'}`}
+ className="block rounded-full px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800"
  >
  {link.label}
  </Link>
  </SheetClose>
  ))}
  </div>
- <div className="mt-4 flex items-center justify-between border-t border-stone-200 pt-3 dark:border-stone-800">
+ <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
  <span className="px-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
  {t('settings.title')}
  </span>
@@ -90,12 +89,11 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
  {/* Left menu items - Desktop */}
  <div className="hidden md:flex items-center md:space-x-0.5 lg:space-x-2 xl:space-x-8">
- {navLinks.map((link) => (
+ {navLinks.filter((link) => !isActive(link.to)).map((link) => (
  <Link
  key={link.to}
  to={link.to}
- aria-current={isActive(link.to) ? 'page' : undefined}
- className={`px-1.5 lg:px-2 xl:px-4 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all duration-200 ${isActive(link.to) ? 'bg-amber-500 text-stone-900' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'}`}
+ className="px-1.5 lg:px-2 xl:px-4 py-1.5 rounded-full text-xs lg:text-sm font-medium text-stone-700 dark:text-stone-300 transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800"
  >
  {link.label}
  </Link>
@@ -121,12 +119,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  <Button
  variant="ghost"
  onClick={() => navigate('/cart')}
- className="relative z-50 h-auto w-auto rounded-full p-2 hover:bg-stone-100 dark:hover:bg-stone-800 [&_svg]:size-6"
+ className="relative z-50 h-auto w-auto rounded-full p-2 hover:bg-muted [&_svg]:size-6"
  aria-label={t('nav.cart')}
  >
- <ShoppingBag className="h-6 w-6 text-stone-900 dark:text-stone-50 " />
+ <ShoppingBag className="size-6 text-foreground" />
  {totalItems > 0 && (
- <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-semibold text-white">
+ <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-amber-500 text-xs font-semibold text-white">
  {totalItems}
  </span>
  )}

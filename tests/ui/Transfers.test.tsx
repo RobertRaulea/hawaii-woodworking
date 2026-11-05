@@ -5,6 +5,7 @@ import { getFunctionName } from 'convex/server';
 import assert from 'node:assert/strict';
 import { it, mock } from 'node:test';
 import { fair, product, operationMock } from './fixtures';
+import { pickOption } from './optionSelect.helpers';
 import type { Id } from '../../convex/_generated/dataModel';
 
 const staffAdmin = { role: 'admin', userId: 'admin-1', homePath: '/admin' };
@@ -204,16 +205,17 @@ it('lista filtrează după stare și locație', async () => {
       (call) => getFunctionName(call.arguments[0] as never) === 'transfers:list',
     );
   assert.equal(listCalls().length >= 1, true);
-  await user.selectOptions(screen.getByLabelText('Stare'), 'in_transit');
+  await pickOption(user, screen.getByLabelText('Stare'), 'În tranzit');
   await waitFor(() =>
     assert.equal(
       (listCalls().at(-1)?.arguments[1] as { status?: string }).status,
       'in_transit',
     ),
   );
-  await user.selectOptions(
+  await pickOption(
+    user,
     screen.getByLabelText('Locație'),
-    String(fair._id),
+    'Târg Crăciun',
   );
   await waitFor(() =>
     assert.equal(
@@ -273,10 +275,11 @@ it('formularul adaugă și elimină produse și blochează aceeași sursă/desti
   );
   assert.equal(screen.getAllByLabelText('Cantitate').length, 1);
 
-  await user.selectOptions(screen.getByLabelText('Sursă'), 'workshop');
-  await user.selectOptions(
+  await pickOption(user, screen.getByLabelText('Sursă'), 'Atelier');
+  await pickOption(
+    user,
     screen.getByLabelText('Destinație'),
-    'workshop',
+    'Atelier',
   );
   const productInput = screen.getByRole('combobox', { name: /Produs/ });
   await user.click(productInput);

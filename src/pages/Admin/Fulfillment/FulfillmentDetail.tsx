@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Textarea } from "@/components/ui/textarea";
 import { ProductThumb } from "../../../components/ProductThumb";
 import { useProductThumbnails } from "../../../hooks/useProductThumbnails";
@@ -83,7 +84,7 @@ export const FulfillmentDetail: React.FC = () => {
  if (order === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă comanda…</p>
+ <p className="text-muted-foreground">Se încarcă comanda…</p>
  </div>
  );
  }
@@ -91,7 +92,7 @@ export const FulfillmentDetail: React.FC = () => {
  if (order === null) {
  return (
  <div className="py-20 text-center">
- <p className="mb-4 text-stone-500 dark:text-stone-400 ">
+ <p className="mb-4 text-muted-foreground">
  Comanda nu este în fluxul de pregătire comenzi.
  </p>
  <Link
@@ -127,13 +128,13 @@ export const FulfillmentDetail: React.FC = () => {
  <div>
  <Link
  to={`/admin/fulfillment?tab=${order.state === "delivered" ? "shipped" : order.state}`}
- className="mb-2 inline-flex items-center gap-1 text-sm text-stone-500 dark:text-stone-400 transition-colors hover:text-stone-700 dark:hover:text-stone-300"
+ className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-stone-700 dark:hover:text-stone-300"
  >
- <ArrowLeft className="h-4 w-4" />
+ <ArrowLeft className="size-4" />
  Înapoi la pregătire comenzi
  </Link>
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
  Comanda <span className="font-mono">#{order.shortNumber}</span>
  </h1>
  <div className="flex items-center gap-2">
@@ -143,7 +144,7 @@ export const FulfillmentDetail: React.FC = () => {
  onClick={() => window.print()}
  className="h-auto gap-1 rounded-lg px-3 py-1.5 text-sm font-medium"
  >
- <Printer className="h-4 w-4" />
+ <Printer className="size-4" />
  Printează lista
  </Button>
  {order.invoicePdfUrl ? (
@@ -163,7 +164,7 @@ export const FulfillmentDetail: React.FC = () => {
  ) : null}
  </div>
  </div>
- <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-sm text-muted-foreground">
  Plasată {formatDate(order.createdAt)}
  </p>
  </div>
@@ -195,9 +196,9 @@ export const FulfillmentDetail: React.FC = () => {
  variant="outline"
  disabled={!canAct}
  onClick={() => setReassignOpen(true)}
- className="h-auto gap-1.5 rounded-lg border-blue-300 bg-white dark:bg-stone-900 px-3 py-1.5 text-sm font-medium text-blue-900 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-900"
+ className="h-auto gap-1.5 rounded-lg border-blue-300 bg-card px-3 py-1.5 text-sm font-medium text-blue-900 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-900"
  >
- <ArrowRightLeft className="h-4 w-4" />
+ <ArrowRightLeft className="size-4" />
  Realocă
  </Button>
  ) : null}
@@ -210,7 +211,7 @@ export const FulfillmentDetail: React.FC = () => {
  <Card className="rounded-lg">
  <CardContent className="p-5">
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">Destinatar</h2>
- <p className="mt-2 text-sm text-stone-900 dark:text-stone-50 ">
+ <p className="mt-2 text-sm text-foreground">
  {order.recipient.firstName} {order.recipient.lastName}
  </p>
  <p className="text-sm text-stone-700 dark:text-stone-300 ">
@@ -259,7 +260,7 @@ export const FulfillmentDetail: React.FC = () => {
  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
  line.checked
  ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/50 "
- : "border-stone-200 dark:border-stone-800 "
+ : "border-border"
  } ${editable ? "cursor-pointer" : "opacity-80"}`}
  >
  <Checkbox
@@ -273,7 +274,7 @@ export const FulfillmentDetail: React.FC = () => {
  checked: checked === true,
  })
  }
- className="h-5 w-5"
+ className="size-5"
  />
  <ProductThumb
  src={thumbnails.get(line.productId)}
@@ -282,13 +283,13 @@ export const FulfillmentDetail: React.FC = () => {
  <span
  className={`flex-1 text-sm ${
  line.checked
- ? "text-stone-500 dark:text-stone-400 line-through"
- : "text-stone-900 dark:text-stone-50 "
+ ? "text-muted-foreground line-through"
+ : "text-foreground"
  }`}
  >
  {line.name}
  </span>
- <span className="text-sm text-stone-500 dark:text-stone-400 ">
+ <span className="text-sm text-muted-foreground">
  × {line.quantity}
  </span>
  </label>
@@ -297,7 +298,7 @@ export const FulfillmentDetail: React.FC = () => {
  })}
  </ul>
  {order.checklist.length === 0 ? (
- <p className="mt-2 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-xs text-muted-foreground">
  Checklistul se inițializează la preluarea comenzii.
  </p>
  ) : null}
@@ -309,7 +310,7 @@ export const FulfillmentDetail: React.FC = () => {
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">Acțiuni</h2>
  <div className="mt-3 flex flex-wrap gap-2">
  {order.state === "ready" ? (
- <Button
+ <Button variant="brand"
  type="button"
  disabled={!canAct}
  onClick={() =>
@@ -318,7 +319,7 @@ export const FulfillmentDetail: React.FC = () => {
  orderId: order._id,
  })
  }
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Preia
  </Button>
@@ -335,11 +336,11 @@ export const FulfillmentDetail: React.FC = () => {
  orderId: order._id,
  })
  }
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Eliberează
  </Button>
- <Button
+ <Button variant="brand"
  type="button"
  disabled={!canAct || heldByOther || !allChecked}
  title={
@@ -353,24 +354,24 @@ export const FulfillmentDetail: React.FC = () => {
  orderId: order._id,
  })
  }
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Marchează ambalată
  </Button>
  </>
  ) : null}
  {order.state === "packed" ? (
- <Button
+ <Button variant="brand"
  type="button"
  disabled={!canAct || heldByOther}
  onClick={() => setShipOpen(true)}
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Expediază
  </Button>
  ) : null}
  {order.state === "shipped" ? (
- <Button
+ <Button variant="brand"
  type="button"
  disabled={!canAct || heldByOther}
  onClick={() =>
@@ -379,7 +380,7 @@ export const FulfillmentDetail: React.FC = () => {
  orderId: order._id,
  })
  }
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Marchează livrată
  </Button>
@@ -388,7 +389,7 @@ export const FulfillmentDetail: React.FC = () => {
  !order.assignedToMe &&
  !isAdmin &&
  order.assignedTo ? (
- <p className="text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm text-muted-foreground">
  Acțiunile sunt disponibile doar operatorului care a preluat
  comanda.
  </p>
@@ -431,7 +432,7 @@ export const FulfillmentDetail: React.FC = () => {
  note: note.trim(),
  });
  }}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Adaugă
  </Button>
@@ -443,7 +444,7 @@ export const FulfillmentDetail: React.FC = () => {
  <CardContent className="p-5">
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">Istoric</h2>
  {order.events.length === 0 ? (
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-sm text-muted-foreground">
  Nicio acțiune înregistrată.
  </p>
  ) : (
@@ -456,7 +457,7 @@ export const FulfillmentDetail: React.FC = () => {
  <span className="font-medium text-stone-800 dark:text-stone-100 ">
  {EVENT_LABELS[event.kind]}
  </span>
- <span className="text-xs text-stone-500 dark:text-stone-400 ">
+ <span className="text-xs text-muted-foreground">
  {formatDate(event.createdAt)} · {userLabel(event.actorId)}
  {event.data?.productId
  ? ` · ${
@@ -533,14 +534,14 @@ export const FulfillmentDetail: React.FC = () => {
  type="button"
  variant="outline"
  onClick={() => setShipOpen(false)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Renunță
  </Button>
- <Button
+ <Button variant="brand"
  type="submit"
  disabled={!canAct}
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Expediază
  </Button>
@@ -577,32 +578,30 @@ export const FulfillmentDetail: React.FC = () => {
  >
  Operator
  </Label>
- <select
+ <OptionSelect
  id="reassign-target"
  value={reassignTarget}
- onChange={(event) => setReassignTarget(event.target.value)}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
- >
- <option value="" disabled>
- Alege un operator…
- </option>
- {eligibleStaff.map((entry) => (
- <option
- key={entry.userId}
- value={entry.userId}
- disabled={entry.userId === order.assignedTo}
- >
+ onValueChange={(v) => setReassignTarget(v)}
+ placeholder="Alege un operator…"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg px-3 py-2"
+ options={eligibleStaff.map((entry) => ({
+ value: entry.userId,
+ label: (
+ <>
  {entry.name ?? entry.email}
  {entry.userId === order.assignedTo ? " (curent)" : ""}
- </option>
- ))}
- </select>
+ </>
+ ),
+ disabled: entry.userId === order.assignedTo,
+ }))}
+ />
  {directory.data === undefined ? (
- <p className="mt-2 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-xs text-muted-foreground">
  Se încarcă echipa…
  </p>
  ) : eligibleStaff.length === 0 ? (
- <p className="mt-2 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-xs text-muted-foreground">
  Nicio persoană eligibilă în echipă. Adaugă operatori din
  pagina Echipă.
  </p>
@@ -613,14 +612,14 @@ export const FulfillmentDetail: React.FC = () => {
  type="button"
  variant="outline"
  onClick={() => setReassignOpen(false)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Renunță
  </Button>
- <Button
+ <Button variant="brand"
  type="submit"
  disabled={!canAct || !reassignTarget}
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Realocă
  </Button>

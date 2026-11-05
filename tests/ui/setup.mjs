@@ -12,6 +12,38 @@ for (const key of [
   'Element',
   'HTMLElement',
   'HTMLDialogElement',
+  'HTMLFormElement',
+  'DocumentFragment',
+  'Document',
+  'DOMRect',
+  'DOMException',
+  'FocusEvent',
+  'Range',
+  'ShadowRoot',
+  'CSS',
+  'Touch',
+  'TouchEvent',
+  'KeyboardEvent',
+  'MouseEvent',
+  'PointerEvent',
+  'HTMLAnchorElement',
+  'HTMLButtonElement',
+  'HTMLDivElement',
+  'HTMLUListElement',
+  'HTMLLIElement',
+  'HTMLSpanElement',
+  'HTMLParagraphElement',
+  'HTMLHeadingElement',
+  'HTMLLegendElement',
+  'HTMLFieldSetElement',
+  'HTMLOptionElement',
+  'HTMLOptGroupElement',
+  'HTMLCollection',
+  'FileList',
+  'File',
+  'Blob',
+  'FormData',
+  'URLSearchParams',
   'HTMLInputElement',
   'HTMLSelectElement',
   'Node',
@@ -62,6 +94,19 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver = globalThis.ResizeObserver ?? ResizeObserverStub;
 dom.window.ResizeObserver = dom.window.ResizeObserver ?? ResizeObserverStub;
+// embla-carousel (ProductCard/ImageCarousel, ProductGallery) observes slides.
+class IntersectionObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+globalThis.IntersectionObserver =
+  globalThis.IntersectionObserver ?? IntersectionObserverStub;
+dom.window.IntersectionObserver =
+  dom.window.IntersectionObserver ?? IntersectionObserverStub;
 if (!dom.window.PointerEvent) {
   globalThis.PointerEvent = dom.window.MouseEvent;
   dom.window.PointerEvent = dom.window.MouseEvent;

@@ -6,6 +6,7 @@ import { Toaster } from "../../src/components/ui/sonner";
 import assert from "node:assert/strict";
 import { it, mock } from "node:test";
 import type { Id } from "../../convex/_generated/dataModel";
+import { pickOption } from './optionSelect.helpers';
 
 const staffAdmin = { role: "admin", userId: "admin-1", homePath: "/admin" };
 const staffAtelier = {
@@ -285,12 +286,12 @@ it("AdminOrders filtrează după căutare, stare plată și paginează", async (
   assert.ok(screen.getByText("Pagina 2 din 2"));
 
   // Payment filter narrows to the single unpaid order.
-  await user.selectOptions(screen.getByLabelText("Stare plată"), "pending");
+  await pickOption(user, screen.getByLabelText("Stare plată"), "Neplătită");
   await screen.findByText("#NUM00007");
   assert.equal(screen.queryByText("#NUM00025"), null);
 
   // Search by customer name.
-  await user.selectOptions(screen.getByLabelText("Stare plată"), "all");
+  await pickOption(user, screen.getByLabelText("Stare plată"), "Toate");
   await user.type(screen.getByLabelText("Caută"), "Popescu12");
   await screen.findByText("#NUM00012");
   assert.equal(screen.queryByText("#NUM00011"), null);
@@ -364,6 +365,39 @@ it("FulfillmentQueue afișează taburile și secțiunea de reaprovizionare", asy
   }
   await screen.findByText("Solicitări de reaprovizionare");
   assert.ok(screen.getByRole("link", { name: /Transfer #/ }));
+});
+
+it("FulfillmentQueue comută tabul prin parametrul URL tab", async () => {
+  const user = userEvent.setup();
+  staff = staffAtelier;
+  queueData = [
+    queueRow(),
+    queueRow({ _id: "ord-2", state: "preparing", shortNumber: "B2" }),
+  ];
+  restockData = [];
+  setup();
+  render(
+    <MemoryRouter initialEntries={["/admin/fulfillment?tab=preparing"]}>
+      <Routes>
+        <Route path="/admin/fulfillment" element={<FulfillmentQueue />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  const preparingTab = await screen.findByRole("tab", {
+    name: "În pregătire",
+  });
+  assert.equal(preparingTab.getAttribute("aria-selected"), "true");
+  assert.equal(
+    screen.getByRole("tab", { name: "De pregătit" }).getAttribute("aria-selected"),
+    "false",
+  );
+  await user.click(screen.getByRole("tab", { name: "De pregătit" }));
+  await waitFor(() => {
+    assert.equal(
+      screen.getByRole("tab", { name: "De pregătit" }).getAttribute("aria-selected"),
+      "true",
+    );
+  });
 });
 
 it("FulfillmentDetail blochează ambalarea până bifăm checklistul", async () => {
@@ -586,7 +620,7 @@ it("adminul poate realoca comanda din pagina de detalii", async () => {
   );
   await user.click(await screen.findByRole("button", { name: "Realocă" }));
   const dialog = await screen.findByRole("dialog");
-  await user.selectOptions(within(dialog).getByLabelText("Operator"), "user_b");
+  await pickOption(user, within(dialog).getByLabelText("Operator"), "Maria");
   await user.click(within(dialog).getByRole("button", { name: "Realocă" }));
   await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
   assert.equal(

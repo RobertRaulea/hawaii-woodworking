@@ -40,12 +40,15 @@ import {
 
 type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
 
-const STATUS_COLORS: Record<OrderStatus, string> = {
- pending: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 ',
- paid: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 ',
- shipped: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 ',
- delivered: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ',
- cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 ',
+const STATUS_BADGES: Record<
+ OrderStatus,
+ 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive'
+> = {
+ pending: 'yellow',
+ paid: 'success',
+ shipped: 'blue',
+ delivered: 'emerald',
+ cancelled: 'destructive',
 };
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -81,12 +84,12 @@ interface AddressDisplayProps {
 
 const AddressDisplay: React.FC<AddressDisplayProps> = ({ label, address }) => (
  <div>
- <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">{label}</h4>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">{address.street}</p>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">
+ <h4 className="text-sm font-medium text-muted-foreground mb-1">{label}</h4>
+ <p className="text-sm text-foreground">{address.street}</p>
+ <p className="text-sm text-foreground">
  {address.city}, {address.county} {address.postalCode}
  </p>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">{address.country}</p>
+ <p className="text-sm text-foreground">{address.country}</p>
  </div>
 );
 
@@ -130,7 +133,7 @@ export const CustomerDetail: React.FC = () => {
  if (customer === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă clientul...</p>
+ <p className="text-muted-foreground">Se încarcă clientul...</p>
  </div>
  );
  }
@@ -138,7 +141,7 @@ export const CustomerDetail: React.FC = () => {
  if (customer === null) {
  return (
  <div className="text-center py-20">
- <p className="text-stone-500 dark:text-stone-400 mb-4">Clientul nu a fost găsit.</p>
+ <p className="text-muted-foreground mb-4">Clientul nu a fost găsit.</p>
  <Link
  to="/admin/customers"
  className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400 font-medium text-sm"
@@ -200,17 +203,17 @@ export const CustomerDetail: React.FC = () => {
  <div>
  <Link
  to="/admin/customers"
- className="inline-flex items-center gap-1 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 mb-2 transition-colors"
+ className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-stone-700 dark:hover:text-stone-300 mb-2 transition-colors"
  >
- <ArrowLeft className="h-4 w-4" />
+ <ArrowLeft className="size-4" />
  Înapoi la clienți
  </Link>
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
  <div>
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
  {customer.firstName} {customer.lastName}
  </h1>
- <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">{customer.email}</p>
+ <p className="text-sm text-muted-foreground mt-1">{customer.email}</p>
  </div>
  <div className="flex items-center gap-2">
  <Badge
@@ -226,7 +229,7 @@ export const CustomerDetail: React.FC = () => {
  onClick={handleEdit}
  className="gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium"
  >
- <Edit className="h-4 w-4" />
+ <Edit className="size-4" />
  Editează
  </Button>
  <Button
@@ -234,7 +237,7 @@ export const CustomerDetail: React.FC = () => {
  onClick={() => setShowDeleteModal(true)}
  className="gap-1.5 rounded-md border-red-300 dark:border-red-700 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-400"
  >
- <Trash2 className="h-4 w-4" />
+ <Trash2 className="size-4" />
  Șterge
  </Button>
  </div>
@@ -252,18 +255,18 @@ export const CustomerDetail: React.FC = () => {
  <h3 className="text-lg font-semibold text-stone-800 dark:text-stone-100 mb-4">Informații client</h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div>
- <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">Client din</h4>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">{formatDate(customer.createdAt)}</p>
+ <h4 className="text-sm font-medium text-muted-foreground mb-1">Client din</h4>
+ <p className="text-sm text-foreground">{formatDate(customer.createdAt)}</p>
  </div>
  <div>
- <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">Newsletter</h4>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">{customer.newsletter ? 'Abonat' : 'Neabonat'}</p>
+ <h4 className="text-sm font-medium text-muted-foreground mb-1">Newsletter</h4>
+ <p className="text-sm text-foreground">{customer.newsletter ? 'Abonat' : 'Neabonat'}</p>
  </div>
  <AddressDisplay label="Adresă de livrare" address={customer.shippingAddress} />
  <AddressDisplay label="Adresă de facturare" address={customer.billingAddress} />
  {customer.stripeCustomerId && (
  <div>
- <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">Stripe Customer</h4>
+ <h4 className="text-sm font-medium text-muted-foreground mb-1">Stripe Customer</h4>
  <a
  href={`https://dashboard.stripe.com/test/customers/${customer.stripeCustomerId}`}
  target="_blank"
@@ -277,7 +280,7 @@ export const CustomerDetail: React.FC = () => {
  )}
  {customer.clerkUserId && (
  <div>
- <h4 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">ID utilizator Clerk</h4>
+ <h4 className="text-sm font-medium text-muted-foreground mb-1">ID utilizator Clerk</h4>
  <p className="text-sm font-mono text-stone-700 dark:text-stone-300 ">{customer.clerkUserId}</p>
  </div>
  )}
@@ -289,14 +292,14 @@ export const CustomerDetail: React.FC = () => {
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <Card className="rounded-lg">
  <CardContent className="p-5">
- <p className="text-sm text-stone-500 dark:text-stone-400 mb-1">Total comenzi</p>
- <p className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">{customer.orders.length}</p>
+ <p className="text-sm text-muted-foreground mb-1">Total comenzi</p>
+ <p className="text-2xl font-bold text-foreground">{customer.orders.length}</p>
  </CardContent>
  </Card>
  <Card className="rounded-lg">
  <CardContent className="p-5">
- <p className="text-sm text-stone-500 dark:text-stone-400 mb-1">Total cheltuit</p>
- <p className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">{formatPrice(totalSpent)}</p>
+ <p className="text-sm text-muted-foreground mb-1">Total cheltuit</p>
+ <p className="text-2xl font-bold text-foreground">{formatPrice(totalSpent)}</p>
  </CardContent>
  </Card>
  </div>
@@ -306,7 +309,7 @@ export const CustomerDetail: React.FC = () => {
  <CardContent className="p-5">
  <h3 className="text-lg font-semibold text-stone-800 dark:text-stone-100 mb-4">Istoric comenzi</h3>
  {customer.orders.length === 0 ? (
- <p className="text-stone-500 dark:text-stone-400 text-sm">Nicio comandă încă.</p>
+ <p className="text-muted-foreground text-sm">Nicio comandă încă.</p>
  ) : (
  <div className="overflow-x-auto">
  <Table className="w-full text-sm">
@@ -325,7 +328,7 @@ export const CustomerDetail: React.FC = () => {
  key={order._id}
  className="last:border-b-0 hover:bg-transparent"
  >
- <TableCell className="py-3 font-mono text-xs text-stone-500 dark:text-stone-400 ">
+ <TableCell className="py-3 font-mono text-xs text-muted-foreground">
  {order._id.slice(-8).toUpperCase()}
  </TableCell>
  <TableCell className="py-3 text-right text-stone-700 dark:text-stone-300 ">
@@ -333,13 +336,12 @@ export const CustomerDetail: React.FC = () => {
  </TableCell>
  <TableCell className="py-3 text-center">
  <Badge
- variant="soft"
- className={STATUS_COLORS[order.status as OrderStatus]}
+ variant={STATUS_BADGES[order.status as OrderStatus]}
  >
  {STATUS_LABELS[order.status as OrderStatus]}
  </Badge>
  </TableCell>
- <TableCell className="py-3 text-stone-500 dark:text-stone-400 hidden md:table-cell">
+ <TableCell className="py-3 text-muted-foreground hidden md:table-cell">
  {formatDate(order.createdAt)}
  </TableCell>
  <TableCell className="py-3 text-right">
@@ -372,15 +374,15 @@ export const CustomerDetail: React.FC = () => {
  >
  {editForm ? (
  <>
- <div className="sticky top-0 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-6 py-4 flex items-center justify-between">
- <DialogTitle className="text-xl font-bold text-stone-900 dark:text-stone-50 ">
+ <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+ <DialogTitle className="text-xl font-bold text-foreground">
  Editează clientul
  </DialogTitle>
  <DialogClose
  aria-label="Închide"
  className="text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300"
  >
- <X className="h-5 w-5" />
+ <X className="size-5" />
  </DialogClose>
  </div>
  <div className="p-6 space-y-4">
@@ -421,7 +423,7 @@ export const CustomerDetail: React.FC = () => {
  id="newsletter"
  checked={editForm.newsletter}
  onCheckedChange={(checked) => setEditForm({ ...editForm, newsletter: checked === true })}
- className="h-4 w-4"
+ className="size-4"
  />
  <Label htmlFor="newsletter" className="font-normal text-stone-700 dark:text-stone-300 ">Abonare la newsletter</Label>
  </div>
@@ -514,7 +516,7 @@ export const CustomerDetail: React.FC = () => {
  </div>
  </div>
  </div>
- <div className="sticky bottom-0 bg-stone-50 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-800 px-6 py-4 flex items-center justify-end gap-3">
+ <div className="sticky bottom-0 bg-stone-50 dark:bg-stone-800 border-t border-border px-6 py-4 flex items-center justify-end gap-3">
  <Button
  variant="ghost"
  onClick={() => setIsEditing(false)}
@@ -522,11 +524,11 @@ export const CustomerDetail: React.FC = () => {
  >
  Anulează
  </Button>
- <Button
+ <Button variant="brand"
  onClick={handleSave}
- className="gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="gap-1.5 rounded-lg"
  >
- <Save className="h-4 w-4" />
+ <Save className="size-4" />
  Salvează modificările
  </Button>
  </div>
@@ -540,11 +542,11 @@ export const CustomerDetail: React.FC = () => {
  <AlertDialogContent className="max-w-md">
  <div className="flex items-start gap-4">
  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
- <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 " />
+ <Trash2 className="size-5 text-red-600 dark:text-red-400 " />
  </div>
  <div className="flex-1">
  <AlertDialogHeader>
- <AlertDialogTitle className="text-lg font-semibold text-stone-900 dark:text-stone-50 ">
+ <AlertDialogTitle className="text-lg font-semibold text-foreground">
  Șterge clientul
  </AlertDialogTitle>
  <AlertDialogDescription className="text-stone-600 dark:text-stone-300 ">

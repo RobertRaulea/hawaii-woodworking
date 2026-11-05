@@ -11,7 +11,7 @@ export const LanguageSwitcher: React.FC = () => {
  const { language, setLanguage } = useLanguage();
 
  return (
- <div className="flex p-1 bg-stone-100 dark:bg-stone-800 rounded-full w-full" role="group" aria-label="Limba">
+ <div className="flex p-1 bg-muted rounded-full w-full" role="group" aria-label="Limba">
  {languages.map((lang) => (
  <Button
  key={lang.code}

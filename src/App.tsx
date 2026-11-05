@@ -63,7 +63,7 @@ const PageLoader: React.FC = () => {
  const { t } = useTranslation();
  return (
  <div className="flex items-center justify-center min-h-[60vh]">
- <p className="text-stone-500 dark:text-stone-400 ">{t('common.loading')}</p>
+ <p className="text-muted-foreground">{t('common.loading')}</p>
  </div>
  );
 };

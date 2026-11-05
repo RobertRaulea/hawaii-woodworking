@@ -36,10 +36,13 @@ const PAYMENT_LABELS: Record<string, string> = {
  cancelled: 'Anulată',
 };
 
-const PAYMENT_COLORS: Record<string, string> = {
- pending: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 ',
- paid: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 ',
- cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 ',
+const PAYMENT_BADGES: Record<
+ string,
+ 'yellow' | 'success' | 'destructive'
+> = {
+ pending: 'yellow',
+ paid: 'success',
+ cancelled: 'destructive',
 };
 
 const FULFILLMENT_LABELS: Record<string, string> = {
@@ -102,7 +105,7 @@ export const OrderDetail: React.FC = () => {
  if (order === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă comanda…</p>
+ <p className="text-muted-foreground">Se încarcă comanda…</p>
  </div>
  );
  }
@@ -110,7 +113,7 @@ export const OrderDetail: React.FC = () => {
  if (order === null) {
  return (
  <div className="py-20 text-center">
- <p className="mb-4 text-stone-500 dark:text-stone-400 ">Comanda nu a fost găsită.</p>
+ <p className="mb-4 text-muted-foreground">Comanda nu a fost găsită.</p>
  <Link
  to="/admin/orders"
  className="text-sm font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400"
@@ -137,19 +140,19 @@ export const OrderDetail: React.FC = () => {
  <div>
  <Link
  to="/admin/orders"
- className="mb-2 inline-flex items-center gap-1 text-sm text-stone-500 dark:text-stone-400 transition-colors hover:text-stone-700 dark:hover:text-stone-300"
+ className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-stone-700 dark:hover:text-stone-300"
  >
- <ArrowLeft className="h-4 w-4" />
+ <ArrowLeft className="size-4" />
  Înapoi la Comenzi
  </Link>
  <div className="flex flex-wrap items-center justify-between gap-3">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
  Comanda #{order.shortNumber}
  </h1>
  <div className="flex flex-wrap items-center gap-2">
  <Badge
- variant="soft"
- className={`px-3 py-1 text-sm font-medium ${PAYMENT_COLORS[order.paymentStatus]}`}
+ variant={PAYMENT_BADGES[order.paymentStatus]}
+ className="px-3 py-1 text-sm font-medium"
  >
  {manualRefund
  ? 'Plătită — rambursare manuală necesară'
@@ -163,7 +166,7 @@ export const OrderDetail: React.FC = () => {
  </Badge>
  </div>
  </div>
- <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-sm text-muted-foreground">
  {formatDate(order.createdAt)}
  </p>
  </div>
@@ -183,7 +186,7 @@ export const OrderDetail: React.FC = () => {
  disabled={controller.busy || !controller.online}
  className="gap-1 border-red-300 dark:border-red-700 px-3 py-1.5 font-medium text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-800 dark:hover:text-red-300"
  >
- <RotateCw className="h-4 w-4" />
+ <RotateCw className="size-4" />
  Reîncearcă
  </Button>
  ) : null}
@@ -198,25 +201,25 @@ export const OrderDetail: React.FC = () => {
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">Client</h2>
  <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
  <div>
- <p className="text-sm font-medium text-stone-500 dark:text-stone-400 ">Nume</p>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">
+ <p className="text-sm font-medium text-muted-foreground">Nume</p>
+ <p className="text-sm text-foreground">
  {order.customer.firstName} {order.customer.lastName}
  </p>
  </div>
  <div>
- <p className="text-sm font-medium text-stone-500 dark:text-stone-400 ">Email</p>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">{order.customer.email}</p>
+ <p className="text-sm font-medium text-muted-foreground">Email</p>
+ <p className="text-sm text-foreground">{order.customer.email}</p>
  </div>
  {order.shipping ? (
  <div>
- <p className="text-sm font-medium text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm font-medium text-muted-foreground">
  Adresă de livrare (
  {order.shippingSource === 'snapshot'
  ? 'din comandă'
  : 'din fișa clientului'}
  )
  </p>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">
+ <p className="text-sm text-foreground">
  {order.shipping.firstName} {order.shipping.lastName}
  </p>
  <p className="text-sm text-stone-700 dark:text-stone-300 ">
@@ -234,10 +237,10 @@ export const OrderDetail: React.FC = () => {
  ) : null}
  {order.customer.billingAddress ? (
  <div>
- <p className="text-sm font-medium text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm font-medium text-muted-foreground">
  Adresă de facturare
  </p>
- <p className="text-sm text-stone-900 dark:text-stone-50 ">
+ <p className="text-sm text-foreground">
  {order.customer.billingAddress.street}
  </p>
  <p className="text-sm text-stone-700 dark:text-stone-300 ">
@@ -282,7 +285,7 @@ export const OrderDetail: React.FC = () => {
  key={`${item.productId}-${index}`}
  className="border-stone-100 dark:border-stone-800 last:border-b-0 hover:bg-transparent"
  >
- <TableCell className="py-3 text-stone-900 dark:text-stone-50 ">
+ <TableCell className="py-3 text-foreground">
  <span className="flex items-center gap-3">
  <ProductThumb
  src={thumbnails.get(item.productId)}
@@ -297,21 +300,21 @@ export const OrderDetail: React.FC = () => {
  <TableCell className="py-3 text-right text-stone-700 dark:text-stone-300 ">
  {item.quantity}
  </TableCell>
- <TableCell className="py-3 text-right font-medium text-stone-900 dark:text-stone-50 ">
+ <TableCell className="py-3 text-right font-medium text-foreground">
  {formatPrice((item.price ?? 0) * item.quantity)}
  </TableCell>
  </TableRow>
  ))}
  </TableBody>
  <TableFooter className="bg-transparent">
- <TableRow className="border-t-2 border-stone-200 dark:border-stone-800 hover:bg-transparent">
+ <TableRow className="border-t-2 border-border hover:bg-transparent">
  <TableCell
  colSpan={3}
  className="pt-3 text-right font-semibold text-stone-800 dark:text-stone-100 "
  >
  Total
  </TableCell>
- <TableCell className="pt-3 text-right text-base font-bold text-stone-900 dark:text-stone-50 ">
+ <TableCell className="pt-3 text-right text-base font-bold text-foreground">
  {formatPrice(order.total ?? 0)}
  </TableCell>
  </TableRow>
@@ -328,14 +331,14 @@ export const OrderDetail: React.FC = () => {
  </h2>
  <dl className="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">Operator</dt>
- <dd className="text-stone-900 dark:text-stone-50 ">
+ <dt className="font-medium text-muted-foreground">Operator</dt>
+ <dd className="text-foreground">
  {order.assignedTo ? userLabel(order.assignedTo) : 'Nealocată'}
  </dd>
  </div>
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">Expediere</dt>
- <dd className="text-stone-900 dark:text-stone-50 ">
+ <dt className="font-medium text-muted-foreground">Expediere</dt>
+ <dd className="text-foreground">
  {order.carrier || order.awb
  ? `${order.carrier ?? '—'} · AWB ${order.awb ?? '—'}`
  : 'Neexpediată'}
@@ -343,24 +346,24 @@ export const OrderDetail: React.FC = () => {
  </div>
  {order.shippedAt ? (
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">Expediată la</dt>
- <dd className="text-stone-900 dark:text-stone-50 ">
+ <dt className="font-medium text-muted-foreground">Expediată la</dt>
+ <dd className="text-foreground">
  {formatDate(order.shippedAt)}
  </dd>
  </div>
  ) : null}
  {order.deliveredAt ? (
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">Livrată la</dt>
- <dd className="text-stone-900 dark:text-stone-50 ">
+ <dt className="font-medium text-muted-foreground">Livrată la</dt>
+ <dd className="text-foreground">
  {formatDate(order.deliveredAt)}
  </dd>
  </div>
  ) : null}
  {order.cancelReason ? (
  <div className="md:col-span-2">
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">Motiv anulare</dt>
- <dd className="text-stone-900 dark:text-stone-50 ">{order.cancelReason}</dd>
+ <dt className="font-medium text-muted-foreground">Motiv anulare</dt>
+ <dd className="text-foreground">{order.cancelReason}</dd>
  </div>
  ) : null}
  </dl>
@@ -369,7 +372,7 @@ export const OrderDetail: React.FC = () => {
  <Button
  asChild
  variant="outline"
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link to={`/admin/fulfillment/${order._id}`}>
  Deschide în pregătire comenzi
@@ -382,7 +385,7 @@ export const OrderDetail: React.FC = () => {
  variant="outline"
  disabled={!canAct}
  onClick={() => setReassignOpen(true)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Realocă
  </Button>
@@ -402,7 +405,7 @@ export const OrderDetail: React.FC = () => {
  <Button
  asChild
  variant="outline"
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  <a
  href={order.invoicePdfUrl}
@@ -446,7 +449,7 @@ export const OrderDetail: React.FC = () => {
  })
  .then(() => setNote(''));
  }}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Adaugă
  </Button>
@@ -458,7 +461,7 @@ export const OrderDetail: React.FC = () => {
  <CardContent className="p-5">
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">Istoric</h2>
  {order.events.length === 0 ? (
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-sm text-muted-foreground">
  Nicio acțiune înregistrată.
  </p>
  ) : (
@@ -471,7 +474,7 @@ export const OrderDetail: React.FC = () => {
  <span className="font-medium text-stone-800 dark:text-stone-100 ">
  {EVENT_LABELS[event.kind]}
  </span>
- <span className="text-xs text-stone-500 dark:text-stone-400 ">
+ <span className="text-xs text-muted-foreground">
  {formatDate(event.createdAt)} · {userLabel(event.actorId)}
  {event.data?.toUser
  ? ` · ${userLabel(event.data.fromUser)} → ${userLabel(event.data.toUser)}`
@@ -493,14 +496,14 @@ export const OrderDetail: React.FC = () => {
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">Plată</h2>
  <dl className="mt-3 grid grid-cols-1 gap-3 text-sm">
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">Stripe Session ID</dt>
+ <dt className="font-medium text-muted-foreground">Stripe Session ID</dt>
  <dd className="mt-1 break-all font-mono text-xs text-stone-700 dark:text-stone-300 ">
  {order.stripeSessionId}
  </dd>
  </div>
  {order.stripePaymentIntentId ? (
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">
+ <dt className="font-medium text-muted-foreground">
  Payment Intent ID
  </dt>
  <dd className="mt-1 break-all font-mono text-xs text-stone-700 dark:text-stone-300 ">
@@ -510,16 +513,16 @@ export const OrderDetail: React.FC = () => {
  ) : null}
  {order.paymentConfirmedAt ? (
  <div>
- <dt className="font-medium text-stone-500 dark:text-stone-400 ">
+ <dt className="font-medium text-muted-foreground">
  Plată confirmată la
  </dt>
- <dd className="text-stone-900 dark:text-stone-50 ">
+ <dd className="text-foreground">
  {formatDate(order.paymentConfirmedAt)}
  </dd>
  </div>
  ) : null}
  </dl>
- <p className="mt-3 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-xs text-muted-foreground">
  Plata se confirmă doar din Stripe. Nu poate fi modificată manual.
  </p>
  </CardContent>
@@ -577,7 +580,7 @@ export const OrderDetail: React.FC = () => {
  type="button"
  variant="outline"
  onClick={() => setCancelOpen(false)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Renunță
  </Button>
@@ -628,14 +631,14 @@ export const OrderDetail: React.FC = () => {
  type="button"
  variant="outline"
  onClick={() => setReassignOpen(false)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Renunță
  </Button>
- <Button
+ <Button variant="brand"
  type="submit"
  disabled={!canAct || reassignUser.trim().length === 0}
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Realocă
  </Button>

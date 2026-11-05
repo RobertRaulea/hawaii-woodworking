@@ -42,7 +42,7 @@ export const AssigneeChip: React.FC<AssigneeChipProps> = ({
  <span
  title={title ?? label}
  className={`inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 text-xs font-medium ${
- mine ? "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-300 " : "bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 "
+ mine ? "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-300 " : "bg-muted text-stone-700 dark:text-stone-300"
  }`}
  >
  <span

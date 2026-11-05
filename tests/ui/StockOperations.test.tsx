@@ -14,6 +14,7 @@ import type {
   StockOperationController,
 } from '../../src/types/inventory.types';
 import { fair, product } from './fixtures';
+import { pickOption } from './optionSelect.helpers';
 
 const queryMock = mock.fn<(reference: unknown, args?: unknown) => unknown>(
   () => undefined,
@@ -253,7 +254,7 @@ it('ajustarea fără notă afișează validarea și nu trimite nimic', async () 
       onClose={() => {}}
     />,
   );
-  await user.selectOptions(screen.getByLabelText('Operațiune'), 'adjustment');
+  await pickOption(user, screen.getByLabelText('Operațiune'), 'Ajustare');
   await user.type(screen.getByLabelText('Diferență (+/−)'), '-2');
   await user.click(screen.getByRole('button', { name: 'Confirmă' }));
   await screen.findByText(/Nota este obligatorie/);
@@ -281,7 +282,7 @@ it('inventarierea încarcă instantaneul și Revalidează îl reîncarcă la con
       onClose={() => {}}
     />,
   );
-  await user.selectOptions(screen.getByLabelText('Operațiune'), 'count');
+  await pickOption(user, screen.getByLabelText('Operațiune'), 'Inventariere');
   await waitFor(() => assert.equal(convexQuery.mock.callCount(), 1));
   assert.equal(
     getFunctionName(convexQuery.mock.calls[0].arguments[0] as never),

@@ -14,7 +14,7 @@ export const SettingsMenu: React.FC = () => {
  return (
  <HeaderDropdown
  label={t('settings.title')}
- icon={<Settings className="h-6 w-6 text-stone-900 dark:text-stone-50" />}
+ icon={<Settings className="size-6 text-foreground" />}
  >
  <div className="px-3 pb-1 mb-1 border-b border-stone-100 dark:border-stone-800">
  <h3 className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">
@@ -54,7 +54,7 @@ export const SettingsMenu: React.FC = () => {
  to="/my-orders"
  className="flex min-w-0 items-center gap-2.5 text-xs font-bold text-stone-600 dark:text-stone-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors"
  >
- <ClipboardList className="h-4 w-4" />
+ <ClipboardList className="size-4" />
  <span>{t('nav.myOrders')}</span>
  </Link>
  </DropdownMenuItem>
@@ -78,7 +78,7 @@ export const SettingsMenu: React.FC = () => {
  to="/login"
  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-stone-600 dark:text-stone-300 bg-stone-50 dark:bg-stone-800 border border-stone-100/50 dark:border-stone-800/50 hover:border-amber-200/50 dark:hover:border-amber-800/50 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
  >
- <LogIn className="h-4 w-4" />
+ <LogIn className="size-4" />
  <span>{t('auth.signIn')}</span>
  </Link>
  </DropdownMenuItem>

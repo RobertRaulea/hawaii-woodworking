@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Filter } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { Label } from '@/components/ui/label';
+import { OptionSelect } from '../../components/OptionSelect';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
 import { useTranslatedProducts } from '../../hooks/useTranslatedProducts';
@@ -111,8 +114,8 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  updateUrlParams(selectedCategories, min, max, sortBy);
  };
 
- const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
- const newSort = e.target.value as SortOption;
+ const handleSortChange = (value: string) => {
+ const newSort = value as SortOption;
  setSortBy(newSort);
  updateUrlParams(selectedCategories, priceRange.min, priceRange.max, newSort);
  };
@@ -194,7 +197,7 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
  {loading && (
  <div className="flex items-center justify-center py-20">
- <div className="w-6 h-6 border-2 border-stone-300 dark:border-stone-700 border-t-amber-600 rounded-full animate-spin"></div>
+ <Spinner className="size-6 text-amber-600" />
  </div>
  )}
  {error && (
@@ -207,11 +210,11 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  <>
  <div className="mb-6 lg:mb-8">
  {embedded ? (
- <h2 className="font-serif text-2xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-4">
+ <h2 className="font-serif text-2xl lg:text-4xl font-medium text-foreground mb-4">
  {t('nav.products')}
  </h2>
  ) : (
- <h1 className="font-serif text-2xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-4">
+ <h1 className="font-serif text-2xl lg:text-4xl font-medium text-foreground mb-4">
  {t('nav.products')}
  </h1>
  )}
@@ -220,9 +223,9 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  <Button
  variant="outline"
  onClick={() => setIsFilterOpen(true)}
- className="lg:hidden h-auto items-center gap-2 rounded-full border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 [&_svg]:size-5"
+ className="lg:hidden h-auto items-center gap-2 rounded-full border-stone-300 dark:border-stone-700 bg-card px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 [&_svg]:size-5"
  >
- <Filter className="h-5 w-5 text-stone-700 dark:text-stone-300 " />
+ <Filter className="size-5 text-stone-700 dark:text-stone-300 " />
  <span className="text-sm font-medium text-stone-700 dark:text-stone-300 ">{t('common.filter')}</span>
  {activeFilterCount > 0 && (
  <span className="inline-flex items-center justify-center w-5 h-5 text-xs bg-amber-500 text-white rounded-full">
@@ -234,10 +237,10 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  <Button
  variant="outline"
  onClick={() => setIsDesktopFilterOpen(prev => !prev)}
- className="hidden h-auto items-center gap-2 rounded-full border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 lg:flex [&_svg]:size-5"
+ className="hidden h-auto items-center gap-2 rounded-full border-stone-300 dark:border-stone-700 bg-card px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 lg:flex [&_svg]:size-5"
  aria-label={isDesktopFilterOpen ? 'Hide filters' : 'Show filters'}
  >
- <Filter className="h-5 w-5 text-stone-700 dark:text-stone-300 " />
+ <Filter className="size-5 text-stone-700 dark:text-stone-300 " />
  <span className="text-sm font-medium text-stone-700 dark:text-stone-300 ">
  {isDesktopFilterOpen ? t('filters.hide') : t('filters.show')}
  </span>
@@ -249,19 +252,20 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  </Button>
  
  <div className="flex items-center gap-3 ml-auto">
- <label htmlFor="sort" className="text-sm text-stone-600 dark:text-stone-300 hidden sm:block">
+ <Label htmlFor="sort" className="text-sm font-normal leading-5 text-stone-600 dark:text-stone-300 hidden sm:block">
  {t('filters.sortBy')}:
- </label>
- <select
+ </Label>
+ <OptionSelect
  id="sort"
  value={sortBy}
- onChange={handleSortChange}
- className="px-3 py-2 text-sm border border-stone-300 dark:border-stone-700 rounded-full bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
- >
- <option value="price-asc">{t('filters.priceAsc')}</option>
- <option value="price-desc">{t('filters.priceDesc')}</option>
- <option value="name-asc">{t('filters.nameAsc')}</option>
- </select>
+ onValueChange={handleSortChange}
+ className="rounded-full px-3 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+ options={[
+ { value: 'price-asc', label: t('filters.priceAsc') },
+ { value: 'price-desc', label: t('filters.priceDesc') },
+ { value: 'name-asc', label: t('filters.nameAsc') },
+ ]}
+ />
  </div>
  </div>
  </div>
@@ -274,7 +278,7 @@ export const Products: React.FC<ProductsProps> = ({ embedded = false }) => {
  : 'w-0 opacity-0 pointer-events-none overflow-hidden'
  }`}
  >
- <div className="w-[280px]">
+ <div className="h-full w-[280px]">
  <ProductFilters
  categories={categories}
  selectedCategories={selectedCategories}

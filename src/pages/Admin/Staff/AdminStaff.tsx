@@ -1,9 +1,10 @@
 import { useMutation } from 'convex/react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { api } from '../../../../convex/_generated/api';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { inventoryError } from '../../../utils/inventory.utils';
 import { Alert } from '@/components/ui/alert';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,7 @@ export const AdminStaff = () => {
  const save = useMutation(api.staff.setDirectoryEntry);
  const {
  register,
+ control,
  handleSubmit,
  reset,
  setError,
@@ -58,8 +60,8 @@ export const AdminStaff = () => {
 
  return (
  <div className="mx-auto max-w-3xl p-4 md:p-6">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Echipă</h1>
- <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Echipă</h1>
+ <p className="mt-1 text-sm text-muted-foreground">
  Emailurile apar automat când fiecare membru staff intră în zona de
  administrare. Pentru conturile care nu s-au conectat încă, asociază
  manual ID-ul Clerk cu adresa de email.
@@ -67,7 +69,7 @@ export const AdminStaff = () => {
 
  <section
  aria-labelledby="staff-directory-heading"
- className="mt-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4"
+ className="mt-4 rounded-xl border border-border bg-card p-4"
  >
  <h2
  id="staff-directory-heading"
@@ -76,11 +78,11 @@ export const AdminStaff = () => {
  Membri cunoscuți
  </h2>
  {entries === undefined ? (
- <p role="status" className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p role="status" className="mt-2 text-sm text-muted-foreground">
  Se încarcă echipa...
  </p>
  ) : entries.length === 0 ? (
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-sm text-muted-foreground">
  Niciun membru staff înregistrat încă.
  </p>
  ) : (
@@ -99,11 +101,11 @@ export const AdminStaff = () => {
  </Badge>
  ) : null}
  </p>
- <p className="truncate font-mono text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="truncate font-mono text-xs text-muted-foreground">
  {entry.userId}
  </p>
  </div>
- <div className="shrink-0 text-xs text-stone-500 dark:text-stone-400 md:text-right">
+ <div className="shrink-0 text-xs text-muted-foreground md:text-right">
  <p className="truncate text-sm text-stone-700 dark:text-stone-300 ">
  {entry.email}
  </p>
@@ -117,7 +119,7 @@ export const AdminStaff = () => {
 
  <section
  aria-labelledby="staff-add-heading"
- className="mt-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800 p-4"
+ className="mt-4 rounded-xl border border-border bg-stone-50 dark:bg-stone-800 p-4"
  >
  <h2
  id="staff-add-heading"
@@ -196,17 +198,26 @@ export const AdminStaff = () => {
  >
  Rol (opțional)
  </Label>
- <select
+ <Controller
+ name="role"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="staff-role"
  disabled={isSubmitting}
- className="mt-1 min-h-11 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 text-sm"
- {...register('role')}
- >
- <option value="">—</option>
- <option value="seller">Vânzător</option>
- <option value="atelier">Atelier</option>
- <option value="admin">Administrator</option>
- </select>
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg px-3"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: '—' },
+ { value: 'seller', label: 'Vânzător' },
+ { value: 'atelier', label: 'Atelier' },
+ { value: 'admin', label: 'Administrator' },
+ ]}
+ />
+ )}
+ />
  </div>
  <Button
  disabled={isSubmitting}

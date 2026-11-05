@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { beforeEach, mock, test } from 'node:test';
 import { StrictMode } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import type { RequestForQueries } from 'convex/react';
 import type { ShippingFormData } from '../../src/types/shipping.types';
@@ -212,8 +213,15 @@ test('Shipping prefills the stored customer phone and retains Romania-only deliv
   profilePrefill = true;
   render(<MemoryRouter><Shipping /></MemoryRouter>);
   await waitFor(() => assert.equal((screen.getByLabelText(/Telefon/) as HTMLInputElement).value, '+40712345678'));
-  const countries = document.getElementById('shippingCountry') as HTMLSelectElement;
-  assert.deepEqual(Array.from(countries.options).map((option) => option.value), ['', 'România']);
+  const countries = document.getElementById('shippingCountry') as HTMLElement;
+  await userEvent.click(countries);
+  await waitFor(() =>
+    assert.deepEqual(
+      screen.getAllByRole('option').map((option) => option.textContent),
+      ['Selectează...', 'România'],
+    ),
+  );
+  await userEvent.keyboard('{Escape}');
   assert.ok(screen.getByRole('status').textContent?.includes('Costul transportului nu este încă stabilit'));
 });
 

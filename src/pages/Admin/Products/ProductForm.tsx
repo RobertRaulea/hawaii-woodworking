@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { OptionSelect } from '../../../components/OptionSelect';
 import { Textarea } from '@/components/ui/textarea';
 import { compressImages } from '../../../utils/imageCompression.utils';
 import { SITE_URL } from '../../../constants/site.constants';
@@ -284,7 +285,7 @@ export const ProductForm: React.FC = () => {
  if (isLoading) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă produsul...</p>
+ <p className="text-muted-foreground">Se încarcă produsul...</p>
  </div>
  );
  }
@@ -309,13 +310,13 @@ export const ProductForm: React.FC = () => {
  <Button
  variant="ghost"
  onClick={() => navigate('/admin/products')}
- className="mb-4 h-auto gap-1 px-0 text-sm text-stone-500 dark:text-stone-400 hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
+ className="mb-4 h-auto gap-1 px-0 text-sm text-muted-foreground hover:bg-transparent hover:text-stone-700 dark:hover:text-stone-300"
  >
- <ArrowLeft className="h-4 w-4" />
+ <ArrowLeft className="size-4" />
  Înapoi la produse
  </Button>
 
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 mb-6">{pageTitle}</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground mb-6">{pageTitle}</h1>
 
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
  {/* Name */}
@@ -371,7 +372,7 @@ export const ProductForm: React.FC = () => {
  placeholder="de ex. TCDS-01"
  {...register('sku')}
  />
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-xs text-muted-foreground">
  {isEditing
  ? 'Se normalizează automat la majuscule.'
  : 'Lăsat gol, se generează automat din numele produsului (de ex. TCDS-01).'}
@@ -400,9 +401,9 @@ export const ProductForm: React.FC = () => {
  </div>
 
  {/* Stock Management */}
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-800 ">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border border-border">
  <div className="sm:col-span-2">
- <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-50 mb-3">Gestionare stoc</h3>
+ <h3 className="text-sm font-semibold text-foreground mb-3">Gestionare stoc</h3>
  </div>
  
  {isEditing && existingProduct ? (
@@ -410,7 +411,7 @@ export const ProductForm: React.FC = () => {
  <span className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
  Stare
  </span>
- <p className="w-full rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-800 px-3 py-2.5 text-sm text-stone-700 dark:text-stone-300 ">
+ <p className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-stone-700 dark:text-stone-300">
  {existingProduct.status === 'archived'
  ? 'Arhivat'
  : existingProduct.status === 'inactive'
@@ -425,11 +426,11 @@ export const ProductForm: React.FC = () => {
  Stoc disponibil online
  </span>
  {isEditing ? (
- <p className="w-full rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-800 px-3 py-2.5 text-sm text-stone-700 dark:text-stone-300 tabular-nums">
+ <p className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-stone-700 dark:text-stone-300 tabular-nums">
  {existingProduct?.stock ?? 0}
  </p>
  ) : null}
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-xs text-muted-foreground">
  Stocul se gestionează din{' '}
  <Link to="/admin/inventory" className="text-amber-700 dark:text-amber-400 underline">
  Stocuri
@@ -449,7 +450,7 @@ export const ProductForm: React.FC = () => {
  placeholder="5"
  {...register('lowStockThreshold')}
  />
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">Alertă când stocul scade sub acest număr</p>
+ <p className="mt-1 text-xs text-muted-foreground">Alertă când stocul scade sub acest număr</p>
  </div>
 
  <div className="sm:col-span-2">
@@ -464,13 +465,13 @@ export const ProductForm: React.FC = () => {
  onCheckedChange={field.onChange}
  onBlur={field.onBlur}
  ref={field.ref}
- className="h-4 w-4"
+ className="size-4"
  />
  )}
  />
  <span className="text-sm font-medium text-stone-700 dark:text-stone-300 ">Evidențiază stocul pentru acest produs</span>
  </label>
- <p className="mt-1 ml-6 text-xs text-stone-500 dark:text-stone-400 ">Debifează pentru produse nelimitate/digitale</p>
+ <p className="mt-1 ml-6 text-xs text-muted-foreground">Debifează pentru produse nelimitate/digitale</p>
  </div>
  </div>
 
@@ -482,21 +483,26 @@ export const ProductForm: React.FC = () => {
  Se încarcă categoriile...
  </div>
  ) : categories && categories.length > 0 ? (
- <select
+ <Controller
+ name="category"
+ control={control}
+ render={({ field }) => (
+ <OptionSelect
  id="category"
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 px-3 py-2.5 text-sm text-stone-900 dark:text-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white dark:bg-stone-900 "
- {...register('category')}
- >
- <option value="">Alege o categorie</option>
- {categories.map((cat) => (
- <option key={cat._id} value={cat.name}>
- {cat.name}
- </option>
- ))}
- </select>
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg px-3 py-2.5"
+ value={field.value}
+ onValueChange={field.onChange}
+ options={[
+ { value: '', label: 'Alege o categorie' },
+ ...categories.map((cat) => ({ value: cat.name, label: cat.name })),
+ ]}
+ />
+ )}
+ />
  ) : (
  <Alert variant="warning" className="mt-1 text-amber-700 dark:text-amber-400 ">
- <AlertCircle className="h-4 w-4" />
+ <AlertCircle className="size-4" />
  <AlertDescription>
  Nu există categorii. Creează mai întâi o categorie în secțiunea Categorii.
  </AlertDescription>
@@ -540,10 +546,10 @@ export const ProductForm: React.FC = () => {
  />
  </div>
 
- <div className="grid grid-cols-1 gap-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-800">
+ <div className="grid grid-cols-1 gap-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border border-border">
  <div>
- <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-50">SEO (opțional)</h3>
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+ <h3 className="text-sm font-semibold text-foreground">SEO (opțional)</h3>
+ <p className="mt-1 text-xs text-muted-foreground">
  Dacă lași câmpurile goale, titlul și descrierea din căutări se generează automat din numele și descrierea în română.
  </p>
  </div>
@@ -573,7 +579,7 @@ export const ProductForm: React.FC = () => {
  </div>
 
  <div
- className="rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-3"
+ className="rounded-lg border border-stone-200 dark:border-stone-700 bg-card p-3"
  data-testid="seo-preview"
  >
  <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
@@ -625,10 +631,10 @@ export const ProductForm: React.FC = () => {
  className="absolute top-1 right-1 h-auto w-auto rounded-full bg-red-600 p-1 opacity-0 transition-opacity hover:bg-red-700 group-hover:opacity-100"
  aria-label={`Șterge imaginea ${index + 1}`}
  >
- <X className="h-3 w-3" />
+ <X className="size-3" />
  </Button>
  <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-70 transition-opacity">
- <GripVertical className="h-4 w-4 text-white drop-shadow" />
+ <GripVertical className="size-4 text-white drop-shadow" />
  </div>
  {index === 0 && (
  <Badge className="absolute bottom-1 left-1 rounded bg-amber-600 px-1.5 py-0.5 text-[10px] font-medium">
@@ -648,12 +654,12 @@ export const ProductForm: React.FC = () => {
  : 'border-stone-300 dark:border-stone-700 hover:border-stone-400 bg-white dark:bg-stone-900 '
  }`}
  >
- <Upload className="h-6 w-6 text-stone-400 dark:text-stone-500 mb-2" />
- <span className="text-sm text-stone-500 dark:text-stone-400 ">
+ <Upload className="size-6 text-stone-400 dark:text-stone-500 mb-2" />
+ <span className="text-sm text-muted-foreground">
  {compressing ? 'Se comprimă imaginile...' : uploading ? 'Se încarcă...' : 'Apasă pentru a încărca imagini'}
  </span>
  <span className="text-xs text-stone-400 dark:text-stone-500 mt-1">PNG, JPG, WebP</span>
- <input
+ <Input
  type="file"
  accept="image/*"
  multiple
@@ -673,10 +679,10 @@ export const ProductForm: React.FC = () => {
 
  {/* Actions */}
  <div className="flex items-center gap-3 pt-2">
- <Button
+ <Button variant="brand"
  type="submit"
  disabled={isSubmitting || uploading}
- className="rounded-lg bg-amber-600 px-6 py-2.5 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg px-6 py-2.5"
  >
  {isSubmitting
  ? 'Se salvează...'

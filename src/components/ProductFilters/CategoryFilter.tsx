@@ -31,12 +31,12 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
  id={checkboxId}
  checked={isSelected}
  onCheckedChange={() => onCategoryChange(category.name)}
- className="h-4 w-4 cursor-pointer"
+ className="size-4 cursor-pointer"
  />
- <span className="text-sm text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-50 flex-1">
+ <span className="text-sm text-stone-700 dark:text-stone-300 group-hover:text-foreground flex-1">
  {category.name}
  </span>
- <span className="text-xs text-stone-500 dark:text-stone-400 ">({count})</span>
+ <span className="text-xs text-muted-foreground">({count})</span>
  </label>
  );
  })}

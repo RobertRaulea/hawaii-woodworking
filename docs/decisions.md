@@ -16,6 +16,7 @@ Entry format: `YYYY-MM-DD — Decision. Why. (Status: confirmed | to confirm | d
 - 2026-11-04 — Launch blockers are handled in a separate conversation. See `docs/agent-instructions/ecommerce-mvp.md`. (Status: confirmed)
 - 2026-11-04 — shadcn is not a dependency in `package.json`. Components are copied code in `src/components/ui/`; use the CLI via `npx shadcn@latest` only when needed. Do not overwrite existing components without approval (they carry POS, dark-mode, and Romanian-label customizations). (Status: confirmed)
 - 2026-11-04 — Dependencies were updated to latest within current majors, plus vite 8. Stay on React 18, Tailwind 3, ESLint 9, TypeScript 5, and lucide-react 0.x until after launch; majors are a post-launch audit item. Never bypass `.npmrc` `min-release-age=7`. (Status: confirmed)
+- 2026-11-04 — The shadcn refactor is done now, before launch, as an explicit exception to the "MVP only" rule. Why: Robert wants a cleaner base to keep building on. Scope approved: add variants to `ui/button.tsx` and `ui/badge.tsx` (existing variants stay untouched), add `NativeSelect`, `Field`, `Empty`, `Spinner`, `Tabs` and `Carousel` to `src/components/ui/`, and keep `@radix-ui/react-tabs` and `embla-carousel-react` as dependencies (pinned exact). Semantic colour tokens in `src/index.css` equal the exact Tailwind stone values used by the app. Supersedes the earlier "do not overwrite existing components without approval" only for these additions. (Status: confirmed)
 
 ## Deferred until launch (do not work on now)
 
