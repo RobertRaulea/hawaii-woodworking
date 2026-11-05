@@ -154,27 +154,25 @@ it('customer and staff Clerk titles use serif with matching stone light/dark car
   }
 });
 
-it('each desktop current route stays in navigation and exposes aria-current', () => {
+it('each desktop current route is omitted from navigation', () => {
   for (const [path, name] of [
     ['/', 'Acasă'], ['/products', 'Produse'], ['/catalog', 'La comandă'], ['/servicii', 'Servicii'],
   ]) {
     const view = render(<MemoryRouter initialEntries={[path]}><Header logoSrc="/logo.svg" /></MemoryRouter>);
-    assert.equal(screen.getByRole('link', { name }).getAttribute('aria-current'), 'page');
-    assert.equal(document.querySelectorAll('a[aria-current="page"]').length, 1);
-    assert.equal(document.querySelectorAll('header nav a[aria-current="page"].pointer-events-none').length, 0);
+    assert.equal(screen.queryByRole('link', { name }), null);
+    assert.equal(screen.getAllByRole('link').length, 4);
     view.unmount();
   }
 });
 
-it('the responsive sheet keeps the current route and closes when it is selected', async () => {
+it('the responsive sheet omits the current route and closes when another is selected', async () => {
   const user = userEvent.setup();
   render(<MemoryRouter initialEntries={['/products']}><Header logoSrc="/logo.svg" /></MemoryRouter>);
   await user.click(screen.getByRole('button', { name: 'Meniu' }));
   const sheet = await screen.findByRole('dialog');
-  const current = within(sheet).getByRole('link', { name: 'Produse' });
-  assert.equal(current.getAttribute('aria-current'), 'page');
-  assert.equal(within(sheet).getAllByRole('link').length, 4);
-  await user.click(current);
+  assert.equal(within(sheet).queryByRole('link', { name: 'Produse' }), null);
+  assert.equal(within(sheet).getAllByRole('link').length, 3);
+  await user.click(within(sheet).getByRole('link', { name: 'Acasă' }));
   await waitFor(() => assert.equal(screen.queryByRole('dialog'), null));
 });
 
