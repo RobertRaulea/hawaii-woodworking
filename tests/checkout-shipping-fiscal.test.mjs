@@ -82,7 +82,13 @@ const checkoutContext = () => {
     mutations,
     ctx: {
       auth: { getUserIdentity: async () => null },
-      runQuery: async () => [{ productId: 'product', name: 'Product', price: 25, quantity: 1 }],
+      runQuery: async (fn) => {
+        const name = getFunctionName(fn);
+        if (name === 'shipping:getSettings') {
+          return { flatRateCents: 2500, codEnabled: true, codFeeCents: 0 };
+        }
+        return [{ productId: 'product', name: 'Product', price: 25, quantity: 1 }];
+      },
       runMutation: async (fn, value) => {
         const name = getFunctionName(fn);
         mutations.push([name, value]);
@@ -126,12 +132,16 @@ test('TEST checkout accepts normalized Romania, persists phone and immutable bil
     assert.equal(order.billing.address.street, 'Billing 2');
     assert.equal(order.billing.address.country, 'Germany');
     assert.equal(order.billing.phone, profile.phone);
-    assert.equal(order.total, 25);
+    assert.equal(order.total, 50);
+    assert.equal(order.paymentMethod, 'card');
+    assert.equal(order.shippingCost, 25);
   }
   assert.equal(stripeCalls.find(([name]) => name === 'create')[1].phone, '+40 (712) 345-678');
   const session = stripeCalls.find(([name]) => name === 'session')[1];
   assert.equal(session.success_url, 'http://127.0.0.1:5173/thank-you?session_id={CHECKOUT_SESSION_ID}');
-  assert.equal(session.line_items.length, 1);
+  assert.equal(session.line_items.length, 2);
+  assert.equal(session.line_items[1].price_data.unit_amount, 2500);
+  assert.equal(session.line_items[1].price_data.product_data.name, 'Transport');
   assert.equal(session.shipping_options, undefined);
 });
 
@@ -198,6 +208,7 @@ test('Oblio uses form OAuth then Bearer invoice, numeric 200, billing snapshot, 
   assert.equal(calls[1][0], 'https://www.oblio.eu/api/docs/invoice');
   assert.equal(calls[1][1].headers.Authorization, 'Bearer fixture-access-token');
   const payload = JSON.parse(calls[1][1].body);
+  assert.equal(payload.idempotencyKey, 'order-1');
   assert.equal(payload.client.name, 'Invoice Snapshot');
   assert.equal(payload.client.address, 'Invoice snapshot');
   assert.equal(payload.client.country, 'Germany');
@@ -264,9 +275,46 @@ test('Oblio rejects malformed auth and invoice responses without leaking bodies 
   assert.equal(calls, 1);
 });
 
-test('post-payment TEST skips all integrations, existing invoices skip creation, HTML escapes snapshot text', async () => {
+test('post-payment TEST without Resend credentials returns without touching the context', async () => {
+  delete process.env.RESEND_API_KEY;
   const blocked = new Proxy({}, { get: () => { throw new Error('Unexpected automation'); } });
   await handlePostPayment._handler(blocked, { orderId: 'order-1' });
+});
+
+test('post-payment TEST sends admin then customer emails with a simulated invoice and no external calls', async () => {
+  const calls = [];
+  globalThis.fetch = async (...args) => { calls.push(args); throw new Error('Unexpected external request'); };
+  const mutations = [];
+  await handlePostPayment._handler({
+    runMutation: async (fn, value) => {
+      mutations.push([getFunctionName(fn), value]);
+      return order();
+    },
+  }, { orderId: 'order-1' });
+  assert.deepEqual(mutations.map(([name]) => name), ['orders:getOrderWithCustomer']);
+  assert.equal(calls.length, 0);
+  assert.equal(emails.length, 2);
+  assert.equal(emails[0].to, 'admin@example.test');
+  assert.equal(emails[1].to, 'buyer@example.test');
+  for (const email of emails) assert.ok(email.subject.startsWith('[TEST] '));
+  const customerHtml = emails[1].html;
+  assert.ok(customerHtml.includes('TEST-ORDER-1'));
+  assert.ok(customerHtml.includes('Mod TEST'));
+  assert.equal(/<a [^>]*href="[^"]*oblio/i.test(customerHtml), false);
+});
+
+test('post-payment TEST COD sends emails without a simulated invoice block', async () => {
+  await handlePostPayment._handler({
+    runMutation: async () => ({ ...order(), paymentMethod: 'cod' }),
+  }, { orderId: 'order-1' });
+  assert.equal(emails.length, 2);
+  const customerHtml = emails[1].html;
+  assert.equal(customerHtml.includes('Mod TEST'), false);
+  assert.equal(customerHtml.includes('TEST-ORDER-1'), false);
+  assert.ok(customerHtml.includes('Plată ramburs la livrare'));
+});
+
+test('production post-payment reuses existing invoices and escapes snapshot text', async () => {
   setEnvironment('production');
   const existing = { ...order(), invoiceId: 'HW-42', invoicePdfUrl: 'https://www.oblio.eu/invoice/42?a=1&b="quoted"' };
   await handlePostPayment._handler({
@@ -285,6 +333,35 @@ test('post-payment TEST skips all integrations, existing invoices skip creation,
   }
   assert.ok(emails[0].html.includes('+40712345678'));
   assert.ok(emails[0].html.includes('&lt;img src=x&gt;'));
+  const customerHtml = emails[1].html;
+  assert.ok(customerHtml.includes('Descarcă factura (PDF)'));
+  assert.ok(customerHtml.includes('Comandă #ORDER-1'));
+  assert.ok(customerHtml.includes('HW-42'));
+  assert.equal(customerHtml.includes('AWB'), false);
+  assert.ok(customerHtml.includes('hawaiisibiu@gmail.com'));
+  assert.equal(customerHtml.includes('contact@hawaii-woodworking.ro'), false);
+  assert.equal(customerHtml.includes('linear-gradient'), false);
+  assert.equal(customerHtml.includes('🌺'), false);
+});
+
+test('production COD post-payment never calls Oblio and shows no invoice block', async () => {
+  setEnvironment('production');
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; throw new Error('Unexpected external request'); };
+  await handlePostPayment._handler({
+    runMutation: async (fn) => {
+      assert.equal(getFunctionName(fn), 'orders:getOrderWithCustomer');
+      return { ...order(), paymentMethod: 'cod' };
+    },
+  }, { orderId: 'order-1' });
+  assert.equal(calls, 0);
+  assert.equal(emails.length, 2);
+  const customerHtml = emails[1].html;
+  assert.equal(customerHtml.includes('Descarcă factura'), false);
+  assert.equal(customerHtml.includes('Factura îți va fi trimisă separat'), false);
+  assert.equal(customerHtml.includes('factură simulată'), false);
+  assert.ok(customerHtml.includes('Plată ramburs la livrare'));
+  assert.ok(emails[0].html.includes('RAMBURS'));
 });
 
 test('ambiguous invoice failures are sanitized, admin-visible and never blindly retried', async () => {
@@ -298,6 +375,8 @@ test('ambiguous invoice failures are sanitized, admin-visible and never blindly 
     assert.equal(calls, 1);
     assert.ok(emails[0].html.includes('Verifică manual în Oblio'));
     assert.equal(emails[1].html.includes('Verifică manual în Oblio'), false);
+    assert.ok(emails[1].html.includes('Factura îți va fi trimisă separat'));
+    assert.equal(emails[1].html.includes('Descarcă factura'), false);
     assert.equal(errors.join().includes('secret-token'), false);
     assert.equal(errors.join().includes('customer-private'), false);
   } finally {

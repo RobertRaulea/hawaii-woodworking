@@ -35,7 +35,7 @@ Read this before changing `convex/`, shared environment contracts, or frontend/b
 - `shared/environment.ts` defines frontend/provider contracts; `convex/lib/environment.ts` validates backend, payment mode, checkout activation, and return origins.
 - Frontend bindings include `VITE_APP_ENV`, `VITE_CONVEX_URL`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_SITE_URL`; backend bindings include `APP_ENV`, `CONVEX_CLOUD_URL`, `CLERK_JWT_ISSUER_DOMAIN`, and `SITE_URL`.
 - Stripe actions additionally require matching `STRIPE_SECRET_KEY`; webhook verification uses `STRIPE_WEBHOOK_SECRET`; checkout requires `CHECKOUT_ENABLED=true`. Do not weaken validation to make mixed environments work.
-- TEST post-payment processing explicitly skips fiscal invoices and transactional emails. Production integrations require their own verified configuration; local source code is not proof they are configured or active.
+- TEST post-payment processing sends real Resend emails and simulates the fiscal invoice without calling Oblio or persisting invoice data. Production integrations require their own verified configuration; local source code is not proof they are configured or active.
 - `npm run dev` runs Vite only. When an approved task needs backend publication, use the guarded `npm run test:sync` workflow from [the environment runbook](../environments.md), not an uncontrolled watcher on the shared TEST backend.
 - The installed Convex CLI uses saved account authentication with its default `.env.local` loading; do not blindly substitute `--env-file` when relying on that login.
 - No sync/deploy/seed or production/provider changes as an incidental test. Confirm the target and obtain approval; never print secret values.

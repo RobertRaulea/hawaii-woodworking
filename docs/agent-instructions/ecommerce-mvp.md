@@ -9,10 +9,11 @@ Statuses: **exists**, **partial**, **missing**. Blocker = must be resolved befor
 | # | Item | Status | Evidence | What is needed from Robert |
 | --- | --- | --- | --- | --- |
 | 1 | Production payment is blocked in code | partial | `convex/checkout.ts` throws when `APP_ENV=production`; `src/pages/Checkout/Checkout.tsx` `productionPaymentBlocked` | Decide the shipping tariff, then a code change removes the block. `CHECKOUT_ENABLED=true` alone is not enough |
-| 2 | Shipping cost is not charged | missing | No shipping line item in the Stripe session (`convex/checkout.ts`) | Tariff rules (flat, by weight, free threshold) |
+| 2 | Shipping cost is not charged | partial | Flat tariff configurable in admin (`convex/shipping.ts`, `/admin/shipping`) and charged in TEST via a Stripe "Transport" line item; production gate still on; courier tariff (Sameday/Cargus/FAN) pending | Choose courier + real tariff for production |
+| 2b | Cash on delivery (ramburs) | TEST only | `convex/codOrders.ts placeCodOrder` places the order and allocates stock without payment; blocked in production by the same gate; no Oblio auto-invoice | COD fiscal invoice is manual (no Oblio auto-invoice for COD); owner decision to open in production |
 | 3 | Backup procedure | missing | Only a manual step in `docs/environments.md` | Choose a backup method and document it |
-| 4 | Fiscal setup (Oblio, non-VAT payer) | needs activation | `convex/lib/oblio.ts`, `convex/postPayment.ts` | Accountant confirmation; production Oblio and Resend credentials entered by Robert |
-| 5 | Customer email promises an AWB email that does not exist | partial | `convex/postPayment.ts` line ~309 | Either send a shipped email with AWB, or change the sentence |
+| 4 | Fiscal setup (Oblio, non-VAT payer) | needs activation | `convex/lib/oblio.ts`, `convex/postPayment.ts`; TEST simulates the invoice and sends real emails | Accountant confirmation; production Oblio and Resend credentials entered by Robert |
+| 5 | Customer email promises an AWB email that does not exist | resolved | `convex/postPayment.ts`, `convex/lib/orderEmails.utils.ts` | Sentence removed; only preparation and delivery estimates are promised |
 | 6 | ANPC SAL pictogram | partial | `public/images/anpc-sal.svg` is not referenced; Footer has a text link only | Confirm the pictogram requirement (250x50 px, first page) |
 
 ## Legal Romania
@@ -48,8 +49,8 @@ Legal pages are hardcoded Romanian. Do not paraphrase or "improve" the wording; 
 | --- | --- | --- |
 | Shipping address and RO county/locality validation | exists | `src/pages/Shipping/Shipping.tsx`, `src/constants/romania.constants.ts` |
 | Courier and AWB | manual | `convex/fulfillment.ts` accepts optional manual `awb` and `carrier`; no courier API |
-| Oblio invoice after payment | exists, production only | `convex/postPayment.ts`; failure is logged and needs manual verification; no retry; no storno on refund |
-| Admin and customer order emails (Resend) | exists, production only | `convex/postPayment.ts`; failures are caught and logged, not retried |
+| Oblio invoice after payment | exists | `convex/postPayment.ts`; production creates a real Oblio invoice (`idempotencyKey` = order id); TEST simulates it without calling Oblio; failure is logged and needs manual verification; no retry; no storno on refund |
+| Admin and customer order emails (Resend) | exists | `convex/postPayment.ts`, `convex/lib/orderEmails.utils.ts`; TEST sends real emails with `[TEST]` subjects; failures are caught and logged, not retried |
 | Shipped, delivered, refund emails | missing | Not implemented |
 
 ## Not now (do not build without Robert asking)
