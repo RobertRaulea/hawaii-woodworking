@@ -70,17 +70,17 @@ export const StockMovementsHistory = ({
 
  return (
  <section className="mt-10">
- <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50 ">
+ <h2 className="text-lg font-semibold text-foreground">
  Istoric mișcări de stoc
  </h2>
  {status === 'LoadingFirstPage' ? (
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">Se încarcă istoricul...</p>
+ <p className="mt-3 text-sm text-muted-foreground">Se încarcă istoricul...</p>
  ) : results.length === 0 ? (
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm text-muted-foreground">
  Nu există mișcări pentru filtrul curent.
  </p>
  ) : (
- <div className="mt-4 overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
  <Table className="min-w-full text-sm">
  <TableHeader className="bg-stone-50 dark:bg-stone-800 ">
  <TableRow className="hover:bg-stone-50 dark:hover:bg-stone-900">
@@ -113,15 +113,15 @@ export const StockMovementsHistory = ({
  <TableBody>
  {results.map((row) => (
  <TableRow key={row._id} className="hover:bg-transparent">
- <TableCell className="whitespace-nowrap px-3 py-2 text-stone-500 dark:text-stone-400 ">
+ <TableCell className="whitespace-nowrap px-3 py-2 text-muted-foreground">
  {formatDate(row.createdAt)}
  </TableCell>
- <TableCell className="px-3 py-2 font-medium text-stone-900 dark:text-stone-50 ">
+ <TableCell className="px-3 py-2 font-medium text-foreground">
  <span className="flex items-center gap-2.5">
  <ProductThumb
  src={thumbnails.get(row.productId)}
  alt={row.productName}
- className="h-8 w-8"
+ className="size-8"
  />
  {row.productName}
  </span>
@@ -145,7 +145,7 @@ export const StockMovementsHistory = ({
  .filter(Boolean)
  .join(' · ')}
  </TableCell>
- <TableCell className="px-3 py-2 text-xs text-stone-500 dark:text-stone-400 ">
+ <TableCell className="px-3 py-2 text-xs text-muted-foreground">
  {userLabel(row.actorId)}
  </TableCell>
  </TableRow>
@@ -159,7 +159,7 @@ export const StockMovementsHistory = ({
  type="button"
  variant="outline"
  onClick={() => loadMore(25)}
- className="mt-3 min-h-11 rounded-lg px-4 text-sm font-medium"
+ className="mt-3 rounded-lg"
  >
  Încarcă mai multe
  </Button>

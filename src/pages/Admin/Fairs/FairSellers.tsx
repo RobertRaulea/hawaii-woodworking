@@ -8,6 +8,7 @@ import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { useStaffDirectory } from '../../../hooks/useStaffDirectory';
 import { SearchableSelect } from '../../../components/SearchableSelect/SearchableSelect';
 import { Button } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { inventoryError } from '../../../utils/inventory.utils';
 
@@ -58,9 +59,9 @@ const SellerEmailForm = ({ userId }: { userId: string }) => {
  </Button>
  </div>
  {errors.email ? (
- <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-red-700 dark:text-red-400">
  {errors.email.message}
- </p>
+ </FieldError>
  ) : null}
  </form>
  );
@@ -108,16 +109,16 @@ export const FairSellers = ({ fairId }: FairSellersProps) => {
  });
 
  return (
- <div className="mt-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800 p-4">
+ <div className="mt-4 rounded-xl border border-border bg-stone-50 dark:bg-stone-800 p-4">
  <h3 className="text-sm font-semibold text-stone-800 dark:text-stone-100 ">
  Vânzători alocați
  </h3>
  {sellers === undefined ? (
- <p role="status" className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p role="status" className="mt-2 text-sm text-muted-foreground">
  Se încarcă alocările...
  </p>
  ) : sellers.length === 0 ? (
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-sm text-muted-foreground">
  Niciun vânzător alocat acestui târg.
  </p>
  ) : (
@@ -125,7 +126,7 @@ export const FairSellers = ({ fairId }: FairSellersProps) => {
  {sellers.map((seller) => (
  <li
  key={seller.userId}
- className="rounded-lg bg-white dark:bg-stone-900 px-3 py-2"
+ className="rounded-lg bg-card px-3 py-2"
  >
  <div className="flex items-center justify-between gap-3">
  <span className="truncate font-mono text-xs text-stone-700 dark:text-stone-300 ">
@@ -175,7 +176,7 @@ export const FairSellers = ({ fairId }: FairSellersProps) => {
  Alocă
  </Button>
  </div>
- <input
+ <Input
  type="hidden"
  {...register('userId', {
  validate: (userId) =>
@@ -183,7 +184,7 @@ export const FairSellers = ({ fairId }: FairSellersProps) => {
  })}
  />
  {allSellers !== undefined && assignable.length === 0 ? (
- <p className="mt-2 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-xs text-muted-foreground">
  Nu apare vânzătorul?{' '}
  <Link
  to="/admin/staff"

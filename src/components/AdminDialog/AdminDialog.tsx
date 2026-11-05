@@ -37,7 +37,7 @@ export const AdminDialog = ({
  event.preventDefault();
  }}
  >
- <header className="flex items-center justify-between gap-4 border-b border-stone-200 dark:border-stone-800 px-5 py-4 md:px-7">
+ <header className="flex items-center justify-between gap-4 border-b border-border px-5 py-4 md:px-7">
  <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
  <Button
  type="button"
@@ -45,9 +45,9 @@ export const AdminDialog = ({
  disabled={locked}
  onClick={onClose}
  aria-label="Închide dialogul"
- className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-0 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-30 [&_svg]:size-5"
+ className="flex size-11 shrink-0 items-center justify-center rounded-lg p-0 hover:bg-muted disabled:opacity-30 [&_svg]:size-5"
  >
- <X className="h-5 w-5" />
+ <X className="size-5" />
  </Button>
  </header>
  <div className="p-5 md:p-7">{children}</div>

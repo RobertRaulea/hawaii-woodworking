@@ -48,13 +48,13 @@ export const Home: React.FC = () => {
  aria-labelledby="services-teaser"
  className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 lg:pb-16"
  >
- <div className="border-t border-stone-200 dark:border-stone-800 pt-10">
+ <div className="border-t border-border pt-10">
  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800 dark:text-amber-300">
  {servicesCopy.eyebrow}
  </p>
  <h2
  id="services-teaser"
- className="mt-3 font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 lg:text-3xl"
+ className="mt-3 font-serif text-2xl font-medium text-foreground lg:text-3xl"
  >
  {servicesCopy.heading}
  </h2>
@@ -66,9 +66,9 @@ export const Home: React.FC = () => {
  <li key={card.href}>
  <Link
  to={card.href}
- className="group flex h-full flex-col border border-stone-200 bg-white p-5 transition-colors hover:border-amber-700/60 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-amber-500/50 sm:p-6"
+ className="group flex h-full flex-col border border-border bg-card p-5 transition-colors hover:border-amber-700/60 dark:hover:border-amber-500/50 sm:p-6"
  >
- <span className="font-serif text-xl text-stone-900 dark:text-stone-50">{card.title}</span>
+ <span className="font-serif text-xl text-foreground">{card.title}</span>
  <span className="mt-3 flex-1 text-sm leading-6 text-stone-600 dark:text-stone-300">{card.body}</span>
  <span className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 transition-colors group-hover:text-amber-600 dark:text-amber-300 dark:group-hover:text-amber-200">
  {card.linkLabel} →

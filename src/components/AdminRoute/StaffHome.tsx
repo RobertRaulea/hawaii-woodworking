@@ -7,7 +7,7 @@ export const StaffHome: React.FC = () => {
  if (isLoading) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă...</p>
+ <p className="text-muted-foreground">Se încarcă...</p>
  </div>
  );
  }

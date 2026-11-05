@@ -85,14 +85,14 @@ export const Cart: React.FC = () => {
  return (
  <div className="max-w-6xl mx-auto px-6 lg:px-8 py-12">
  <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
- <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mb-6">
+ <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
  <ShoppingCart className="w-7 h-7 text-stone-400 dark:text-stone-500 " />
  </div>
- <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 mb-2">{t('cart.empty')}</h2>
- <p className="text-stone-500 dark:text-stone-400 text-sm mb-8">{t('cart.emptyDescription')}</p>
+ <h2 className="font-serif text-2xl font-medium text-foreground mb-2">{t('cart.empty')}</h2>
+ <p className="text-muted-foreground text-sm mb-8">{t('cart.emptyDescription')}</p>
  <Button
  variant="outline"
- className="h-auto rounded-md border-stone-900 dark:border-stone-400 px-8 py-2.5 text-sm font-medium text-stone-900 dark:text-stone-50 transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
+ className="h-auto rounded-md border-stone-900 dark:border-stone-400 px-8 py-2.5 text-sm font-medium text-foreground transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
  onClick={() => window.history.back()}
  >
  {t('cart.continueShopping')}
@@ -119,30 +119,30 @@ export const Cart: React.FC = () => {
  </Button>
  </Alert>
  )}
- <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-10">{t('cart.title')}</h1>
+ <h1 className="font-serif text-3xl lg:text-4xl font-medium text-foreground mb-10">{t('cart.title')}</h1>
  <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
  <div className="flex-grow">
  {state.items.map((item: CartItem) => (
- <div key={item.id} className="flex flex-col md:flex-row items-start md:items-center gap-5 border-b border-stone-200 dark:border-stone-800 py-6 first:pt-0">
+ <div key={item.id} className="flex flex-col md:flex-row items-start md:items-center gap-5 border-b border-border py-6 first:pt-0">
  <img
  src={getCartImageSrc(item.image)}
  alt={item.name}
  className="w-20 h-20 object-cover rounded-md"
  />
  <div className="flex-grow">
- <h3 className="font-medium text-stone-900 dark:text-stone-50 ">{item.name}</h3>
- <p className="text-stone-500 dark:text-stone-400 text-sm mt-0.5">{formatPrice(item.price)}</p>
+ <h3 className="font-medium text-foreground">{item.name}</h3>
+ <p className="text-muted-foreground text-sm mt-0.5">{formatPrice(item.price)}</p>
  </div>
  <div className="flex items-center gap-3">
  <Button
  variant="outline"
  onClick={() => updateQuantity(item.id, item.quantity - 1)}
- className="h-8 w-8 rounded-md border-stone-200 dark:border-stone-800 p-0 hover:border-stone-400 hover:bg-transparent [&_svg]:size-3.5"
+ className="size-8 rounded-md border-border p-0 hover:border-stone-400 hover:bg-transparent [&_svg]:size-3.5"
  aria-label={`${t('cart.updateQuantity')}: ${item.name}`}
  >
  <Minus className="w-3.5 h-3.5 text-stone-600 dark:text-stone-300 " />
  </Button>
- <span className="w-8 text-center text-sm font-medium text-stone-900 dark:text-stone-50 ">{item.quantity}</span>
+ <span className="w-8 text-center text-sm font-medium text-foreground">{item.quantity}</span>
  <Button
  variant="outline"
  onClick={() => updateQuantity(item.id, item.quantity + 1)}
@@ -152,14 +152,14 @@ export const Cart: React.FC = () => {
  const availableStock = item.stock ?? 0;
  return item.quantity >= availableStock;
  })()}
- className="h-8 w-8 rounded-md border-stone-200 dark:border-stone-800 p-0 hover:border-stone-400 hover:bg-transparent disabled:opacity-40 disabled:hover:border-stone-200 dark:disabled:hover:border-stone-800:border-stone-800 [&_svg]:size-3.5"
+ className="size-8 rounded-md border-border p-0 hover:border-stone-400 hover:bg-transparent disabled:opacity-40 disabled:hover:border-stone-200 dark:disabled:hover:border-stone-800:border-stone-800 [&_svg]:size-3.5"
  aria-label={`${t('cart.updateQuantity')}: ${item.name}`}
  >
  <Plus className="w-3.5 h-3.5 text-stone-600 dark:text-stone-300 " />
  </Button>
  </div>
  <div className="flex items-center gap-4">
- <p className="font-medium text-stone-900 dark:text-stone-50 text-sm">{formatPrice(item.price * item.quantity)}</p>
+ <p className="font-medium text-foreground text-sm">{formatPrice(item.price * item.quantity)}</p>
  <Button
  variant="ghost"
  onClick={() => removeItem(item.id)}
@@ -173,16 +173,16 @@ export const Cart: React.FC = () => {
  ))}
  </div>
  <div className="lg:w-80 flex-shrink-0">
- <Card className="sticky top-24 rounded-lg border-stone-200 dark:border-stone-800 p-6 shadow-none">
- <h2 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-50 mb-5">{t('cart.orderSummary')}</h2>
+ <Card className="sticky top-24 rounded-lg border-border p-6 shadow-none">
+ <h2 className="font-serif text-lg font-medium text-foreground mb-5">{t('cart.orderSummary')}</h2>
  <div className="flex justify-between mb-6 text-sm">
- <span className="text-stone-500 dark:text-stone-400 ">{t('common.subtotal')}</span>
- <span className="font-medium text-stone-900 dark:text-stone-50 ">{formatPrice(calculateTotal())}</span>
+ <span className="text-muted-foreground">{t('common.subtotal')}</span>
+ <span className="font-medium text-foreground">{formatPrice(calculateTotal())}</span>
  </div>
- <div className="border-t border-stone-200 dark:border-stone-800 pt-4 mb-6">
+ <div className="border-t border-border pt-4 mb-6">
  <div className="flex justify-between">
- <span className="font-medium text-stone-900 dark:text-stone-50 ">{t('common.total')}</span>
- <span className="font-semibold text-stone-900 dark:text-stone-50 ">{formatPrice(calculateTotal())}</span>
+ <span className="font-medium text-foreground">{t('common.total')}</span>
+ <span className="font-semibold text-foreground">{formatPrice(calculateTotal())}</span>
  </div>
  </div>
  <Button

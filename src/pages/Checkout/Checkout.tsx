@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAction, useConvexAuth } from 'convex/react';
 import { useAuth } from '@clerk/clerk-react';
 import { ConvexError } from 'convex/values';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { api } from '../../../convex/_generated/api';
@@ -12,6 +13,7 @@ import { useCart } from '../../context/CartContext';
 import { useShipping } from '../../context/ShippingContext';
 import { getAnalyticsContext, trackAnalytics } from '../../utils/analytics.utils';
 import { Button } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
 import { Card } from '@/components/ui/card';
 
 export const Checkout: React.FC = () => {
@@ -129,7 +131,7 @@ export const Checkout: React.FC = () => {
  error_code: 'checkout_initiation_failed',
  surface: 'checkout',
  });
- alert(t('checkout.stripeUrlMissing', { defaultValue: copy.stripeUrlMissing }));
+ toast.error(t('checkout.stripeUrlMissing', { defaultValue: copy.stripeUrlMissing }));
  return;
  }
 
@@ -144,7 +146,7 @@ export const Checkout: React.FC = () => {
  error instanceof ConvexError && typeof error.data === 'string'
  ? error.data
  : t('checkout.paymentError', { defaultValue: copy.paymentError });
- alert(message);
+ toast.error(message);
  } finally {
  setLoading(false);
  }
@@ -152,35 +154,35 @@ export const Checkout: React.FC = () => {
 
  return (
  <div className="max-w-2xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
- <h1 className="font-serif text-3xl font-medium text-stone-900 dark:text-stone-50 mb-8">{t('checkout.title')}</h1>
+ <h1 className="font-serif text-3xl font-medium text-foreground mb-8">{t('checkout.title')}</h1>
  
- <Card className="rounded-lg border-stone-200 dark:border-stone-800 p-6 shadow-none">
- {state.items.length === 0 && <p className="text-stone-500 dark:text-stone-400 text-sm">{t('checkout.empty', { defaultValue: copy.empty })}</p>}
+ <Card className="rounded-lg border-border p-6 shadow-none">
+ {state.items.length === 0 && <p className="text-muted-foreground text-sm">{t('checkout.empty', { defaultValue: copy.empty })}</p>}
  <div className="space-y-0">
  {state.items.map((item: CartItem) => (
  <div key={item.id} className="flex justify-between items-center py-4 border-b border-stone-100 dark:border-stone-800 last:border-b-0">
  <div>
- <span className="text-sm font-medium text-stone-900 dark:text-stone-50 ">{item.name}</span>
+ <span className="text-sm font-medium text-foreground">{item.name}</span>
  <span className="text-stone-400 dark:text-stone-500 text-sm ml-2">× {item.quantity}</span>
  </div>
- <span className="text-sm font-medium text-stone-900 dark:text-stone-50 ">{(item.price * item.quantity).toFixed(2)} RON</span>
+ <span className="text-sm font-medium text-foreground">{(item.price * item.quantity).toFixed(2)} RON</span>
  </div>
  ))}
  </div>
  
- <div className="border-t border-stone-200 dark:border-stone-800 mt-4 pt-4 flex justify-between items-center">
- <span className="font-medium text-stone-900 dark:text-stone-50 ">{t('checkout.productSubtotal', { defaultValue: copy.subtotal })}</span>
- <span className="text-lg font-semibold text-stone-900 dark:text-stone-50 ">{total.toFixed(2)} RON</span>
+ <div className="border-t border-border mt-4 pt-4 flex justify-between items-center">
+ <span className="font-medium text-foreground">{t('checkout.productSubtotal', { defaultValue: copy.subtotal })}</span>
+ <span className="text-lg font-semibold text-foreground">{total.toFixed(2)} RON</span>
  </div>
  </Card>
  <p id="shipping-tariff-notice" role="status" className="mt-6 text-sm text-stone-600 dark:text-stone-300">
  {t(productionPaymentBlocked ? 'checkout.tariffPending' : 'checkout.testTariffPending', { defaultValue: productionPaymentBlocked ? copy.tariff : copy.test })}
  </p>
  {!countryValid && shippingData && (
- <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">
+ <FieldError  className="mt-4 text-red-600 dark:text-red-400">
  {t('checkout.romaniaOnly', { defaultValue: copy.country })}{' '}
  <Link className="underline" to="/shipping">{t('checkout.correctShipping', { defaultValue: copy.edit })}</Link>
- </p>
+ </FieldError>
  )}
 
  <Button

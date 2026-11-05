@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { useQuery } from 'convex/react';
 import { Users, Eye, Search, Mail, Download, X } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -15,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
  Table,
  TableBody,
@@ -68,7 +71,7 @@ export const AdminCustomers: React.FC = () => {
  if (customers === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă clienții...</p>
+ <p className="text-muted-foreground">Se încarcă clienții...</p>
  </div>
  );
  }
@@ -81,7 +84,7 @@ export const AdminCustomers: React.FC = () => {
  if (!newsletterSubscribers) return;
  const emails = newsletterSubscribers.map((sub) => sub.email).join(', ');
  navigator.clipboard.writeText(emails);
- alert(`${newsletterSubscribers.length} adrese de email copiate în clipboard!`);
+ toast.success(`${newsletterSubscribers.length} adrese de email copiate în clipboard!`);
  };
 
  const handleDownloadCSV = () => {
@@ -113,25 +116,25 @@ export const AdminCustomers: React.FC = () => {
  return (
  <section className="space-y-8">
  <div>
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 mb-4">Clienți</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground mb-4">Clienți</h1>
 
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
  <Card className="rounded-lg">
  <CardContent className="p-5">
- <p className="text-sm text-stone-500 dark:text-stone-400 mb-1">Total clienți</p>
- <p className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">{customers.length}</p>
+ <p className="text-sm text-muted-foreground mb-1">Total clienți</p>
+ <p className="text-2xl font-bold text-foreground">{customers.length}</p>
  </CardContent>
  </Card>
  <Card className="rounded-lg">
  <CardContent className="p-5">
- <p className="text-sm text-stone-500 dark:text-stone-400 mb-1">Înregistrați</p>
- <p className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">{registeredCount}</p>
+ <p className="text-sm text-muted-foreground mb-1">Înregistrați</p>
+ <p className="text-2xl font-bold text-foreground">{registeredCount}</p>
  </CardContent>
  </Card>
  <Card className="rounded-lg">
  <CardContent className="p-5">
- <p className="text-sm text-stone-500 dark:text-stone-400 mb-1">Vizitatori</p>
- <p className="text-2xl font-bold text-stone-900 dark:text-stone-50 ">{guestCount}</p>
+ <p className="text-sm text-muted-foreground mb-1">Vizitatori</p>
+ <p className="text-2xl font-bold text-foreground">{guestCount}</p>
  </CardContent>
  </Card>
  <Button
@@ -142,7 +145,7 @@ export const AdminCustomers: React.FC = () => {
  >
  <div className="flex w-full items-center justify-between mb-1">
  <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">Newsletter</p>
- <Mail className="h-4 w-4 text-amber-600 dark:text-amber-400 " />
+ <Mail className="size-4 text-amber-600 dark:text-amber-400 " />
  </div>
  <p className="text-2xl font-bold text-amber-900 dark:text-amber-300 ">{newsletterCount}</p>
  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Apasă pentru export</p>
@@ -153,7 +156,7 @@ export const AdminCustomers: React.FC = () => {
  {/* Filters */}
  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
  <div className="relative w-full md:w-80">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500 " />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-stone-400 dark:text-stone-500 " />
  <Input
  type="text"
  placeholder="Caută după nume sau email..."
@@ -164,27 +167,27 @@ export const AdminCustomers: React.FC = () => {
  </div>
  <div className="flex items-center gap-2">
  <Label htmlFor="typeFilter">Tip:</Label>
- <select
+ <NativeSelect
  id="typeFilter"
  value={typeFilter}
  onChange={(e) => setTypeFilter(e.target.value as 'all' | 'registered' | 'guest')}
- className="rounded-lg border border-stone-300 dark:border-stone-700 px-3 py-1.5 text-sm bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+ className="min-h-0 rounded-lg px-3 py-1.5 pr-9"
  >
- <option value="all">Toți</option>
- <option value="registered">Înregistrați</option>
- <option value="guest">Vizitatori</option>
- </select>
+ <NativeSelectOption value="all">Toți</NativeSelectOption>
+ <NativeSelectOption value="registered">Înregistrați</NativeSelectOption>
+ <NativeSelectOption value="guest">Vizitatori</NativeSelectOption>
+ </NativeSelect>
  </div>
  </div>
 
  {/* Table */}
  {filtered.length === 0 ? (
- <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-12 text-center">
- <Users className="h-10 w-10 text-stone-300 mx-auto mb-3" />
- <p className="text-stone-500 dark:text-stone-400 ">Niciun client găsit.</p>
- </div>
+ <Empty className="gap-0 flex-initial rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-card p-12 text-center">
+ <Users className="size-10 text-stone-300 mx-auto mb-3" />
+ <p className="text-muted-foreground">Niciun client găsit.</p>
+ </Empty>
  ) : (
- <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <div className="overflow-x-auto rounded-lg border border-border bg-card">
  <Table className="w-full text-sm">
  <TableHeader>
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
@@ -203,10 +206,10 @@ export const AdminCustomers: React.FC = () => {
  key={customer._id}
  className="last:border-b-0 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
  >
- <TableCell className="px-4 py-3 font-medium text-stone-900 dark:text-stone-50 ">
+ <TableCell className="px-4 py-3 font-medium text-foreground">
  {customer.firstName} {customer.lastName}
  </TableCell>
- <TableCell className="px-4 py-3 text-stone-500 dark:text-stone-400 hidden md:table-cell">
+ <TableCell className="px-4 py-3 text-muted-foreground hidden md:table-cell">
  {customer.email}
  </TableCell>
  <TableCell className="px-4 py-3 text-center">
@@ -227,7 +230,7 @@ export const AdminCustomers: React.FC = () => {
  <TableCell className="px-4 py-3 text-right text-stone-700 dark:text-stone-300 hidden lg:table-cell">
  {formatPrice(customer.totalSpent)}
  </TableCell>
- <TableCell className="px-4 py-3 text-stone-500 dark:text-stone-400 hidden lg:table-cell">
+ <TableCell className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
  {formatDate(customer.createdAt)}
  </TableCell>
  <TableCell className="px-4 py-3 text-right">
@@ -260,7 +263,7 @@ export const AdminCustomers: React.FC = () => {
  <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 flex items-center justify-between">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-full bg-white/20 dark:bg-stone-900/20 flex items-center justify-center">
- <Mail className="h-5 w-5 text-white" />
+ <Mail className="size-5 text-white" />
  </div>
  <div>
  <DialogTitle className="text-xl font-bold text-white">
@@ -275,17 +278,17 @@ export const AdminCustomers: React.FC = () => {
  aria-label="Închide"
  className="text-white/80 hover:text-white transition-colors"
  >
- <X className="h-6 w-6" />
+ <X className="size-6" />
  </DialogClose>
  </div>
 
  <div className="p-6 space-y-4">
  <div className="flex flex-col sm:flex-row gap-3">
- <Button
+ <Button variant="brand"
  onClick={handleExportEmails}
- className="flex-1 gap-2 rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium hover:bg-amber-700"
+ className="flex-1 rounded-lg py-3"
  >
- <Mail className="h-4 w-4" />
+ <Mail className="size-4" />
  Copiază toate emailurile
  </Button>
  <Button
@@ -293,12 +296,12 @@ export const AdminCustomers: React.FC = () => {
  onClick={handleDownloadCSV}
  className="flex-1 gap-2 rounded-lg border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 px-4 py-3 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:text-amber-700 dark:hover:text-amber-400"
  >
- <Download className="h-4 w-4" />
+ <Download className="size-4" />
  Descarcă CSV
  </Button>
  </div>
 
- <div className="rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800 p-4">
+ <div className="rounded-lg border border-border bg-stone-50 dark:bg-stone-800 p-4">
  <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Cum trimiți emailuri promoționale:</h3>
  <ol className="text-sm text-stone-600 dark:text-stone-300 space-y-1.5 list-decimal list-inside">
  <li>Apasă „Copiază toate emailurile" ca să copiezi adresele abonaților</li>
@@ -307,14 +310,14 @@ export const AdminCustomers: React.FC = () => {
  <li>Scrie mesajul promoțional</li>
  <li>Trimite o dată către toți abonații</li>
  </ol>
- <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 italic">
+ <p className="text-xs text-muted-foreground mt-3 italic">
  💡 Sfat: Folosește BCC (copie oarbă) ca abonații să nu-și vadă adresele între ei.
  </p>
  </div>
  </div>
 
  <div className="flex-1 overflow-y-auto px-6 pb-6">
- <div className="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
+ <div className="rounded-lg border border-border overflow-hidden">
  <Table className="w-full text-sm">
  <TableHeader>
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
@@ -323,7 +326,7 @@ export const AdminCustomers: React.FC = () => {
  <TableHead className="px-4 py-3 text-center font-medium text-stone-600 dark:text-stone-300 hidden sm:table-cell">Tip</TableHead>
  </TableRow>
  </TableHeader>
- <TableBody className="bg-white dark:bg-stone-900 ">
+ <TableBody className="bg-card">
  {(newsletterSubscribers ?? []).map((sub, idx) => (
  <TableRow
  key={idx}
@@ -332,7 +335,7 @@ export const AdminCustomers: React.FC = () => {
  <TableCell className="px-4 py-3 text-stone-700 dark:text-stone-300 font-mono text-xs">
  {sub.email}
  </TableCell>
- <TableCell className="px-4 py-3 text-stone-900 dark:text-stone-50 hidden md:table-cell">
+ <TableCell className="px-4 py-3 text-foreground hidden md:table-cell">
  {sub.firstName} {sub.lastName}
  </TableCell>
  <TableCell className="px-4 py-3 text-center hidden sm:table-cell">

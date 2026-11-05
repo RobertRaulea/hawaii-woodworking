@@ -33,7 +33,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ permission }) => {
  if (isLoading) {
  return (
  <div className="flex items-center justify-center min-h-screen">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă...</p>
+ <p className="text-muted-foreground">Se încarcă...</p>
  </div>
  );
  }
@@ -46,7 +46,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ permission }) => {
  return (
  <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-4 text-center">
  <p className="text-red-600 dark:text-red-400 font-medium">Acces intern indisponibil</p>
- <p className="text-stone-500 dark:text-stone-400 text-sm">
+ <p className="text-muted-foreground text-sm">
  Contul tău nu are un rol intern.
  </p>
  <Link to="/" className="text-sm font-semibold text-amber-800 dark:text-amber-300 underline">
@@ -60,7 +60,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ permission }) => {
  return (
  <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-4 text-center">
  <p className="text-red-600 dark:text-red-400 font-medium">Acces intern indisponibil</p>
- <p className="text-stone-500 dark:text-stone-400 text-sm">
+ <p className="text-muted-foreground text-sm">
  Rolul tău nu are acces la această secțiune.
  </p>
  <Link

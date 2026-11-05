@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { cn } from '@/utils/cn.utils';
 import {
  Table,
  TableBody,
@@ -28,10 +30,13 @@ const PAYMENT_LABELS: Record<string, string> = {
  cancelled: 'Anulată',
 };
 
-const PAYMENT_COLORS: Record<string, string> = {
- pending: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 ',
- paid: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 ',
- cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 ',
+const PAYMENT_BADGES: Record<
+ string,
+ { variant: 'yellow' | 'success' | 'destructive' }
+> = {
+ pending: { variant: 'yellow' },
+ paid: { variant: 'success' },
+ cancelled: { variant: 'destructive' },
 };
 
 const FULFILLMENT_LABELS: Record<string, string> = {
@@ -44,14 +49,20 @@ const FULFILLMENT_LABELS: Record<string, string> = {
  cancelled: 'Anulată',
 };
 
-const FULFILLMENT_COLORS: Record<string, string> = {
- ready: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 ',
- preparing: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 ',
- packed: 'bg-indigo-100 text-indigo-800',
- shipped: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ',
- delivered: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ',
- blocked: 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 ',
- cancelled: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 ',
+const FULFILLMENT_BADGES: Record<
+ string,
+ {
+ variant: 'amber' | 'blue' | 'soft' | 'emerald' | 'stone' | 'destructive';
+ className?: string;
+ }
+> = {
+ ready: { variant: 'amber' },
+ preparing: { variant: 'blue' },
+ packed: { variant: 'soft', className: 'bg-indigo-100 text-indigo-800' },
+ shipped: { variant: 'emerald' },
+ delivered: { variant: 'emerald' },
+ blocked: { variant: 'stone' },
+ cancelled: { variant: 'destructive' },
 };
 
 const formatDate = (timestamp: number): string =>
@@ -141,7 +152,7 @@ export const AdminOrders: React.FC = () => {
  if (orders === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă comenzile…</p>
+ <p className="text-muted-foreground">Se încarcă comenzile…</p>
  </div>
  );
  }
@@ -149,15 +160,15 @@ export const AdminOrders: React.FC = () => {
  return (
  <section className="max-w-6xl space-y-6">
  <header>
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Comenzi</h1>
- <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Comenzi</h1>
+ <p className="mt-1 text-sm text-muted-foreground">
  Toate comenzile online, cu starea plății și a pregătirii.
  </p>
  </header>
 
  <InventoryReviewSummary />
 
- <div className="grid grid-cols-1 gap-3 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 md:grid-cols-2 lg:grid-cols-5">
+ <div className="grid grid-cols-1 gap-3 rounded-lg border border-border bg-card p-4 md:grid-cols-2 lg:grid-cols-5">
  <div className="lg:col-span-2">
  <Label htmlFor="order-search">Caută</Label>
  <Input
@@ -201,51 +212,53 @@ export const AdminOrders: React.FC = () => {
  <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
  <div>
  <Label htmlFor="payment-filter">Stare plată</Label>
- <select
+ <NativeSelect
  id="payment-filter"
  value={paymentFilter}
  onChange={(event) => {
  setPaymentFilter(event.target.value);
  resetPage();
  }}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg px-3 py-2 pr-9"
  >
- <option value="all">Toate</option>
- <option value="pending">Neplătită</option>
- <option value="paid">Plătită</option>
- <option value="cancelled">Anulată</option>
- </select>
+ <NativeSelectOption value="all">Toate</NativeSelectOption>
+ <NativeSelectOption value="pending">Neplătită</NativeSelectOption>
+ <NativeSelectOption value="paid">Plătită</NativeSelectOption>
+ <NativeSelectOption value="cancelled">Anulată</NativeSelectOption>
+ </NativeSelect>
  </div>
  <div>
  <Label htmlFor="fulfillment-filter">Stare pregătire</Label>
- <select
+ <NativeSelect
  id="fulfillment-filter"
  value={fulfillmentFilter}
  onChange={(event) => {
  setFulfillmentFilter(event.target.value);
  resetPage();
  }}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg px-3 py-2 pr-9"
  >
- <option value="all">Toate</option>
- <option value="ready">De pregătit</option>
- <option value="preparing">În pregătire</option>
- <option value="packed">Ambalată</option>
- <option value="shipped">Expediată</option>
- <option value="delivered">Livrată</option>
- <option value="blocked">Blocată</option>
- <option value="cancelled">Anulată</option>
- </select>
+ <NativeSelectOption value="all">Toate</NativeSelectOption>
+ <NativeSelectOption value="ready">De pregătit</NativeSelectOption>
+ <NativeSelectOption value="preparing">În pregătire</NativeSelectOption>
+ <NativeSelectOption value="packed">Ambalată</NativeSelectOption>
+ <NativeSelectOption value="shipped">Expediată</NativeSelectOption>
+ <NativeSelectOption value="delivered">Livrată</NativeSelectOption>
+ <NativeSelectOption value="blocked">Blocată</NativeSelectOption>
+ <NativeSelectOption value="cancelled">Anulată</NativeSelectOption>
+ </NativeSelect>
  </div>
  </div>
  </div>
 
  {pageRows.length === 0 ? (
- <p className="rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
  Nicio comandă nu corespunde filtrelor.
  </p>
  ) : (
- <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <div className="overflow-x-auto rounded-lg border border-border bg-card">
  <Table className="w-full text-sm">
  <TableHeader>
  <TableRow className="text-left">
@@ -281,7 +294,7 @@ export const AdminOrders: React.FC = () => {
  key={order._id}
  className="border-stone-100 dark:border-stone-800 last:border-b-0 hover:bg-transparent"
  >
- <TableCell className="px-4 py-3 font-medium text-stone-900 dark:text-stone-50 ">
+ <TableCell className="px-4 py-3 font-medium text-foreground">
  #{order.shortNumber}
  </TableCell>
  <TableCell className="px-4 py-3 text-stone-700 dark:text-stone-300 ">
@@ -295,13 +308,13 @@ export const AdminOrders: React.FC = () => {
  <TableCell className="px-4 py-3 text-right text-stone-700 dark:text-stone-300 ">
  {order.itemCount}
  </TableCell>
- <TableCell className="px-4 py-3 text-right font-medium text-stone-900 dark:text-stone-50 ">
+ <TableCell className="px-4 py-3 text-right font-medium text-foreground">
  {formatPrice(order.total ?? 0)}
  </TableCell>
  <TableCell className="px-4 py-3">
  <Badge
- variant="soft"
- className={`font-medium ${PAYMENT_COLORS[order.paymentStatus]}`}
+ variant={PAYMENT_BADGES[order.paymentStatus].variant}
+ className="font-medium"
  >
  {order.paymentStatus === 'paid' &&
  order.status === 'cancelled'
@@ -311,8 +324,11 @@ export const AdminOrders: React.FC = () => {
  </TableCell>
  <TableCell className="px-4 py-3">
  <Badge
- variant="soft"
- className={`font-medium ${FULFILLMENT_COLORS[order.fulfillmentState]}`}
+ variant={FULFILLMENT_BADGES[order.fulfillmentState].variant}
+ className={cn(
+ 'font-medium',
+ FULFILLMENT_BADGES[order.fulfillmentState].className
+ )}
  >
  {FULFILLMENT_LABELS[order.fulfillmentState]}
  </Badge>
@@ -327,7 +343,7 @@ export const AdminOrders: React.FC = () => {
  to={`/admin/orders/${order._id}`}
  aria-label={`Deschide comanda ${order.shortNumber}`}
  >
- <Eye className="h-4 w-4" />
+ <Eye className="size-4" />
  Deschide
  </Link>
  </Button>
@@ -349,7 +365,7 @@ export const AdminOrders: React.FC = () => {
  variant="outline"
  onClick={() => setPage(currentPage - 1)}
  disabled={currentPage <= 1}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Înapoi
  </Button>
@@ -361,7 +377,7 @@ export const AdminOrders: React.FC = () => {
  variant="outline"
  onClick={() => setPage(currentPage + 1)}
  disabled={currentPage >= pageCount}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Înainte
  </Button>

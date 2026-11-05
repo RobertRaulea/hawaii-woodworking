@@ -45,10 +45,10 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
  const { t } = useTranslation();
 
  const filterContent = (
- <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800 ">
+ <div className="bg-card rounded-2xl shadow-lg border border-border">
  {isMobile && (
- <div className="flex items-center justify-between p-4 border-b border-stone-200 dark:border-stone-800 ">
- <SheetTitle className="font-medium text-stone-900 dark:text-stone-50 uppercase tracking-wide text-sm">
+ <div className="flex items-center justify-between p-4 border-b border-border">
+ <SheetTitle className="font-medium text-foreground uppercase tracking-wide text-sm">
  {t('filters.title')}
  {(selectedCategories.length > 0 || selectedMinPrice > minPrice || selectedMaxPrice < maxPrice) && (
  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-amber-500 text-white rounded-full">
@@ -59,10 +59,10 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
  <SheetClose asChild>
  <Button
  variant="ghost"
- className="h-auto w-auto rounded-full p-1 hover:bg-stone-100 dark:hover:bg-stone-800 [&_svg]:size-6"
+ className="h-auto w-auto rounded-full p-1 hover:bg-muted [&_svg]:size-6"
  aria-label={t('filters.close')}
  >
- <X className="h-6 w-6 text-stone-600 dark:text-stone-300 " />
+ <X className="size-6 text-stone-600 dark:text-stone-300 " />
  </Button>
  </SheetClose>
  </div>
@@ -107,7 +107,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
  <SheetContent
  side="left"
  hideClose
- className="w-80 max-w-[85vw] border-stone-200 dark:border-stone-800 p-0"
+ className="w-80 max-w-[85vw] border-border p-0"
  >
  {filterContent}
  </SheetContent>

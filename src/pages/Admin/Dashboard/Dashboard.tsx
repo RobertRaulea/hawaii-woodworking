@@ -12,6 +12,7 @@ import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { bucharestToday, monthStart } from '../../../utils/date.utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -28,16 +29,16 @@ const StatCard = ({
 }) => (
   <Card>
     <CardHeader className="pb-2">
-      <CardTitle className="text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+      <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </CardTitle>
     </CardHeader>
     <CardContent>
-      <p className="text-2xl font-semibold text-stone-900 dark:text-stone-50">
+      <p className="text-2xl font-semibold text-foreground">
         {value}
       </p>
       {hint ? (
-        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           {hint}
         </p>
       ) : null}
@@ -56,8 +57,8 @@ const Section = ({
 }) => (
   <Card>
     <CardHeader>
-      <CardTitle className="flex items-center gap-2 text-lg text-stone-900 dark:text-stone-50">
-        <Icon className="h-5 w-5 text-amber-600" />
+      <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+        <Icon className="size-5 text-amber-600" />
         {title}
       </CardTitle>
     </CardHeader>
@@ -72,15 +73,15 @@ export const Dashboard: React.FC = () => {
 
   if (error) {
     return (
-      <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">
+      <Alert variant="destructive" className="rounded-xl border-0 dark:bg-red-50 dark:text-red-800">
         {error}
-      </p>
+      </Alert>
     );
   }
   if (data === undefined) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-stone-500 dark:text-stone-400">
+        <p className="text-muted-foreground">
           Se încarcă panoul…
         </p>
       </div>
@@ -93,17 +94,17 @@ export const Dashboard: React.FC = () => {
     <section className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50">
+          <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
             Panou
           </h1>
-          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+          <p className="mt-1 text-sm text-muted-foreground">
             Activitatea de azi și semnalele care cer atenție.
           </p>
         </div>
         {can('reports.view') ? (
           <Button asChild variant="outline">
             <Link to={`/admin/reports?from=${monthFrom}&to=${today}`}>
-              <BarChart3 className="h-4 w-4" /> Rapoarte
+              <BarChart3 className="size-4" /> Rapoarte
             </Link>
           </Button>
         ) : null}
@@ -156,7 +157,7 @@ export const Dashboard: React.FC = () => {
       {data.pos ? (
         <Section title="Vânzările mele de azi pe târg" icon={BarChart3}>
           {data.pos.length === 0 ? (
-            <p className="text-sm text-stone-500 dark:text-stone-400">
+            <p className="text-sm text-muted-foreground">
               Nu ai târguri active alocate.
             </p>
           ) : (
@@ -164,13 +165,13 @@ export const Dashboard: React.FC = () => {
               {data.pos.map((row) => (
                 <li
                   key={row.fairId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 p-4 dark:border-stone-800"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-4"
                 >
                   <div>
-                    <p className="font-medium text-stone-900 dark:text-stone-50">
+                    <p className="font-medium text-foreground">
                       {row.fairName}
                     </p>
-                    <p className="text-sm text-stone-500 dark:text-stone-400">
+                    <p className="text-sm text-muted-foreground">
                       {lei(row.netCents)} · {row.count} bonuri · numerar{' '}
                       {lei(row.cashCents)} · card {lei(row.cardCents)}
                     </p>
@@ -213,7 +214,7 @@ export const Dashboard: React.FC = () => {
         {data.lowStock ? (
           <Section title="Stoc redus" icon={Package}>
             {data.lowStock.count === 0 ? (
-              <p className="text-sm text-stone-500 dark:text-stone-400">
+              <p className="text-sm text-muted-foreground">
                 Niciun produs sub prag.
               </p>
             ) : (
@@ -253,7 +254,7 @@ export const Dashboard: React.FC = () => {
         {data.transfers ? (
           <Section title="Transferuri în tranzit" icon={ArrowLeftRight}>
             {data.transfers.count === 0 ? (
-              <p className="text-sm text-stone-500 dark:text-stone-400">
+              <p className="text-sm text-muted-foreground">
                 Niciun transfer deschis.
               </p>
             ) : (
@@ -267,7 +268,7 @@ export const Dashboard: React.FC = () => {
                       >
                         {row.fromName ?? '—'} → {row.toName ?? '—'}
                       </Link>
-                      <span className="ml-2 text-stone-500 dark:text-stone-400">
+                      <span className="ml-2 text-muted-foreground">
                         {row.inTransitUnits} buc.
                       </span>
                     </li>

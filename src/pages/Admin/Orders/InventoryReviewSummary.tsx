@@ -19,7 +19,7 @@ export const InventoryReviewSummary = () => {
  return (
  <section aria-label="Plăți online cu stoc de verificat">
  <Alert variant="warning" className="rounded-xl">
- <AlertTriangle className="h-6 w-6" />
+ <AlertTriangle className="size-6" />
  <AlertTitle>
  {data.length} comenzi plătite au stoc de verificat
  </AlertTitle>

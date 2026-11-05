@@ -9,6 +9,8 @@ import { useProductThumbnails } from '../../../hooks/useProductThumbnails';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FieldError } from '@/components/ui/field';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { formatStock } from '../../../utils/inventory.utils';
 import { StockOperationFeedback } from './StockOperationFeedback';
@@ -187,7 +189,7 @@ export const StockOperationDialog = ({
  <ProductThumb
  src={thumbnails.get(product.id)}
  alt={product.name}
- className="h-12 w-12"
+ className="size-12"
  />
  <p className="min-w-0 text-sm font-medium text-stone-900 dark:dark:text-stone-50 ">
  {product.name}
@@ -195,17 +197,18 @@ export const StockOperationDialog = ({
  </div>
  <div>
  <Label htmlFor="stock-op-kind">Operațiune</Label>
- <select
+ <NativeSelect
  id="stock-op-kind"
  disabled={disabled}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-3"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg p-3 pr-9"
  {...register('kind')}
  >
- <option value="receipt">Intrare</option>
- <option value="adjustment">Ajustare</option>
- <option value="count">Inventariere</option>
- <option value="threshold">Prag minim</option>
- </select>
+ <NativeSelectOption value="receipt">Intrare</NativeSelectOption>
+ <NativeSelectOption value="adjustment">Ajustare</NativeSelectOption>
+ <NativeSelectOption value="count">Inventariere</NativeSelectOption>
+ <NativeSelectOption value="threshold">Prag minim</NativeSelectOption>
+ </NativeSelect>
  </div>
 
  {kind === 'receipt' ? (
@@ -228,9 +231,9 @@ export const StockOperationDialog = ({
  })}
  />
  {errors.quantity ? (
- <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-red-700 dark:text-red-400">
  {errors.quantity.message}
- </p>
+ </FieldError>
  ) : null}
  </div>
  ) : null}
@@ -238,19 +241,20 @@ export const StockOperationDialog = ({
  {kind === 'adjustment' || kind === 'count' ? (
  <div>
  <Label htmlFor="stock-op-location">Locație</Label>
- <select
+ <NativeSelect
  id="stock-op-location"
  disabled={disabled}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-3"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg p-3 pr-9"
  {...register('location')}
  >
- <option value="workshop">Atelier</option>
+ <NativeSelectOption value="workshop">Atelier</NativeSelectOption>
  {activeFairs.map((fair) => (
- <option key={fair._id} value={fair._id}>
+ <NativeSelectOption key={fair._id} value={fair._id}>
  {fair.name}
- </option>
+ </NativeSelectOption>
  ))}
- </select>
+ </NativeSelect>
  </div>
  ) : null}
 
@@ -273,25 +277,26 @@ export const StockOperationDialog = ({
  })}
  />
  {errors.delta ? (
- <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-red-700 dark:text-red-400">
  {errors.delta.message}
- </p>
+ </FieldError>
  ) : null}
  </div>
  <div>
  <Label htmlFor="stock-op-reason">Motiv</Label>
- <select
+ <NativeSelect
  id="stock-op-reason"
  disabled={disabled}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-3"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg p-3 pr-9"
  {...register('reason')}
  >
  {REASON_LABELS.map(([value, label]) => (
- <option key={value} value={value}>
+ <NativeSelectOption key={value} value={value}>
  {label}
- </option>
+ </NativeSelectOption>
  ))}
- </select>
+ </NativeSelect>
  </div>
  </div>
  <div>
@@ -310,9 +315,9 @@ export const StockOperationDialog = ({
  })}
  />
  {errors.note ? (
- <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-red-700 dark:text-red-400">
  {errors.note.message}
- </p>
+ </FieldError>
  ) : null}
  </div>
  </>
@@ -321,25 +326,25 @@ export const StockOperationDialog = ({
  {kind === 'count' ? (
  <>
  {snapshotError ? (
- <p role="alert" className="text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="text-red-700 dark:text-red-400">
  {snapshotError}
- </p>
+ </FieldError>
  ) : null}
- <dl className="grid grid-cols-3 gap-3 rounded-xl bg-stone-100 dark:bg-stone-800 p-4 text-sm">
+ <dl className="grid grid-cols-3 gap-3 rounded-xl bg-muted p-4 text-sm">
  <div>
- <dt className="text-xs text-stone-500 dark:text-stone-400 ">Așteptat</dt>
+ <dt className="text-xs text-muted-foreground">Așteptat</dt>
  <dd className="mt-1 font-semibold tabular-nums">
  {expected === null ? '—' : formatStock(expected)}
  </dd>
  </div>
  <div>
- <dt className="text-xs text-stone-500 dark:text-stone-400 ">Rezervat comenzi</dt>
+ <dt className="text-xs text-muted-foreground">Rezervat comenzi</dt>
  <dd className="mt-1 font-semibold tabular-nums">
  {snapshot ? formatStock(snapshot.held) : '—'}
  </dd>
  </div>
  <div>
- <dt className="text-xs text-stone-500 dark:text-stone-400 ">Diferență</dt>
+ <dt className="text-xs text-muted-foreground">Diferență</dt>
  <dd className="mt-1 font-semibold tabular-nums">
  {difference === null ? '—' : formatStock(difference)}
  </dd>
@@ -368,9 +373,9 @@ export const StockOperationDialog = ({
  })}
  />
  {errors.counted ? (
- <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-red-700 dark:text-red-400">
  {errors.counted.message}
- </p>
+ </FieldError>
  ) : null}
  </div>
  </>
@@ -395,9 +400,9 @@ export const StockOperationDialog = ({
  })}
  />
  {errors.threshold ? (
- <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-red-700 dark:text-red-400">
  {errors.threshold.message}
- </p>
+ </FieldError>
  ) : null}
  </div>
  ) : null}

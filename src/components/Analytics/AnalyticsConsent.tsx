@@ -65,15 +65,16 @@ export const AnalyticsConsent: React.FC = () => {
   return (
     <>
       {!showPanel && (
-        <button
+        <Button
           ref={fabRef}
+          variant="ghost"
           type="button"
           onClick={reopen}
           aria-label={t('analytics.settings')}
-          className="fixed bottom-4 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-600 shadow-md transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+          className="fixed bottom-4 right-4 z-40 flex h-10 min-h-0 w-10 items-center justify-center rounded-full border border-stone-300 bg-card p-0 text-stone-600 shadow-md transition-colors duration-150 hover:bg-muted hover:text-stone-600 focus-visible:ring-amber-500 active:scale-100 dark:border-stone-700 dark:text-stone-300 dark:hover:text-stone-300"
         >
-          <BarChart3 className="h-4 w-4" aria-hidden="true" />
-        </button>
+          <BarChart3 className="size-4" aria-hidden="true" />
+        </Button>
       )}
       {showPanel && (
         <section
@@ -82,13 +83,13 @@ export const AnalyticsConsent: React.FC = () => {
           aria-modal="false"
           aria-labelledby="analytics-consent-title"
           aria-describedby="analytics-consent-description"
-          className="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200 bg-white/95 px-4 py-4 shadow-lg backdrop-blur sm:px-6 dark:border-stone-800 dark:bg-stone-900/95"
+          className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-white/95 px-4 py-4 shadow-lg backdrop-blur sm:px-6 dark:bg-stone-900/95"
         >
           <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-2xl">
               <h2
                 id="analytics-consent-title"
-                className="font-serif text-base font-medium text-stone-900 dark:text-stone-50"
+                className="font-serif text-base font-medium text-foreground"
               >
                 {t('analytics.title')}
               </h2>
@@ -99,7 +100,7 @@ export const AnalyticsConsent: React.FC = () => {
                 {t('analytics.description')}{' '}
                 <Link
                   to="/privacy-policy"
-                  className="underline underline-offset-2 hover:text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded dark:hover:text-stone-50"
+                  className="underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded"
                 >
                   {t('analytics.privacyLink')}
                 </Link>

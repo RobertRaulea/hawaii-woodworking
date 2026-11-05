@@ -184,7 +184,7 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  <td className="py-2.5 pr-2">
  <span
  aria-hidden="true"
- className="inline-block h-4 w-4 border-2 border-stone-900"
+ className="inline-block size-4 border-2 border-stone-900"
  />
  </td>
  <td className="py-2.5 pr-3 font-medium">
@@ -192,7 +192,7 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  <ProductThumb
  src={thumbnails.get(item.productId)}
  alt={item.name}
- className="h-10 w-10 border border-stone-200"
+ className="size-10 border border-stone-200"
  />
  {item.name}
  </span>
@@ -234,7 +234,7 @@ export const PackingSlip: React.FC<PackingSlipProps> = ({
  <p className="flex items-center gap-2.5 text-xs">
  <span
  aria-hidden="true"
- className="inline-block h-4 w-4 shrink-0 border-2 border-stone-900"
+ className="inline-block size-4 shrink-0 border-2 border-stone-900"
  />
  Am verificat conținutul coletului și integritatea produselor.
  </p>

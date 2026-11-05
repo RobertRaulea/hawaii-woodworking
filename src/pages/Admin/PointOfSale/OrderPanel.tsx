@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { FieldError } from '@/components/ui/field';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { computeDiscountCents, formatMoney, parseMoney } from './pos.utils';
 import type { PosDiscountMode } from './pos.utils';
@@ -71,27 +74,27 @@ export const OrderPanel = ({
 
  return (
  <aside
- className="self-start overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm md:sticky md:top-5 md:flex md:max-h-[calc(100dvh-2.5rem)] md:flex-col md:overflow-y-auto"
+ className="self-start overflow-hidden rounded-2xl border border-border bg-card shadow-sm md:sticky md:top-5 md:flex md:max-h-[calc(100dvh-2.5rem)] md:flex-col md:overflow-y-auto"
  aria-label="Comanda curenta"
  >
- <div className="flex shrink-0 items-center justify-between border-b border-stone-200 dark:border-stone-800 px-5 py-5">
+ <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-5">
  <div>
- <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-50 ">
+ <h2 className="text-xl font-semibold text-foreground">
  Comanda curenta
  </h2>
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-xs text-muted-foreground">
  {units} bucati selectate
  </p>
  </div>
- <ShoppingBag className="h-6 w-6 text-amber-700 dark:text-amber-400 " />
+ <ShoppingBag className="size-6 text-amber-700 dark:text-amber-400 " />
  </div>
  {cart.length === 0 ? (
  <div className="px-6 py-12 text-center md:min-h-0 md:overflow-y-auto">
- <ShoppingBag className="mx-auto mb-3 h-10 w-10 text-stone-300" />
+ <ShoppingBag className="mx-auto mb-3 size-10 text-stone-300" />
  <p className="font-medium text-stone-700 dark:text-stone-300 ">
  O noua vanzare incepe aici
  </p>
- <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-2 text-sm text-muted-foreground">
  Apasa pe produse pentru a le adauga.
  </p>
  </div>
@@ -106,13 +109,13 @@ export const OrderPanel = ({
  <ProductThumb
  src={product.image}
  alt={product.name}
- className="h-12 w-12"
+ className="size-12"
  />
  <div className="min-w-0">
- <p className="text-sm font-semibold text-stone-900 dark:text-stone-50 ">
+ <p className="text-sm font-semibold text-foreground">
  {product.name}
  </p>
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-xs text-muted-foreground">
  {formatMoney(product.unitPriceCents)} / buc.
  </p>
  </div>
@@ -125,20 +128,20 @@ export const OrderPanel = ({
  onClick={() => onQuantity(product.id, 0)}
  className="-mr-2 h-auto min-h-11 min-w-11 rounded-lg p-3 text-stone-400 dark:text-stone-500 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-400"
  >
- <Trash2 className="h-4 w-4" />
+ <Trash2 className="size-4" />
  </Button>
  </div>
  <div className="mt-2 flex items-center justify-between">
- <div className="flex items-center rounded-lg border border-stone-200 dark:border-stone-800 ">
+ <div className="flex items-center rounded-lg border border-border">
  <Button
  type="button"
  variant="ghost"
  disabled={disabled}
  aria-label={`Scade cantitatea pentru ${product.name}`}
  onClick={() => onQuantity(product.id, quantity - 1)}
- className="h-auto min-h-11 min-w-11 rounded-l-lg rounded-r-none p-3 hover:bg-stone-100 dark:hover:bg-stone-800"
+ className="h-auto min-h-11 min-w-11 rounded-l-lg rounded-r-none p-3 hover:bg-muted"
  >
- <Minus className="h-4 w-4" />
+ <Minus className="size-4" />
  </Button>
  <span className="min-w-7 text-center text-sm font-semibold">
  {quantity}
@@ -149,9 +152,9 @@ export const OrderPanel = ({
  disabled={disabled || quantity >= (current?.stock ?? 0)}
  aria-label={`Creste cantitatea pentru ${product.name}`}
  onClick={() => onQuantity(product.id, quantity + 1)}
- className="h-auto min-h-11 min-w-11 rounded-l-none rounded-r-lg p-3 hover:bg-stone-100 dark:hover:bg-stone-800"
+ className="h-auto min-h-11 min-w-11 rounded-l-none rounded-r-lg p-3 hover:bg-muted"
  >
- <Plus className="h-4 w-4" />
+ <Plus className="size-4" />
  </Button>
  </div>
  <span className="text-sm font-semibold">
@@ -171,34 +174,35 @@ export const OrderPanel = ({
  })}
  </ul>
  )}
- <div className="shrink-0 space-y-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/70 p-5">
+ <div className="shrink-0 space-y-4 border-t border-border bg-stone-50/70 dark:bg-stone-900/70 p-5">
  <details className="text-sm text-stone-600 dark:text-stone-300 ">
  <summary className="cursor-pointer py-1">Reducere</summary>
  <p className="mb-3 mt-2 text-xs">
  Motivul se salveaza cu vanzarea.
  </p>
- <label htmlFor="pos-discount-mode" className="text-xs">
+ <Label htmlFor="pos-discount-mode" className="text-xs font-normal leading-4">
  Tip reducere
- </label>
- <select
+ </Label>
+ <NativeSelect
  id="pos-discount-mode"
  disabled={disabled}
- className="mt-1 w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-2.5"
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg p-2.5 pr-9"
  {...register('mode', {
  onChange: () => void trigger('amount'),
  })}
  >
- <option value="fixed">Suma fixa (lei)</option>
- <option value="percent">Procent (%)</option>
- <option value="final">Pret convenit (total final)</option>
- </select>
- <label htmlFor="pos-discount" className="mt-3 block text-xs">
+ <NativeSelectOption value="fixed">Suma fixa (lei)</NativeSelectOption>
+ <NativeSelectOption value="percent">Procent (%)</NativeSelectOption>
+ <NativeSelectOption value="final">Pret convenit (total final)</NativeSelectOption>
+ </NativeSelect>
+ <Label htmlFor="pos-discount" className="mt-3 block text-xs font-normal leading-4">
  {mode === 'percent'
  ? 'Reducere (%)'
  : mode === 'final'
  ? 'Suma convenita (lei)'
  : 'Reducere fixa (lei)'}
- </label>
+ </Label>
  <Input
  id="pos-discount"
  inputMode="decimal"
@@ -228,13 +232,13 @@ export const OrderPanel = ({
  })}
  />
  {errors.amount ? (
- <p role="alert" className="mt-1 text-xs text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-xs text-red-700 dark:text-red-400">
  {errors.amount.message}
- </p>
+ </FieldError>
  ) : null}
- <label htmlFor="pos-discount-reason" className="mt-3 block text-xs">
+ <Label htmlFor="pos-discount-reason" className="mt-3 block text-xs font-normal leading-4">
  Motivul reducerii
- </label>
+ </Label>
  <Input
  id="pos-discount-reason"
  disabled={disabled}
@@ -248,9 +252,9 @@ export const OrderPanel = ({
  })}
  />
  {errors.reason ? (
- <p role="alert" className="mt-1 text-xs text-red-700 dark:text-red-400 ">
+ <FieldError  className="mt-1 text-xs text-red-700 dark:text-red-400">
  {errors.reason.message}
- </p>
+ </FieldError>
  ) : null}
  </details>
  {discount > 0 ? (
@@ -261,14 +265,14 @@ export const OrderPanel = ({
  ) : null}
  <div className="flex items-end justify-between">
  <span className="text-stone-600 dark:text-stone-300 ">Total de incasat</span>
- <strong className="text-3xl tracking-tight text-stone-900 dark:text-stone-50 ">
+ <strong className="text-3xl tracking-tight text-foreground">
  {formatMoney(Math.max(0, subtotal - discount))}
  </strong>
  </div>
  {errors.amount || errors.reason ? (
- <p role="alert" className="text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="text-red-700 dark:text-red-400">
  Verifica valoarea si motivul reducerii.
- </p>
+ </FieldError>
  ) : null}
  <Button
  type="button"
@@ -277,7 +281,7 @@ export const OrderPanel = ({
  disabled={disabled || !canPay || cart.length === 0}
  className="w-full rounded-xl bg-amber-700 px-4 py-3 font-semibold hover:bg-amber-800 disabled:cursor-not-allowed [&_svg]:size-5"
  >
- <Banknote className="h-5 w-5" /> Incaseaza CASH
+ <Banknote className="size-5" /> Incaseaza CASH
  </Button>
  <Button
  type="button"
@@ -285,20 +289,20 @@ export const OrderPanel = ({
  size="2xl"
  onClick={pay('card')}
  disabled={disabled || !canPay || cart.length === 0}
- className="w-full rounded-xl border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-3 font-semibold text-stone-800 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-800 dark:hover:text-stone-100 disabled:cursor-not-allowed [&_svg]:size-5"
+ className="w-full rounded-xl border-stone-300 dark:border-stone-700 bg-card px-4 py-3 font-semibold text-stone-800 dark:text-stone-100 hover:bg-muted hover:text-stone-800 dark:hover:text-stone-100 disabled:cursor-not-allowed [&_svg]:size-5"
  >
- <CreditCard className="h-5 w-5" /> Plata cu cardul
+ <CreditCard className="size-5" /> Plata cu cardul
  </Button>
  <Button
  type="button"
  variant="ghost"
  disabled={disabled || cart.length === 0}
  onClick={onClear}
- className="h-auto min-h-11 w-full rounded-lg text-sm text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-stone-500 dark:hover:text-stone-400"
+ className="h-auto min-h-11 w-full rounded-lg text-sm text-muted-foreground hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-muted-foreground"
  >
  Goleste cosul
  </Button>
- <p className="text-center text-[11px] leading-5 text-stone-500 dark:text-stone-400 ">
+ <p className="text-center text-[11px] leading-5 text-muted-foreground">
  Stocul se actualizeaza numai dupa confirmare.
  <br />
  Inregistrarea platii nu emite documente fiscale.

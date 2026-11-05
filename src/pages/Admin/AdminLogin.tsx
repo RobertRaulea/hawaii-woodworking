@@ -10,7 +10,7 @@ export const AdminLogin: React.FC = () => {
  if (isLoading) {
  return (
  <main className="flex items-center justify-center min-h-screen bg-stone-50 dark:bg-stone-800 ">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă...</p>
+ <p className="text-muted-foreground">Se încarcă...</p>
  </main>
  );
  }
@@ -21,7 +21,7 @@ export const AdminLogin: React.FC = () => {
 
  return (
  <main className="flex flex-col items-center justify-center min-h-screen bg-stone-50 dark:bg-stone-800 px-4">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 mb-6">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground mb-6">
  Autentificare personal
  </h1>
 

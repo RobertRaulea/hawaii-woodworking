@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -102,7 +103,7 @@ export const AdminCategories: React.FC = () => {
  if (categories === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă categoriile...</p>
+ <p className="text-muted-foreground">Se încarcă categoriile...</p>
  </div>
  );
  }
@@ -110,7 +111,7 @@ export const AdminCategories: React.FC = () => {
  return (
  <section>
  <div className="mb-6 flex items-center justify-between">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Categorii</h1>
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Categorii</h1>
  </div>
 
  {error && (
@@ -129,23 +130,23 @@ export const AdminCategories: React.FC = () => {
  placeholder="Numele categoriei noi"
  className="h-auto flex-1 rounded-lg px-3 py-2.5"
  />
- <Button
+ <Button variant="brand"
  onClick={handleCreate}
  disabled={isAdding || !newCategoryName.trim()}
- className="gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg py-2.5"
  >
- <Plus className="h-4 w-4" />
+ <Plus className="size-4" />
  {isAdding ? 'Se adaugă...' : 'Adaugă'}
  </Button>
  </div>
  </div>
 
  {categories.length === 0 ? (
- <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-12 text-center">
- <p className="text-stone-500 dark:text-stone-400 ">Nu există categorii încă. Adaugă prima categorie mai sus.</p>
- </div>
+ <Empty className="gap-0 flex-initial rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-card p-12 text-center">
+ <p className="text-muted-foreground">Nu există categorii încă. Adaugă prima categorie mai sus.</p>
+ </Empty>
  ) : (
- <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <div className="overflow-x-auto rounded-lg border border-border bg-card">
  <Table className="w-full text-sm">
  <TableHeader>
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
@@ -179,10 +180,10 @@ export const AdminCategories: React.FC = () => {
  autoFocus
  />
  ) : (
- <span className="font-medium text-stone-900 dark:text-stone-50 ">{category.name}</span>
+ <span className="font-medium text-foreground">{category.name}</span>
  )}
  {used ? (
- <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-xs text-muted-foreground">
  Folosită de produse — redenumirea este blocată.
  </p>
  ) : null}
@@ -207,7 +208,7 @@ export const AdminCategories: React.FC = () => {
  variant="ghost"
  size="sm"
  onClick={cancelEditing}
- className="gap-1 px-2.5 text-xs font-medium text-stone-500 dark:text-stone-400 hover:text-stone-500 dark:hover:text-stone-400"
+ className="gap-1 px-2.5 text-xs font-medium text-muted-foreground hover:text-muted-foreground"
  >
  <X className="h-3.5 w-3.5" />
  Anulează
@@ -242,7 +243,7 @@ export const AdminCategories: React.FC = () => {
  variant="ghost"
  size="sm"
  onClick={() => setConfirmDeleteId(null)}
- className="px-2.5 text-xs font-medium text-stone-500 dark:text-stone-400 hover:text-stone-500 dark:hover:text-stone-400"
+ className="px-2.5 text-xs font-medium text-muted-foreground hover:text-muted-foreground"
  >
  Anulează
  </Button>

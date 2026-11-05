@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FieldLabel } from '@/components/ui/field';
 import {
  Table,
  TableBody,
@@ -33,11 +33,6 @@ import type {
  TransferEvent,
 } from '../../../types/transfers.types';
 
-const labelClass =
- 'block text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-1.5';
-const thClass =
- 'px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ';
-const tdClass = 'px-4 py-3';
 
 const formatDate = (timestamp: number) =>
  new Date(timestamp).toLocaleString('ro-RO', {
@@ -145,10 +140,10 @@ const TransferDetail = () => {
  });
 
  if (detail === undefined)
- return <p className="text-sm text-stone-500 dark:text-stone-400 ">Se încarcă…</p>;
+ return <p className="text-sm text-muted-foreground">Se încarcă…</p>;
  if (detail === null || !transfer)
  return (
- <p className="text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm text-muted-foreground">
  Transferul nu este disponibil pentru acest cont.
  </p>
  );
@@ -170,7 +165,7 @@ const TransferDetail = () => {
  ← Transferuri
  </Link>
  <div className="mt-1 flex flex-wrap items-center gap-3">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
  Transfer {formatDate(transfer.createdAt)}
  </h1>
  <Badge
@@ -184,7 +179,7 @@ const TransferDetail = () => {
  {transfer.fromName ?? '—'} → {transfer.toName ?? '—'}
  </p>
  {transfer.note && (
- <p className="mt-1 text-sm italic text-stone-500 dark:text-stone-400 ">{transfer.note}</p>
+ <p className="mt-1 text-sm italic text-muted-foreground">{transfer.note}</p>
  )}
  {transfer.cancelReason && (
  <p className="mt-1 text-sm text-red-600 dark:text-red-400 ">
@@ -197,10 +192,10 @@ const TransferDetail = () => {
  {canExecute && editable && (
  <>
  {transfer.status === 'requested' && (
- <Button
+ <Button variant="brand"
  type="button"
  onClick={() => setDialog('accept')}
- className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-md"
  >
  Acceptă
  </Button>
@@ -208,17 +203,17 @@ const TransferDetail = () => {
  <Button
  asChild
  variant="outline"
- className="rounded-md px-4 py-2 text-sm"
+ className="rounded-md"
  >
  <Link to={`/admin/transfers/${transfer._id}/edit`}>
  Editează
  </Link>
  </Button>
  {transfer.status === 'draft' && (
- <Button
+ <Button variant="brand"
  type="button"
  onClick={() => setDialog('ship')}
- className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-md"
  >
  Expediază
  </Button>
@@ -247,36 +242,36 @@ const TransferDetail = () => {
  )}
  </div>
 
- <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <div className="overflow-x-auto rounded-lg border border-border bg-card">
  <Table className="min-w-full text-sm">
  <TableHeader className="bg-stone-50 dark:bg-stone-800 ">
  <TableRow className="hover:bg-stone-50 dark:hover:bg-stone-900">
- <TableHead className={thClass}>Produs</TableHead>
- <TableHead className={thClass}>Solicitat</TableHead>
- <TableHead className={thClass}>Planificat</TableHead>
- <TableHead className={thClass}>Expediat</TableHead>
- <TableHead className={thClass}>Recepționat</TableHead>
- <TableHead className={thClass}>În tranzit</TableHead>
+ <TableHead className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Produs</TableHead>
+ <TableHead className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Solicitat</TableHead>
+ <TableHead className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Planificat</TableHead>
+ <TableHead className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Expediat</TableHead>
+ <TableHead className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Recepționat</TableHead>
+ <TableHead className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">În tranzit</TableHead>
  </TableRow>
  </TableHeader>
  <TableBody>
  {transfer.lines.map((line) => (
  <TableRow key={line.productId} className="hover:bg-transparent">
- <TableCell className={tdClass}>
+ <TableCell className="px-4 py-3">
  <span className="flex items-center gap-3">
  <ProductThumb
  src={thumbnails.get(line.productId)}
  alt={line.productName}
- className="h-8 w-8"
+ className="size-8"
  />
  {line.productName}
  </span>
  </TableCell>
- <TableCell className={tdClass}>{line.requestedQuantity ?? '—'}</TableCell>
- <TableCell className={tdClass}>{line.quantity}</TableCell>
- <TableCell className={tdClass}>{line.shippedQuantity}</TableCell>
- <TableCell className={tdClass}>{line.receivedQuantity}</TableCell>
- <TableCell className={tdClass}>
+ <TableCell className="px-4 py-3">{line.requestedQuantity ?? '—'}</TableCell>
+ <TableCell className="px-4 py-3">{line.quantity}</TableCell>
+ <TableCell className="px-4 py-3">{line.shippedQuantity}</TableCell>
+ <TableCell className="px-4 py-3">{line.receivedQuantity}</TableCell>
+ <TableCell className="px-4 py-3">
  {Math.max(0, line.shippedQuantity - line.receivedQuantity)}
  </TableCell>
  </TableRow>
@@ -285,19 +280,19 @@ const TransferDetail = () => {
  </Table>
  </div>
 
- <section className="rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5">
- <h2 className="text-sm font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
+ <section className="rounded-lg border border-border bg-card p-5">
+ <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
  Istoric operațiuni
  </h2>
  <ul className="mt-3 space-y-3">
  {events.map((event: TransferEvent) => (
  <li
  key={event._id}
- className="border-l-2 border-stone-200 dark:border-stone-800 pl-3 text-sm"
+ className="border-l-2 border-border pl-3 text-sm"
  >
- <p className="font-medium text-stone-900 dark:text-stone-50 ">
+ <p className="font-medium text-foreground">
  {TRANSFER_EVENT_LABELS[event.kind] ?? event.kind}
- <span className="ml-2 font-normal text-stone-500 dark:text-stone-400 ">
+ <span className="ml-2 font-normal text-muted-foreground">
  {formatDate(event.createdAt)} · {userLabel(event.actorId)}
  </span>
  </p>
@@ -312,7 +307,7 @@ const TransferDetail = () => {
  </p>
  )}
  {event.note && (
- <p className="italic text-stone-500 dark:text-stone-400 ">{event.note}</p>
+ <p className="italic text-muted-foreground">{event.note}</p>
  )}
  </li>
  ))}
@@ -331,7 +326,7 @@ const TransferDetail = () => {
  <ProductThumb
  src={thumbnails.get(line.productId)}
  alt={line.productName}
- className="h-8 w-8"
+ className="size-8"
  />
  <span>
  {line.productName}: <strong>{line.quantity} buc.</strong>
@@ -339,7 +334,7 @@ const TransferDetail = () => {
  </li>
  ))}
  </ul>
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm text-muted-foreground">
  Transferul trece în draft cu sursa Atelier și cantitățile
  solicitate. Stocul va fi scăzut abia la expediere; dacă detaliile
  trebuie ajustate, folosește Editează.
@@ -349,15 +344,15 @@ const TransferDetail = () => {
  type="button"
  variant="outline"
  onClick={() => setDialog(null)}
- className="rounded-md px-4 py-2 text-sm"
+ className="rounded-md"
  >
  Renunță
  </Button>
- <Button
+ <Button variant="brand"
  type="button"
  onClick={submitAccept}
  disabled={controller.busy || controller.blocked}
- className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-md"
  >
  {controller.busy ? 'Se trimite…' : 'Acceptă'}
  </Button>
@@ -377,7 +372,7 @@ const TransferDetail = () => {
  <ProductThumb
  src={thumbnails.get(line.productId)}
  alt={line.productName}
- className="h-8 w-8"
+ className="size-8"
  />
  <span>
  {line.productName}: <strong>{line.quantity} buc.</strong>
@@ -385,7 +380,7 @@ const TransferDetail = () => {
  </li>
  ))}
  </ul>
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm text-muted-foreground">
  Stocul sursei ({transfer.fromName ?? '—'}) va fi scăzut imediat;
  destinația este actualizată la recepție.
  </p>
@@ -394,15 +389,15 @@ const TransferDetail = () => {
  type="button"
  variant="outline"
  onClick={() => setDialog(null)}
- className="rounded-md px-4 py-2 text-sm"
+ className="rounded-md"
  >
  Renunță
  </Button>
- <Button
+ <Button variant="brand"
  type="button"
  onClick={submitShip}
  disabled={controller.busy || controller.blocked}
- className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-md"
  >
  {controller.busy ? 'Se trimite…' : 'Expediază'}
  </Button>
@@ -434,10 +429,10 @@ const TransferDetail = () => {
  alt={line.productName}
  />
  <div>
- <p className="text-sm font-medium text-stone-900 dark:text-stone-50 ">
+ <p className="text-sm font-medium text-foreground">
  {line.productName}
  </p>
- <p className="text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="text-xs text-muted-foreground">
  În tranzit:{' '}
  {line.shippedQuantity - line.receivedQuantity} buc.
  </p>
@@ -468,9 +463,9 @@ const TransferDetail = () => {
  </p>
  ) : null}
  <div>
- <Label htmlFor="receive-note" className={labelClass}>
+ <FieldLabel variant="caps" htmlFor="receive-note">
  Notă (opțional)
- </Label>
+ </FieldLabel>
  <Textarea
  id="receive-note"
  rows={2}
@@ -483,7 +478,7 @@ const TransferDetail = () => {
  type="button"
  variant="outline"
  onClick={() => setDialog(null)}
- className="rounded-md px-4 py-2 text-sm"
+ className="rounded-md"
  >
  Renunță
  </Button>
@@ -507,9 +502,9 @@ const TransferDetail = () => {
  >
  <form onSubmit={submitCancel} className="space-y-4">
  <div>
- <Label htmlFor="cancel-reason" className={labelClass}>
+ <FieldLabel variant="caps" htmlFor="cancel-reason">
  Motiv anulare
- </Label>
+ </FieldLabel>
  <Textarea
  id="cancel-reason"
  rows={2}
@@ -533,7 +528,7 @@ const TransferDetail = () => {
  type="button"
  variant="outline"
  onClick={() => setDialog(null)}
- className="rounded-md px-4 py-2 text-sm"
+ className="rounded-md"
  >
  Renunță
  </Button>
@@ -574,7 +569,7 @@ const TransferDetail = () => {
  </p>
  )}
  {!canExecute && transfer.status === 'requested' && (
- <p className="text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm text-muted-foreground">
  Solicitarea așteaptă aprobarea echipei de atelier.
  </p>
  )}

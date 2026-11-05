@@ -182,7 +182,7 @@ it('footer social icons have names and decorative SVGs, and contacts are actiona
   for (const name of ['Facebook', 'Instagram', 'TikTok']) {
     const link = screen.getByRole('link', { name });
     assert.equal(link.querySelector('svg')?.getAttribute('aria-hidden'), 'true');
-    assert.ok(link.classList.contains('dark:text-stone-400'));
+    assert.ok(link.classList.contains('text-muted-foreground'));
     assert.ok(link.classList.contains('hover:text-amber-400'));
     assert.ok(link.classList.contains('dark:hover:text-amber-400'));
   }

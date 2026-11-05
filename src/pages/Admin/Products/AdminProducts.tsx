@@ -8,9 +8,11 @@ import type { Doc } from '../../../../convex/_generated/dataModel';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Empty } from '@/components/ui/empty';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
  Table,
  TableBody,
@@ -38,11 +40,11 @@ const STATUS_LABELS: Record<AdminProduct['status'], string> = {
 
 const STATUS_BADGES: Record<
  AdminProduct['status'],
- { variant: 'success' | 'warning' | 'soft'; className?: string }
+ 'emerald' | 'amber' | 'stone'
 > = {
- active: { variant: 'success', className: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ' },
- inactive: { variant: 'warning', className: 'text-amber-800 dark:text-amber-300 ' },
- archived: { variant: 'soft', className: 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 ' },
+ active: 'emerald',
+ inactive: 'amber',
+ archived: 'stone',
 };
 
 export const AdminProducts: React.FC = () => {
@@ -135,7 +137,7 @@ export const AdminProducts: React.FC = () => {
  if (products === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă produsele...</p>
+ <p className="text-muted-foreground">Se încarcă produsele...</p>
  </div>
  );
  }
@@ -143,13 +145,13 @@ export const AdminProducts: React.FC = () => {
  return (
  <section>
  <div className="mb-6 flex items-center justify-between">
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Produse</h1>
- <Button
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Produse</h1>
+ <Button variant="brand"
  asChild
- className="gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg py-2.5"
  >
  <Link to="/admin/products/new">
- <Plus className="h-4 w-4" />
+ <Plus className="size-4" />
  Adaugă produs
  </Link>
  </Button>
@@ -162,19 +164,19 @@ export const AdminProducts: React.FC = () => {
  ) : null}
 
  {products.length === 0 ? (
- <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-12 text-center">
- <p className="mb-4 text-stone-500 dark:text-stone-400 ">Nu există produse încă.</p>
+ <Empty className="gap-0 flex-initial rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-card p-12 text-center">
+ <p className="mb-4 text-muted-foreground">Nu există produse încă.</p>
  <Button
  asChild
  variant="link"
  className="gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400"
  >
  <Link to="/admin/products/new">
- <Plus className="h-4 w-4" />
+ <Plus className="size-4" />
  Adaugă primul produs
  </Link>
  </Button>
- </div>
+ </Empty>
  ) : (
  <>
  <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto_auto]">
@@ -188,39 +190,39 @@ export const AdminProducts: React.FC = () => {
  placeholder="Caută după nume sau SKU..."
  className="h-auto w-full rounded-lg px-3 py-2.5"
  />
- <select
+ <NativeSelect
  aria-label="Categorie"
  value={categoryFilter}
  onChange={(e) => {
  setCategoryFilter(e.target.value);
  setPage(0);
  }}
- className="rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2.5 text-sm text-stone-900 dark:text-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+ className="rounded-lg px-3 py-2.5 pr-9"
  >
- <option value="">Toate categoriile</option>
+ <NativeSelectOption value="">Toate categoriile</NativeSelectOption>
  {categories.map((name) => (
- <option key={name} value={name}>
+ <NativeSelectOption key={name} value={name}>
  {name}
- </option>
+ </NativeSelectOption>
  ))}
- </select>
- <select
+ </NativeSelect>
+ <NativeSelect
  aria-label="Stare"
  value={statusFilter}
  onChange={(e) => {
  setStatusFilter(e.target.value as StatusFilter);
  setPage(0);
  }}
- className="rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2.5 text-sm text-stone-900 dark:text-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+ className="rounded-lg px-3 py-2.5 pr-9"
  >
- <option value="visible">Toate (fără arhivate)</option>
- <option value="active">Activ</option>
- <option value="inactive">Inactiv</option>
- <option value="archived">Arhivat</option>
- </select>
+ <NativeSelectOption value="visible">Toate (fără arhivate)</NativeSelectOption>
+ <NativeSelectOption value="active">Activ</NativeSelectOption>
+ <NativeSelectOption value="inactive">Inactiv</NativeSelectOption>
+ <NativeSelectOption value="archived">Arhivat</NativeSelectOption>
+ </NativeSelect>
  </div>
 
- <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 ">
+ <div className="overflow-x-auto rounded-lg border border-border bg-card">
  <Table className="w-full text-sm">
  <TableHeader>
  <TableRow className="bg-stone-50 dark:bg-stone-800 ">
@@ -260,14 +262,14 @@ export const AdminProducts: React.FC = () => {
  />
  </TableCell>
  <TableCell className="px-4 py-3">
- <p className="font-medium text-stone-900 dark:text-stone-50 ">
+ <p className="font-medium text-foreground">
  {product.name}
  </p>
- <p className="text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="text-xs text-muted-foreground">
  {product.sku || 'Fără SKU'}
  </p>
  </TableCell>
- <TableCell className="hidden px-4 py-3 text-stone-500 dark:text-stone-400 md:table-cell">
+ <TableCell className="hidden px-4 py-3 text-muted-foreground md:table-cell">
  {product.category ?? '—'}
  </TableCell>
  <TableCell className="px-4 py-3 text-right text-stone-700 dark:text-stone-300 ">
@@ -275,7 +277,7 @@ export const AdminProducts: React.FC = () => {
  </TableCell>
  <TableCell className="hidden px-4 py-3 text-center lg:table-cell">
  {product.trackStock === false ? (
- <span className="inline-flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400 ">
+ <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
  <Package className="h-3.5 w-3.5" />
  Nelimitat
  </span>
@@ -294,8 +296,7 @@ export const AdminProducts: React.FC = () => {
  </TableCell>
  <TableCell className="px-4 py-3">
  <Badge
- variant={STATUS_BADGES[product.status].variant}
- className={STATUS_BADGES[product.status].className}
+ variant={STATUS_BADGES[product.status]}
  >
  {STATUS_LABELS[product.status]}
  </Badge>
@@ -375,7 +376,7 @@ export const AdminProducts: React.FC = () => {
  <TableRow>
  <TableCell
  colSpan={7}
- className="px-4 py-10 text-center text-stone-500 dark:text-stone-400 "
+ className="px-4 py-10 text-center text-muted-foreground"
  >
  Niciun produs nu corespunde filtrelor.
  </TableCell>
@@ -392,11 +393,11 @@ export const AdminProducts: React.FC = () => {
  variant="outline"
  disabled={currentPage === 0}
  onClick={() => setPage(currentPage - 1)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Înapoi
  </Button>
- <p className="text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="text-sm text-muted-foreground">
  Pagina {currentPage + 1} din {pageCount}
  </p>
  <Button
@@ -404,7 +405,7 @@ export const AdminProducts: React.FC = () => {
  variant="outline"
  disabled={currentPage >= pageCount - 1}
  onClick={() => setPage(currentPage + 1)}
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  Înainte
  </Button>

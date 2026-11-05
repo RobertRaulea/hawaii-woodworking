@@ -11,6 +11,7 @@ const buttonVariants = cva(
  variants: {
  variant: {
  default: 'bg-primary text-primary-foreground shadow-sm hover:bg-amber-800',
+ brand: 'bg-amber-600 text-primary-foreground shadow-sm hover:bg-amber-700',
  secondary: 'bg-stone-900 text-white shadow-sm hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white',
  soft: 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 shadow-sm hover:bg-stone-200 dark:hover:bg-stone-700',
  destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-red-700',
@@ -21,6 +22,7 @@ const buttonVariants = cva(
  },
  size: {
  default: 'min-h-11 px-4 py-2 text-sm',
+ xs: 'min-h-0 rounded px-2 py-1 text-xs',
  sm: 'min-h-9 rounded-lg px-3 text-xs',
  lg: 'min-h-12 px-6',
  xl: 'min-h-12 px-4 py-3 text-sm',

@@ -6,6 +6,7 @@ import { SEO } from '../../components/SEO/SEO';
 import { useSiteAssets } from '../../hooks/useSiteAssets';
 import type { SiteAsset } from '../../types/siteAsset.types';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
  Dialog,
  DialogClose,
@@ -85,7 +86,7 @@ export const Catalog: React.FC = () => {
  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-amber-800 dark:text-amber-300 ">
  Hawaii Woodworking · Atelier Sibiu
  </p>
- <h1 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] text-stone-900 dark:text-stone-50 sm:text-5xl lg:text-6xl">
+ <h1 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] text-foreground sm:text-5xl lg:text-6xl">
  {t('customWork.title')}
  </h1>
  <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600 dark:text-stone-300 sm:text-base">
@@ -103,11 +104,11 @@ export const Catalog: React.FC = () => {
  {loading ? (
  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
  {Array.from({ length: 3 }, (_, index) => (
- <div key={index} className="aspect-[4/5] animate-pulse bg-stone-200/80 dark:bg-stone-700/80 " />
+ <Skeleton key={index} className="aspect-[4/5] bg-stone-200/80 dark:bg-stone-700/80" />
  ))}
  </div>
  ) : works.length === 0 ? (
- <p className="py-20 text-center font-serif text-xl text-stone-500 dark:text-stone-400 ">{t('customWork.empty')}</p>
+ <p className="py-20 text-center font-serif text-xl text-muted-foreground">{t('customWork.empty')}</p>
  ) : (
  <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-14">
  {works.map((work, index) => (
@@ -135,7 +136,7 @@ export const Catalog: React.FC = () => {
  </div>
  <div className="flex items-start justify-between gap-4 border-b border-stone-300 dark:border-stone-700 py-4">
  <div>
- <h2 className="font-serif text-xl text-stone-900 dark:text-stone-50 sm:text-2xl">{work.title}</h2>
+ <h2 className="font-serif text-xl text-foreground sm:text-2xl">{work.title}</h2>
  <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone-600 dark:text-stone-300 ">
  {work.description || t('customWork.legacyDescription')}
  </p>
@@ -173,18 +174,18 @@ export const Catalog: React.FC = () => {
  <Button
  type="button"
  variant="ghost"
- className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-stone-900/80 p-0 text-xl text-white transition hover:bg-stone-900 hover:text-white"
+ className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full bg-stone-900/80 p-0 text-xl text-white transition hover:bg-stone-900 hover:text-white"
  aria-label={t('customWork.close')}
  >
  ×
  </Button>
  </DialogClose>
  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300 ">{t('customWork.madeToOrder')}</p>
- <h2 className="mt-3 font-serif text-3xl leading-tight text-stone-900 dark:text-stone-50 ">{selectedWork.title}</h2>
+ <h2 className="mt-3 font-serif text-3xl leading-tight text-foreground">{selectedWork.title}</h2>
  <p className="mt-5 text-sm leading-7 text-stone-600 dark:text-stone-300 ">
  {selectedWork.description || t('customWork.legacyDescription')}
  </p>
- <p className="mt-7 border-t border-stone-300 dark:border-stone-700 pt-5 text-sm font-semibold text-stone-900 dark:text-stone-50 ">
+ <p className="mt-7 border-t border-stone-300 dark:border-stone-700 pt-5 text-sm font-semibold text-foreground">
  {t('customWork.price')}: {selectedWork.price === undefined ? t('customWork.priceOnRequest') : formatPrice(selectedWork.price)}
  </p>
  </div>

@@ -62,6 +62,19 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver = globalThis.ResizeObserver ?? ResizeObserverStub;
 dom.window.ResizeObserver = dom.window.ResizeObserver ?? ResizeObserverStub;
+// embla-carousel (ProductCard/ImageCarousel, ProductGallery) observes slides.
+class IntersectionObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+globalThis.IntersectionObserver =
+  globalThis.IntersectionObserver ?? IntersectionObserverStub;
+dom.window.IntersectionObserver =
+  dom.window.IntersectionObserver ?? IntersectionObserverStub;
 if (!dom.window.PointerEvent) {
   globalThis.PointerEvent = dom.window.MouseEvent;
   dom.window.PointerEvent = dom.window.MouseEvent;

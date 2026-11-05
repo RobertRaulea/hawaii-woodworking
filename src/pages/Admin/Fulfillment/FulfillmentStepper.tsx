@@ -56,7 +56,7 @@ export const FulfillmentStepper: React.FC<FulfillmentStepperProps> = ({
  return (
  <ol
  aria-label="Progres pregătire comandă"
- className="flex items-start gap-0 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4"
+ className="flex items-start gap-0 rounded-xl border border-border bg-card p-4"
  >
  {steps.map((step, index) => {
  const done = index < currentIndex;
@@ -84,10 +84,10 @@ export const FulfillmentStepper: React.FC<FulfillmentStepperProps> = ({
  ? "bg-emerald-500 text-white"
  : current
  ? `${STEP_COLORS[step.key]} text-white ring-4 ring-stone-100`
- : "bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 "
+ : "bg-muted text-stone-400 dark:text-stone-500"
  }`}
  >
- {done ? <Check className="h-4 w-4" /> : index + 1}
+ {done ? <Check className="size-4" /> : index + 1}
  </span>
  <span
  aria-hidden="true"
@@ -103,7 +103,7 @@ export const FulfillmentStepper: React.FC<FulfillmentStepperProps> = ({
  <span
  className={`mt-1.5 text-[11px] font-medium leading-tight md:text-xs ${
  current
- ? "text-stone-900 dark:text-stone-50 "
+ ? "text-foreground"
  : done
  ? "text-stone-600 dark:text-stone-300 "
  : "text-stone-400 dark:text-stone-500 "

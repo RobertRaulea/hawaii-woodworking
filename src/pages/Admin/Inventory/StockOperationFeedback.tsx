@@ -43,11 +43,12 @@ export const StockOperationFeedback = ({
  return (
  <>
  {operation.pending ? (
- <section
+ <Alert
+ variant="warning"
  aria-label="Operațiune de stoc de verificat"
- className="my-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 p-4 text-amber-950 dark:text-amber-200"
+ className="my-4 rounded-xl"
  >
- <p className="font-semibold">
+ <p className="text-base font-semibold">
  {operation.busy
  ? 'Se salvează operațiunea...'
  : 'Operațiune de verificat'}
@@ -64,11 +65,11 @@ export const StockOperationFeedback = ({
  variant="outline"
  disabled={operation.busy || !operation.online}
  onClick={operation.retry}
- className="mt-3 min-h-11 h-auto rounded-lg border-amber-800 px-4 py-2 text-sm font-semibold disabled:opacity-40"
+ className="mt-3 rounded-lg border-amber-800 font-semibold"
  >
  Verifică aceeași operațiune
  </Button>
- </section>
+ </Alert>
  ) : null}
  {operation.error ? (
  <Alert variant="destructive" className="my-3 rounded-lg bg-red-50 dark:bg-red-950/50 p-3 text-sm text-red-800 dark:text-red-300 ">

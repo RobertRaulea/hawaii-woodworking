@@ -13,7 +13,10 @@ import type { Id } from '../../../../convex/_generated/dataModel';
 import { businessDate } from '../../../../convex/lib/pos.utils';
 import { useStaffAccess } from '../../../hooks/useStaffAccess';
 import { Alert } from '@/components/ui/alert';
+import { Empty } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { ThemeToggle } from '../../../components/ThemeToggle';
 import { OrderPanel } from './OrderPanel';
 import { PaymentDialog } from './PaymentDialog';
@@ -124,21 +127,21 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  };
 
  return (
- <main className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_#fef3c7_0%,_#f5f5f4_45%,_#e7e5e4_100%)] text-stone-900 dark:bg-[radial-gradient(ellipse_at_top_left,_#451a03_0%,_#1c1917_45%,_#0c0a09_100%)] dark:text-stone-50 ">
- <header className="border-b border-stone-200 dark:border-stone-800 bg-white/90 dark:bg-stone-900/90 px-4 py-4 md:px-6 lg:px-8">
+ <main className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_#fef3c7_0%,_#f5f5f4_45%,_#e7e5e4_100%)] text-foreground dark:bg-[radial-gradient(ellipse_at_top_left,_#451a03_0%,_#1c1917_45%,_#0c0a09_100%)]">
+ <header className="border-b border-border bg-white/90 dark:bg-stone-900/90 px-4 py-4 md:px-6 lg:px-8">
  <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4">
  <div className="flex items-center gap-4">
  <Button
  asChild
  variant="outline"
  size="icon"
- className="h-11 w-11 rounded-xl border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-800 [&_svg]:size-5"
+ className="size-11 rounded-xl border-border hover:bg-muted [&_svg]:size-5"
  >
  <Link
  to={can('catalog.manage') ? '/admin' : '/admin/inventory'}
  aria-label="Inapoi la administrare"
  >
- <ArrowLeft className="h-5 w-5" />
+ <ArrowLeft className="size-5" />
  </Link>
  </Button>
  <div>
@@ -149,12 +152,12 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  </div>
  </div>
  <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
- <div className="flex flex-1 items-center gap-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800 px-3 md:flex-none">
- <MapPin className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400 " />
- <label htmlFor="pos-selected-fair" className="sr-only">
+ <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-stone-50 dark:bg-stone-800 px-3 md:flex-none">
+ <MapPin className="size-5 shrink-0 text-amber-700 dark:text-amber-400 " />
+ <Label htmlFor="pos-selected-fair" className="sr-only">
  Targul selectat
- </label>
- <select
+ </Label>
+ <NativeSelect
  id="pos-selected-fair"
  value={fairId ?? ''}
  disabled={
@@ -163,33 +166,34 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  onChange={(event) => {
  setSelectedFair(event.target.value as Id<'fairs'>);
  }}
- className="min-h-11 w-full max-w-64 truncate bg-transparent pr-3 text-sm font-medium outline-none disabled:opacity-60"
+ wrapperClassName="w-full max-w-64"
+ className="truncate rounded-none border-0 bg-transparent pl-0 pr-9 font-medium shadow-none outline-none focus:ring-0 disabled:opacity-60 disabled:bg-transparent"
  >
  {!fairs?.length ? (
- <option value="">Niciun targ configurat</option>
+ <NativeSelectOption value="">Niciun targ configurat</NativeSelectOption>
  ) : null}
  {fairUnavailable ? (
- <option value={fairId}>Târg arhivat</option>
+ <NativeSelectOption value={fairId}>Târg arhivat</NativeSelectOption>
  ) : null}
  {fairs?.map((entry) => (
- <option value={entry._id} key={entry._id}>
+ <NativeSelectOption value={entry._id} key={entry._id}>
  {entry.name}
- </option>
+ </NativeSelectOption>
  ))}
- </select>
+ </NativeSelect>
  </div>
- <ThemeToggle className="h-11 w-11 shrink-0 rounded-xl border border-stone-200 bg-stone-50 p-0 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-800 dark:hover:bg-stone-700 [&_svg]:size-5" />
+ <ThemeToggle className="size-11 shrink-0 rounded-xl border border-border bg-stone-50 p-0 hover:bg-stone-100 dark:bg-stone-800 dark:hover:bg-stone-700 [&_svg]:size-5" />
  </div>
  </div>
  </header>
  <div className="mx-auto max-w-[1600px] px-4 py-5 md:px-6 lg:px-8">
- <div className="mb-5 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-500 dark:text-stone-400 ">
+ <div className="mb-5 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
  <p>Selecteaza → verifica → incaseaza → confirma</p>
  <p
  className={`flex items-center gap-1.5 ${payment.online ? 'text-emerald-800 dark:text-emerald-300 ' : 'font-semibold text-red-700 dark:text-red-400 '}`}
  role="status"
  >
- <Signal className="h-4 w-4" />
+ <Signal className="size-4" />
  {payment.online
  ? 'Conectat la server'
  : 'Fara conexiune · finalizarea blocata'}
@@ -220,7 +224,7 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  role="status"
  className="mb-5 flex items-start gap-3 rounded-xl border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900"
  >
- <CheckCircle className="h-6 w-6 shrink-0" />
+ <CheckCircle className="size-6 shrink-0" />
  <div>
  <p className="font-semibold">
  Vanzare inregistrata:{' '}
@@ -272,15 +276,15 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  </section>
  ) : null}
  {fairs === undefined ? (
- <p role="status" className="py-20 text-center text-stone-500 dark:text-stone-400 ">
+ <p role="status" className="py-20 text-center text-muted-foreground">
  Se incarca punctele de vanzare...
  </p>
  ) : !fairId ? (
- <section className="mx-auto max-w-lg rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-8 text-center">
+ <Empty className="gap-0 flex-initial mx-auto max-w-lg rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-card p-8 text-center">
  <h2 className="text-xl font-semibold">Nu există târguri active</h2>
  {can('fairs.manage') ? (
  <>
- <p className="mt-3 text-sm leading-6 text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm leading-6 text-muted-foreground">
  Crearea și pregătirea târgurilor se fac în Admin. Aici rămâne
  doar ecranul de vânzare.
  </p>
@@ -293,15 +297,15 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  </Button>
  </>
  ) : (
- <p className="mt-3 text-sm leading-6 text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm leading-6 text-muted-foreground">
  Nu ai târguri active alocate. Cere administratorului alocarea.
  </p>
  )}
- </section>
+ </Empty>
  ) : (
  <>
  {products === undefined && !fairUnavailable ? (
- <p role="status" className="py-20 text-center text-stone-500 dark:text-stone-400 ">
+ <p role="status" className="py-20 text-center text-muted-foreground">
  Se incarca produsele si stocul targului...
  </p>
  ) : (
@@ -325,14 +329,14 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  </div>
  )}
  <footer
- className="mt-7 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white/85 dark:bg-stone-900/85 px-5 py-4"
+ className="mt-7 rounded-2xl border border-border bg-white/85 dark:bg-stone-900/85 px-5 py-4"
  aria-label="Vanzarile finalizate astazi"
  >
  <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
- <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400 ">
+ <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
  Astazi la {fair?.name ?? 'targul selectat'}
  </p>
- <span className="text-xs text-stone-500 dark:text-stone-400 ">
+ <span className="text-xs text-muted-foreground">
  {date} · ora Romaniei · {summary?.count ?? '—'} vanzari
  finalizate
  </span>
@@ -348,8 +352,8 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  ['Card', summary ? formatMoney(summary.cardCents) : '—'],
  ].map(([label, value]) => (
  <div key={label}>
- <dt className="text-xs text-stone-500 dark:text-stone-400 ">{label}</dt>
- <dd className="mt-1 text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-50 ">
+ <dt className="text-xs text-muted-foreground">{label}</dt>
+ <dd className="mt-1 text-xl font-semibold tracking-tight text-foreground">
  {value}
  </dd>
  </div>

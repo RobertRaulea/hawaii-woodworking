@@ -5,11 +5,11 @@ import { BUSINESS } from '../../../shared/seo/seo.utils';
 export const ReturnPolicy: React.FC = () => {
  return (
  <div className="max-w-3xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
- <h1 className="font-serif text-3xl lg:text-4xl font-medium text-stone-900 dark:text-stone-50 mb-10 text-center">Politica de Retur</h1>
+ <h1 className="font-serif text-3xl lg:text-4xl font-medium text-foreground mb-10 text-center">Politica de Retur</h1>
  
  <div className="prose prose-amber max-w-none">
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">1. Dreptul de retragere</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">1. Dreptul de retragere</h2>
  <p className="mb-4">
  Conform legislației în vigoare (O.U.G. nr. 34/2014), aveți dreptul de a vă retrage din contract 
  în termen de 14 zile calendaristice de la data la care dumneavoastră sau un terț desemnat de dumneavoastră, 
@@ -23,7 +23,7 @@ export const ReturnPolicy: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">2. Condiții de returnare</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">2. Condiții de returnare</h2>
  <p className="mb-4">
  Puteți inspecta produsele pentru a le stabili natura, caracteristicile și funcționarea, așa cum ați
  face într-un magazin. Exercitarea dreptului legal de retragere nu este condiționată de păstrarea
@@ -41,7 +41,7 @@ export const ReturnPolicy: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">3. Excepții</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">3. Excepții</h2>
  <p className="mb-4">
  Excepțiile legale de la dreptul de retragere se aplică doar când produsul îndeplinește condițiile
  prevăzute de lege, de exemplu:
@@ -58,7 +58,7 @@ export const ReturnPolicy: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">4. Procedura de retur</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">4. Procedura de retur</h2>
  <p className="mb-4">
  Pentru a returna un produs, vă rugăm să urmați acești pași:
  </p>
@@ -71,7 +71,7 @@ export const ReturnPolicy: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">5. Rambursarea</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">5. Rambursarea</h2>
  <p className="mb-4">
  Vom rambursa sumele primite, inclusiv costul livrării standard, fără întârziere nejustificată și în
  cel mult 14 zile calendaristice de la data la care suntem informați despre decizia de retragere.
@@ -88,7 +88,7 @@ export const ReturnPolicy: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">6. Produse defecte</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">6. Produse defecte</h2>
  <p className="mb-4">
  În cazul în care primiți un produs defect sau deteriorat, vă rugăm să ne anunțați cât mai curând
  după constatare la <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a> sau la
@@ -99,7 +99,7 @@ export const ReturnPolicy: React.FC = () => {
  </section>
 
  <section className="mb-8">
- <h2 className="font-serif text-xl font-medium text-stone-900 dark:text-stone-50 mb-4">7. Model formular de retragere</h2>
+ <h2 className="font-serif text-xl font-medium text-foreground mb-4">7. Model formular de retragere</h2>
  <div className="border p-4 mb-4">
  <p className="mb-2">Către: {BUSINESS.legalName}</p>
  <p className="mb-2">Adresa: {BUSINESS.address}</p>

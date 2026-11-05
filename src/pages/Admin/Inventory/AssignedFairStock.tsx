@@ -11,6 +11,7 @@ import { ProductThumb } from '../../../components/ProductThumb';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
  Table,
  TableBody,
@@ -69,13 +70,13 @@ export const AssignedFairStock = ({ overview }: AssignedFairStockProps) => {
  );
 
  if (!overview) {
- return <p className="text-sm text-stone-500 dark:text-stone-400 ">Se încarcă stocurile...</p>;
+ return <p className="text-sm text-muted-foreground">Se încarcă stocurile...</p>;
  }
 
  return (
  <div>
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">Stocuri</h1>
- <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">Stocuri</h1>
+ <p className="mt-1 text-sm text-muted-foreground">
  Vezi doar stocul de la târgurile alocate. Alocările și transferurile se
  fac de către echipa de atelier.
  </p>
@@ -95,46 +96,49 @@ export const AssignedFairStock = ({ overview }: AssignedFairStockProps) => {
  className="h-auto w-full rounded-lg px-3 py-2"
  aria-label="Caută produse"
  />
- <select
+ <NativeSelect
  value={selectedFair}
  onChange={(event) => setFairId(event.target.value as Id<'fairs'>)}
- className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm"
+ wrapperClassName="w-full"
+ className="rounded-lg px-3 py-2 pr-9"
  aria-label="Târg"
  >
  {overview.fairs.map((fair) => (
- <option key={fair._id} value={fair._id}>
+ <NativeSelectOption key={fair._id} value={fair._id}>
  {fair.name}
- </option>
+ </NativeSelectOption>
  ))}
- </select>
- <select
+ </NativeSelect>
+ <NativeSelect
  value={category}
  onChange={(event) => setCategory(event.target.value)}
- className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm"
+ wrapperClassName="w-full"
+ className="rounded-lg px-3 py-2 pr-9"
  aria-label="Categorie"
  >
- <option value="">Toate categoriile</option>
+ <NativeSelectOption value="">Toate categoriile</NativeSelectOption>
  {categories.map((item) => (
- <option key={item} value={item}>
+ <NativeSelectOption key={item} value={item}>
  {item}
- </option>
+ </NativeSelectOption>
  ))}
- </select>
- <select
+ </NativeSelect>
+ <NativeSelect
  value={availability}
  onChange={(event) =>
  setAvailability(event.target.value as StockAvailability)
  }
- className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-3 py-2 text-sm"
+ wrapperClassName="w-full"
+ className="rounded-lg px-3 py-2 pr-9"
  aria-label="Disponibilitate"
  >
- <option value="all">Orice disponibilitate</option>
- <option value="available">Disponibil</option>
- <option value="out">Fără stoc</option>
- </select>
+ <NativeSelectOption value="all">Orice disponibilitate</NativeSelectOption>
+ <NativeSelectOption value="available">Disponibil</NativeSelectOption>
+ <NativeSelectOption value="out">Fără stoc</NativeSelectOption>
+ </NativeSelect>
  </div>
  <div className="mt-4 overflow-x-auto">
- <Table className="min-w-full rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-sm">
+ <Table className="min-w-full rounded-lg border border-border bg-card text-sm">
  <TableHeader className="bg-stone-50 dark:bg-stone-800 ">
  <TableRow className="hover:bg-stone-50 dark:hover:bg-stone-900">
  <TableHead className="px-3 py-2 text-left font-medium text-stone-600 dark:text-stone-300 ">
@@ -168,8 +172,8 @@ export const AssignedFairStock = ({ overview }: AssignedFairStockProps) => {
  alt={product.name}
  />
  <div className="min-w-0">
- <p className="font-medium text-stone-900 dark:text-stone-50 ">{product.name}</p>
- <p className="text-xs text-stone-500 dark:text-stone-400 ">{product.category}</p>
+ <p className="font-medium text-foreground">{product.name}</p>
+ <p className="text-xs text-muted-foreground">{product.category}</p>
  </div>
  </div>
  </TableCell>
@@ -186,9 +190,8 @@ export const AssignedFairStock = ({ overview }: AssignedFairStockProps) => {
  <Button
  type="button"
  variant="outline"
- size="sm"
+ size="xs"
  onClick={() => setHistoryProduct(product.id)}
- className="h-auto min-h-0 rounded px-2 py-1 text-xs font-medium"
  >
  Istoric
  </Button>

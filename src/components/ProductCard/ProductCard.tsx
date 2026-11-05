@@ -54,8 +54,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
  }, [displayImages]);
 
  return (
- <Card className="group overflow-hidden rounded-lg border-stone-200 dark:border-stone-800 py-0 shadow-none transition-all duration-300 hover:-translate-y-0.5 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-soft-lg">
- <Link to={`/product/${id}`} className="block">
+ <Card className="group overflow-hidden rounded-lg border-border py-0 shadow-none transition-all duration-300 hover:-translate-y-0.5 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-soft-lg">
+ {/* draggable=false: a native link drag would cancel the carousel's mouse drag */}
+ <Link to={`/product/${id}`} draggable={false} className="block">
  <div className="overflow-hidden">
  <ImageCarousel
  images={displayImages}
@@ -85,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
  )}
  </div>
  )}
- <h3 className="font-serif text-sm sm:text-lg font-medium text-stone-900 dark:text-stone-50 mb-1.5 truncate" title={name}>{name}</h3>
+ <h3 className="font-serif text-sm sm:text-lg font-medium text-foreground mb-1.5 truncate" title={name}>{name}</h3>
  <div className="flex items-center justify-between">
  <p className="text-amber-700 dark:text-amber-400 font-semibold text-sm sm:text-base tracking-wide">{price.toFixed(2)} RON</p>
  </div>
@@ -119,7 +120,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
  image: coverImage || 'https://placehold.co/100x100?text=No+Image',
  }, currentStock, isTrackingStock)
  }
- className="h-auto w-full rounded-md border-stone-900 dark:border-stone-400 px-2 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-medium text-stone-900 dark:text-stone-50 transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
+ className="h-auto w-full rounded-md border-stone-900 dark:border-stone-400 px-2 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-medium text-foreground transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
  >
  {t('product.addToCart')}
  </Button>

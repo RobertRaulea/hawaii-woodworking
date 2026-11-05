@@ -18,7 +18,10 @@ import { useStaffDirectory } from "../../../hooks/useStaffDirectory";
 import { useOrderAction } from "../../../hooks/useOrderAction";
 import type { FulfillmentQueueItem } from "../../../types/orders.types";
 import { Badge } from "@/components/ui/badge";
+import { Empty } from '@/components/ui/empty';
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from "@/utils/cn.utils";
 import { AssigneeChip } from "./AssigneeChip";
 import { FulfillmentFeedback } from "./FulfillmentFeedback";
 import { useQueueActivity } from "./useQueueActivity";
@@ -39,7 +42,7 @@ const TABS: readonly {
  label: "De pregătit",
  hint: "Comenzi plătite care așteaptă preluare",
  icon: Inbox,
- activeClass: "bg-amber-600 text-white shadow-soft",
+ activeClass: "data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=active]:shadow-soft",
  pillClass: "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 ",
  },
  {
@@ -47,7 +50,7 @@ const TABS: readonly {
  label: "În pregătire",
  hint: "Comenzi preluate, cu checklist în lucru",
  icon: ClipboardCheck,
- activeClass: "bg-blue-600 text-white shadow-soft",
+ activeClass: "data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-soft",
  pillClass: "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 ",
  },
  {
@@ -55,7 +58,7 @@ const TABS: readonly {
  label: "Ambalate",
  hint: "Gata de predat curierului",
  icon: Package,
- activeClass: "bg-indigo-600 text-white shadow-soft",
+ activeClass: "data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-soft",
  pillClass: "bg-indigo-100 text-indigo-800",
  },
  {
@@ -63,19 +66,25 @@ const TABS: readonly {
  label: "Expediate recent",
  hint: "Predate curierului în ultimele 30 de zile",
  icon: Truck,
- activeClass: "bg-emerald-600 text-white shadow-soft",
+ activeClass: "data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-soft",
  pillClass: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ",
  },
 ];
 
-const STATE_COLORS: Record<string, string> = {
- ready: "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 ",
- preparing: "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 ",
- packed: "bg-indigo-100 text-indigo-800",
- shipped: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ",
- delivered: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 ",
- cancelled: "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 ",
- blocked: "bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 ",
+const STATE_BADGES: Record<
+ string,
+ {
+ variant: "amber" | "blue" | "soft" | "emerald" | "destructive" | "stone";
+ className?: string;
+ }
+> = {
+ ready: { variant: "amber" },
+ preparing: { variant: "blue" },
+ packed: { variant: "soft", className: "bg-indigo-100 text-indigo-800" },
+ shipped: { variant: "emerald" },
+ delivered: { variant: "emerald" },
+ cancelled: { variant: "destructive" },
+ blocked: { variant: "stone" },
 };
 
 const STATE_ACCENTS: Record<string, string> = {
@@ -188,7 +197,7 @@ export const FulfillmentQueue: React.FC = () => {
  if (orders === undefined) {
  return (
  <div className="flex items-center justify-center py-20">
- <p className="text-stone-500 dark:text-stone-400 ">Se încarcă comenzile…</p>
+ <p className="text-muted-foreground">Se încarcă comenzile…</p>
  </div>
  );
  }
@@ -206,10 +215,10 @@ export const FulfillmentQueue: React.FC = () => {
  <section className="max-w-5xl space-y-6">
  <header className="flex flex-wrap items-end justify-between gap-3">
  <div>
- <h1 className="text-2xl md:text-3xl font-medium font-serif text-stone-900 dark:text-stone-50 ">
+ <h1 className="text-2xl md:text-3xl font-medium font-serif text-foreground">
  Pregătire comenzi
  </h1>
- <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1 text-sm text-muted-foreground">
  Pregătirea, ambalarea și expedierea comenzilor plătite.
  </p>
  </div>
@@ -229,31 +238,31 @@ export const FulfillmentQueue: React.FC = () => {
  onActivityDismiss={activity.dismiss}
  />
 
- <nav
- role="tablist"
+ <Tabs
+ value={tab}
+ onValueChange={(value) => setSearchParams({ tab: value })}
+ className="space-y-6"
+ >
+ <TabsList
  aria-label="Stare pregătire comenzi"
- className="grid grid-cols-2 gap-2 md:flex md:items-stretch"
+ className="grid h-auto grid-cols-2 gap-2 rounded-none bg-transparent p-0 md:flex md:items-stretch"
  >
  {TABS.map(({ key, label, icon: Icon, activeClass }, index) => (
  <div key={key} className="contents">
  {index > 0 ? (
  <ChevronRight
  aria-hidden="true"
- className="hidden h-4 w-4 self-center text-stone-300 md:block"
+ className="hidden size-4 self-center text-stone-300 md:block"
  />
  ) : null}
- <Button
- type="button"
- variant="ghost"
- role="tab"
+ <TabsTrigger
+ value={key}
  id={`fulfillment-tab-${key}`}
- aria-selected={tab === key}
  aria-controls="fulfillment-panel"
- onClick={() => setSearchParams({ tab: key })}
- className={`flex h-auto items-center gap-2.5 whitespace-normal rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-all md:flex-1 ${
+ className={`flex h-auto items-center gap-2.5 whitespace-normal rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-all data-[state=active]:bg-transparent data-[state=active]:text-current data-[state=active]:shadow-none md:flex-1 ${
  tab === key
  ? activeClass
- : "bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-300 hover:shadow-soft"
+ : "bg-card text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-300 hover:shadow-soft"
  }`}
  >
  <Icon
@@ -265,24 +274,24 @@ export const FulfillmentQueue: React.FC = () => {
  className={`rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums ${
  tab === key
  ? "bg-white/25 dark:bg-stone-900/25 text-white"
- : "bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 "
+ : "bg-muted text-stone-600 dark:text-stone-300"
  }`}
  >
  {counts[key]}
  </span>
- </Button>
+ </TabsTrigger>
  </div>
  ))}
- </nav>
+ </TabsList>
  <p className="-mt-3 text-xs text-stone-400 dark:text-stone-500 ">{activeTab.hint}</p>
 
  {team.length > 0 ? (
  <section
  aria-label="Operatori activi"
- className="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-3"
+ className="rounded-xl border border-border bg-card px-4 py-3"
  >
- <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400 ">
- <Users className="h-4 w-4" />
+ <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+ <Users className="size-4" />
  Cine lucrează acum
  </h2>
  <ul className="mt-2 flex flex-wrap gap-2">
@@ -295,7 +304,7 @@ export const FulfillmentQueue: React.FC = () => {
  userId={member.userId}
  mine={member.userId === userId}
  />
- <span className="text-xs text-stone-500 dark:text-stone-400 ">
+ <span className="text-xs text-muted-foreground">
  {member.preparing + member.packed}{" "}
  {member.preparing + member.packed === 1
  ? "comandă"
@@ -312,18 +321,19 @@ export const FulfillmentQueue: React.FC = () => {
  </section>
  ) : null}
 
- <div
- role="tabpanel"
+ <TabsContent
+ value={tab}
  id="fulfillment-panel"
  aria-labelledby={`fulfillment-tab-${tab}`}
+ className="mt-0 focus-visible:outline-none focus-visible:ring-0"
  >
  {rows.length === 0 ? (
- <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/60 p-10 text-center">
- <ActiveTabIcon className="h-8 w-8 text-stone-300" />
- <p className="text-sm text-stone-500 dark:text-stone-400 ">
+ <Empty className="gap-0 flex-initial flex flex-col items-center gap-2 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/60 p-10 text-center">
+ <ActiveTabIcon className="size-8 text-stone-300" />
+ <p className="text-sm text-muted-foreground">
  Nicio comandă în această stare.
  </p>
- </div>
+ </Empty>
  ) : (
  <ul className="space-y-3">
  {rows.map((order) => (
@@ -338,12 +348,16 @@ export const FulfillmentQueue: React.FC = () => {
  <div className="flex flex-wrap items-center gap-2">
  <Link
  to={`/admin/fulfillment/${order._id}`}
- className="font-mono text-sm font-bold text-stone-900 dark:text-stone-50 hover:text-amber-700 dark:hover:text-amber-400"
+ className="font-mono text-sm font-bold text-foreground hover:text-amber-700 dark:hover:text-amber-400"
  >
  #{order.shortNumber}
  </Link>
  <Badge
- className={`px-2.5 py-0.5 text-xs font-medium ${STATE_COLORS[order.state]}`}
+ variant={STATE_BADGES[order.state].variant}
+ className={cn(
+ "px-2.5 py-0.5 text-xs font-medium",
+ STATE_BADGES[order.state].className
+ )}
  >
  {STATE_LABELS[order.state]}
  </Badge>
@@ -355,7 +369,7 @@ export const FulfillmentQueue: React.FC = () => {
  />
  ) : null}
  </div>
- <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500 dark:text-stone-400 ">
+ <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
  <Clock className="h-3.5 w-3.5" />
  <span title={formatDate(order.createdAt)}>
  {order.state === "shipped" && order.shippedAt
@@ -396,7 +410,7 @@ export const FulfillmentQueue: React.FC = () => {
  aria-valuemin={0}
  aria-valuemax={order.checklistTotal}
  aria-valuenow={order.checkedCount ?? 0}
- className="h-1.5 w-36 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800 "
+ className="h-1.5 w-36 overflow-hidden rounded-full bg-muted"
  >
  <div
  className="h-full rounded-full bg-blue-500 transition-all"
@@ -409,7 +423,7 @@ export const FulfillmentQueue: React.FC = () => {
  }}
  />
  </div>
- <span className="text-xs font-medium text-stone-500 dark:text-stone-400 tabular-nums">
+ <span className="text-xs font-medium text-muted-foreground tabular-nums">
  {order.checkedCount ?? 0}/{order.checklistTotal}{" "}
  bifate
  </span>
@@ -418,7 +432,7 @@ export const FulfillmentQueue: React.FC = () => {
  </div>
  <div className="flex shrink-0 items-center gap-2">
  {order.state === "ready" ? (
- <Button
+ <Button variant="brand"
  type="button"
  onClick={() => claim(order)}
  disabled={
@@ -426,7 +440,7 @@ export const FulfillmentQueue: React.FC = () => {
  controller.blocked ||
  !controller.online
  }
- className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium hover:bg-amber-700"
+ className="rounded-lg"
  >
  Preia
  </Button>
@@ -434,7 +448,7 @@ export const FulfillmentQueue: React.FC = () => {
  <Button
  asChild
  variant="outline"
- className="rounded-lg px-4 py-2 text-sm font-medium"
+ className="rounded-lg"
  >
  <Link to={`/admin/fulfillment/${order._id}`}>
  {order.state === "preparing" && order.assignedToMe
@@ -448,22 +462,24 @@ export const FulfillmentQueue: React.FC = () => {
  ))}
  </ul>
  )}
- </div>
+ </TabsContent>
+ </Tabs>
 
  <section
  aria-label="Solicitări de reaprovizionare"
- className="rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5"
+ className="rounded-lg border border-border bg-card p-5"
  >
  <div className="flex items-center gap-2">
- <Inbox className="h-5 w-5 text-amber-600 dark:text-amber-400 " />
+ <Inbox className="size-5 text-amber-600 dark:text-amber-400 " />
  <h2 className="text-lg font-semibold text-stone-800 dark:text-stone-100 ">
  Solicitări de reaprovizionare
  </h2>
  </div>
+
  {restock === undefined ? (
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">Se încarcă…</p>
+ <p className="mt-3 text-sm text-muted-foreground">Se încarcă…</p>
  ) : restock.length === 0 ? (
- <p className="mt-3 text-sm text-stone-500 dark:text-stone-400 ">
+ <p className="mt-3 text-sm text-muted-foreground">
  Nicio solicitare în așteptare.
  </p>
  ) : (
@@ -474,7 +490,7 @@ export const FulfillmentQueue: React.FC = () => {
  to={`/admin/transfers/${transfer._id}`}
  className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300"
  >
- <Truck className="h-4 w-4" />
+ <Truck className="size-4" />
  Transfer #{transfer._id.slice(-8).toUpperCase()} ·{" "}
  {transfer.lineCount} produse · {transfer.totalUnits} bucăți →{" "}
  {transfer.toName}

@@ -53,7 +53,7 @@ export const HeaderDropdown: React.FC<HeaderDropdownProps> = ({ label, icon, chi
  <DropdownMenuTrigger asChild>
  <Button
  variant="ghost"
- className="relative z-10 h-auto w-auto rounded-full p-2 hover:bg-stone-100 dark:hover:bg-stone-800 [&_svg]:size-6"
+ className="relative z-10 h-auto w-auto rounded-full p-2 hover:bg-muted [&_svg]:size-6"
  aria-label={label}
  >
  {icon}

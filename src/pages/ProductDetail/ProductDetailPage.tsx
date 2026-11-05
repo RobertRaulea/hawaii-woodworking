@@ -91,7 +91,7 @@ export const ProductDetailPage: React.FC = () => {
   if (error) {
     return (
       <div role="alert" className="mx-auto max-w-7xl px-4 py-24 text-center md:px-6">
-        <h1 className="font-serif text-2xl text-stone-900 dark:text-stone-50">
+        <h1 className="font-serif text-2xl text-foreground">
           {t('common.error')}
         </h1>
         <p className="mt-3 text-stone-600 dark:text-stone-300">
@@ -145,11 +145,11 @@ export const ProductDetailPage: React.FC = () => {
       <>
       <SEO title={t('product.notFound')} noindex />
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-24 text-center sm:px-6">
-        <PackageSearch className="h-12 w-12 text-stone-300 dark:text-stone-600" strokeWidth={1.5} />
-        <h1 className="mt-5 font-serif text-2xl font-medium text-stone-900 dark:text-stone-50">
+        <PackageSearch className="size-12 text-stone-300 dark:text-stone-600" strokeWidth={1.5} />
+        <h1 className="mt-5 font-serif text-2xl font-medium text-foreground">
           {t('product.notFound')}
         </h1>
-        <p className="mt-2 max-w-md text-sm text-stone-500 dark:text-stone-400">
+        <p className="mt-2 max-w-md text-sm text-muted-foreground">
           {t('product.notFoundDescription')}
         </p>
         <Button asChild variant="secondary" className="mt-7">
@@ -240,7 +240,7 @@ export const ProductDetailPage: React.FC = () => {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 lg:mb-8">
-          <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+          <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
             <li>
               <Link
                 to="/"
@@ -299,14 +299,14 @@ export const ProductDetailPage: React.FC = () => {
               <Button
                 variant="ghost"
                 onClick={handleShare}
-                className="h-9 w-9 shrink-0 rounded-full p-0 text-stone-400 hover:text-amber-700 dark:hover:text-amber-400"
+                className="size-9 shrink-0 rounded-full p-0 text-stone-400 hover:text-amber-700 dark:hover:text-amber-400"
                 aria-label={t('product.share')}
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="size-4" />
               </Button>
             </div>
 
-            <h1 className="mt-2 font-serif text-2xl font-medium leading-tight text-stone-900 dark:text-stone-50 sm:text-3xl">
+            <h1 className="mt-2 font-serif text-2xl font-medium leading-tight text-foreground sm:text-3xl">
               {product.name}
             </h1>
 
@@ -332,39 +332,41 @@ export const ProductDetailPage: React.FC = () => {
             )}
 
             {/* Buy box */}
-            <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900 sm:p-6">
-              <p className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
+            <div className="mt-6 rounded-xl border border-border bg-card p-5 sm:p-6">
+              <p className="text-3xl font-semibold tracking-tight text-foreground">
                 {product.price.toFixed(2)}{' '}
-                <span className="text-lg font-normal text-stone-500 dark:text-stone-400">RON</span>
+                <span className="text-lg font-normal text-muted-foreground">RON</span>
               </p>
 
               {/* Quantity + add to cart */}
               <div className="mt-4 flex items-stretch gap-3">
               <div className="flex items-center rounded-md border border-stone-300 dark:border-stone-700">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setQuantity(q => clampQuantity(q - 1))}
                   disabled={!canBuy || quantity <= 1}
-                  className="flex h-full w-10 items-center justify-center rounded-l-md text-stone-600 transition-colors hover:bg-stone-100 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:text-stone-300 dark:hover:bg-stone-800"
+                  className="flex h-full min-h-0 w-10 items-center justify-center rounded-l-md rounded-r-none p-0 text-stone-600 transition-colors duration-150 hover:bg-muted hover:text-stone-600 focus-visible:outline-none focus-visible:ring-amber-500 active:scale-100 dark:text-stone-300 dark:hover:text-stone-300"
                   aria-label={t('product.decreaseQuantity')}
                 >
-                  <Minus className="h-4 w-4" />
-                </button>
+                  <Minus className="size-4" />
+                </Button>
                 <span
-                  className="w-10 text-center text-sm font-semibold text-stone-900 dark:text-stone-50"
+                  className="w-10 text-center text-sm font-semibold text-foreground"
                   aria-label={t('product.quantityLabel')}
                 >
                   {quantity}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setQuantity(q => clampQuantity(q + 1))}
                   disabled={!canBuy || quantity >= maxQuantity}
-                  className="flex h-full w-10 items-center justify-center rounded-r-md text-stone-600 transition-colors hover:bg-stone-100 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:text-stone-300 dark:hover:bg-stone-800"
+                  className="flex h-full min-h-0 w-10 items-center justify-center rounded-r-md rounded-l-none p-0 text-stone-600 transition-colors duration-150 hover:bg-muted hover:text-stone-600 focus-visible:outline-none focus-visible:ring-amber-500 active:scale-100 dark:text-stone-300 dark:hover:text-stone-300"
                   aria-label={t('product.increaseQuantity')}
                 >
-                  <Plus className="h-4 w-4" />
-                </button>
+                  <Plus className="size-4" />
+                </Button>
               </div>
 
               <Button
@@ -374,7 +376,7 @@ export const ProductDetailPage: React.FC = () => {
                 disabled={!canBuy}
                 className="flex-1 rounded-md"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="size-4" />
                 {isOutOfStock
                   ? t('product.outOfStock')
                   : isStockLimitReached
@@ -393,7 +395,7 @@ export const ProductDetailPage: React.FC = () => {
                 <dl className="mt-4 divide-y divide-stone-200 text-sm dark:divide-stone-800">
                   {product.sku && (
                     <div className="flex justify-between gap-4 py-2.5 first:pt-0">
-                      <dt className="text-stone-500 dark:text-stone-400">{t('product.sku')}</dt>
+                      <dt className="text-muted-foreground">{t('product.sku')}</dt>
                       <dd className="font-medium text-stone-900 dark:text-stone-100">
                         {product.sku}
                       </dd>
@@ -401,7 +403,7 @@ export const ProductDetailPage: React.FC = () => {
                   )}
                   {product.category && (
                     <div className="flex justify-between gap-4 py-2.5 first:pt-0">
-                      <dt className="text-stone-500 dark:text-stone-400">{t('product.category')}</dt>
+                      <dt className="text-muted-foreground">{t('product.category')}</dt>
                       <dd className="font-medium text-stone-900 dark:text-stone-100">
                         <Link
                           to={`/products?categories=${encodeURIComponent(product.category)}`}
@@ -413,8 +415,8 @@ export const ProductDetailPage: React.FC = () => {
                     </div>
                   )}
                 </dl>
-                <p className="mt-4 flex gap-2.5 text-sm italic leading-relaxed text-stone-500 dark:text-stone-400">
-                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <p className="mt-4 flex gap-2.5 text-sm italic leading-relaxed text-muted-foreground">
+                  <Sparkles className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
                   {t('product.uniqueNote')}
                 </p>
               </div>
@@ -428,7 +430,7 @@ export const ProductDetailPage: React.FC = () => {
                     key={label}
                     className="flex items-center gap-2.5 text-xs font-medium text-stone-600 dark:text-stone-300"
                   >
-                    <Icon className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <Icon className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
                     {label}
                   </li>
                 ))}
@@ -451,7 +453,7 @@ export const ProductDetailPage: React.FC = () => {
         {/* Description */}
         <section className="mt-14 lg:mt-20">
           <div className="max-w-3xl">
-            <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 lg:text-3xl">
+            <h2 className="font-serif text-2xl font-medium text-foreground lg:text-3xl">
               {t('product.descriptionTitle')}
             </h2>
             <div className="mt-5 whitespace-pre-line text-base leading-relaxed text-stone-600 dark:text-stone-300">
@@ -464,7 +466,7 @@ export const ProductDetailPage: React.FC = () => {
         {relatedProducts.length > 0 && (
           <section className="mt-14 lg:mt-20">
             <div className="mb-6 flex items-end justify-between gap-4">
-              <h2 className="font-serif text-2xl font-medium text-stone-900 dark:text-stone-50 lg:text-3xl">
+              <h2 className="font-serif text-2xl font-medium text-foreground lg:text-3xl">
                 {t('product.relatedProducts')}
               </h2>
               <Link

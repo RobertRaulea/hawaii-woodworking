@@ -366,6 +366,39 @@ it("FulfillmentQueue afișează taburile și secțiunea de reaprovizionare", asy
   assert.ok(screen.getByRole("link", { name: /Transfer #/ }));
 });
 
+it("FulfillmentQueue comută tabul prin parametrul URL tab", async () => {
+  const user = userEvent.setup();
+  staff = staffAtelier;
+  queueData = [
+    queueRow(),
+    queueRow({ _id: "ord-2", state: "preparing", shortNumber: "B2" }),
+  ];
+  restockData = [];
+  setup();
+  render(
+    <MemoryRouter initialEntries={["/admin/fulfillment?tab=preparing"]}>
+      <Routes>
+        <Route path="/admin/fulfillment" element={<FulfillmentQueue />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+  const preparingTab = await screen.findByRole("tab", {
+    name: "În pregătire",
+  });
+  assert.equal(preparingTab.getAttribute("aria-selected"), "true");
+  assert.equal(
+    screen.getByRole("tab", { name: "De pregătit" }).getAttribute("aria-selected"),
+    "false",
+  );
+  await user.click(screen.getByRole("tab", { name: "De pregătit" }));
+  await waitFor(() => {
+    assert.equal(
+      screen.getByRole("tab", { name: "De pregătit" }).getAttribute("aria-selected"),
+      "true",
+    );
+  });
+});
+
 it("FulfillmentDetail blochează ambalarea până bifăm checklistul", async () => {
   const user = userEvent.setup();
   staff = staffAtelier;

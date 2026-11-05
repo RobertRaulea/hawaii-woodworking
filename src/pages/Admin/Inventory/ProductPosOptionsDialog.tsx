@@ -8,6 +8,8 @@ import { useProductThumbnails } from '../../../hooks/useProductThumbnails';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { FieldError } from '@/components/ui/field';
 import { inventoryError } from '../../../utils/inventory.utils';
 import type { InventoryProduct } from '../../../types/inventory.types';
 
@@ -44,7 +46,7 @@ export const ProductPosOptionsDialog = ({
  src={thumbnails.get(product.id)}
  alt={product.name}
  />
- <p className="min-w-0 text-sm text-stone-500 dark:text-stone-400 ">{product.name}</p>
+ <p className="min-w-0 text-sm text-muted-foreground">{product.name}</p>
  </div>
  <form
  className="space-y-4"
@@ -59,7 +61,7 @@ export const ProductPosOptionsDialog = ({
  }
  })}
  >
- <label htmlFor="inventory-sku" className="block text-sm font-medium">
+ <Label htmlFor="inventory-sku" className="block text-sm font-medium leading-5">
  SKU / cod scanabil
  <Input
  id="inventory-sku"
@@ -68,7 +70,7 @@ export const ProductPosOptionsDialog = ({
  className="mt-2 h-auto w-full rounded-lg p-3"
  {...register('sku')}
  />
- </label>
+ </Label>
  <label htmlFor="pos-favorite" className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
  <Controller
  name="favorite"
@@ -81,16 +83,16 @@ export const ProductPosOptionsDialog = ({
  onBlur={field.onBlur}
  ref={field.ref}
  disabled={isSubmitting}
- className="h-4 w-4"
+ className="size-4"
  />
  )}
  />{' '}
  Produs rapid în POS (favorit)
  </label>
  {error ? (
- <p role="alert" className="text-sm text-red-700 dark:text-red-400 ">
+ <FieldError  className="text-red-700 dark:text-red-400">
  {error}
- </p>
+ </FieldError>
  ) : null}
  <Button
  type="submit"
