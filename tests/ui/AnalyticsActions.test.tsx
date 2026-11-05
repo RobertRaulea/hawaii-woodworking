@@ -53,6 +53,7 @@ const verificationUserId: { current: string | undefined } = { current: 'user_2ne
 mock.module('@clerk/clerk-react', {
   namedExports: {
     useAuth: () => ({ isLoaded: true, isSignedIn: clerkSignedIn }),
+    useUser: () => ({ isLoaded: true, isSignedIn: clerkSignedIn, user: null }),
     useSignUp: () => ({
       isLoaded: true,
       setActive: async () => {
@@ -76,6 +77,7 @@ const action = mock.fn<(args: unknown) => Promise<{ url: string | null }>>(async
 mock.module('convex/react', {
   namedExports: {
     useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }),
+    useQuery: () => undefined,
     useMutation: () => async () => {},
     useAction: () => action,
     useQueries: () => ({}),

@@ -9,6 +9,7 @@ import type { CheckoutSnapshotLine } from './lib/inventory.utils';
 import { toCents } from './lib/pos.utils';
 import { requirePaymentEnvironment, resolveCheckoutOrigin } from './lib/environment';
 import { analyticsContextValidator } from './lib/analytics.utils';
+import { computeOrderTotals } from '../shared/shipping';
 import { validAnalyticsContext } from '../shared/analytics';
 import type { AnalyticsContext } from '../shared/analytics';
 
@@ -210,11 +211,17 @@ export const createCheckoutSession = action({
       quantity,
     }));
 
-    const total =
-      orderItems.reduce(
-        (sum, item) => sum + toCents(item.price) * item.quantity,
-        0,
-      ) / 100;
+    const settings = await ctx.runQuery(internal.shipping.getSettings, {});
+    const subtotalCents = orderItems.reduce(
+      (sum, item) => sum + toCents(item.price) * item.quantity,
+      0,
+    );
+    const totals = computeOrderTotals({
+      settings,
+      subtotalCents,
+      paymentMethod: 'card',
+    });
+    const total = totals.totalCents / 100;
 
     // 4. Build Stripe line items
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
@@ -235,6 +242,17 @@ export const createCheckoutSession = action({
         };
       });
 
+    if (totals.shippingCents > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'ron',
+          unit_amount: totals.shippingCents,
+          product_data: { name: 'Transport' },
+        },
+        quantity: 1,
+      });
+    }
+
     // 5. Create Stripe session with Stripe Customer
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -254,6 +272,9 @@ export const createCheckoutSession = action({
       customerId,
       items: orderItems,
       total,
+      paymentMethod: 'card',
+      shippingCost: totals.shippingCents / 100,
+      codFee: 0,
       stripeSessionId: session.id,
       ...(validAnalyticsContext(analytics, paymentEnvironment.name) ? { analytics } : {}),
       shipping: {

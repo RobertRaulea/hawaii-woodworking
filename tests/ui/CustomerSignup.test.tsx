@@ -22,6 +22,7 @@ const data: ShippingFormData = {
 
 mock.module('@clerk/clerk-react', { namedExports: {
   useAuth: () => ({ isLoaded: true, isSignedIn: clerkSignedIn }),
+  useUser: () => ({ isLoaded: true, isSignedIn: clerkSignedIn, user: null }),
   useSignUp: () => ({
     isLoaded: true,
     setActive: async () => { clerkSignedIn = true; },
@@ -40,6 +41,7 @@ mock.module('@clerk/clerk-react', { namedExports: {
 } });
 mock.module('convex/react', { namedExports: {
   useConvexAuth: () => ({ isAuthenticated: convexAuthenticated, isLoading: false }),
+  useQuery: () => undefined,
   useMutation: () => async () => { saveCalls++; },
   useAction: () => async () => { throw new Error('Not expected before payment click'); },
 } });

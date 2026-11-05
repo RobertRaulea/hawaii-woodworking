@@ -4,13 +4,14 @@ import { useMutation } from 'convex/react';
 import { useForm, Controller } from 'react-hook-form';
 import type { Control, Path, RegisterOptions } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth, useSignUp } from '@clerk/clerk-react';
+import { useAuth, useSignUp, useUser } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../../convex/_generated/api';
 import { useShipping } from '../../context/ShippingContext';
-import type { ShippingFormData } from '../../types/shipping.types';
+import type { Address, ShippingFormData } from '../../types/shipping.types';
 import { useCart } from '../../context/CartContext';
 import { useCustomerProfile } from '../../hooks/useCustomerProfile';
+import { useShippingSettings } from '../../hooks/useShippingSettings';
 import { SearchableSelect } from '../../components/SearchableSelect/SearchableSelect';
 import { identifyAnalytics, trackAnalytics } from '../../utils/analytics.utils';
 import { JUDETE, LOCALITATI_BY_JUDET } from '../../constants/romania.constants';
@@ -58,7 +59,9 @@ interface InputFieldProps {
  placeholder?: string;
  autoComplete?: React.InputHTMLAttributes<HTMLInputElement>['autoComplete'];
  error?: string;
+ hint?: string;
  required?: boolean;
+ readOnly?: boolean;
  registration: ReturnType<ReturnType<typeof useForm>['register']>;
 }
 
@@ -69,7 +72,9 @@ const InputField: React.FC<InputFieldProps> = ({
  placeholder,
  autoComplete,
  error,
+ hint,
  required = false,
+ readOnly = false,
  registration,
 }) => (
  <div>
@@ -83,14 +88,19 @@ const InputField: React.FC<InputFieldProps> = ({
  placeholder={placeholder}
  autoComplete={autoComplete}
  required={required}
+ readOnly={readOnly}
  aria-invalid={error ? true : undefined}
  aria-describedby={error ? `${id}-error` : undefined}
  className={`h-auto w-full rounded-md border px-3.5 py-2.5 text-sm text-stone-900 dark:text-stone-50 transition-all duration-200 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 ${
  error ? 'border-red-400 focus:ring-red-400/40' : 'border-stone-300 dark:border-stone-600 '
- }`}
+ } ${readOnly ? 'bg-stone-50 dark:bg-stone-800/60 text-stone-500 dark:text-stone-400' : ''}`}
  {...registration}
  />
- {error && <FieldError id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</FieldError>}
+ {error ? (
+ <FieldError id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</FieldError>
+ ) : hint ? (
+ <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+ ) : null}
  </div>
 );
 
@@ -179,6 +189,13 @@ const EMPTY_DEFAULTS: ShippingFormData = {
  createAccount: false,
 };
 
+const sameAddress = (a: Address, b: Address): boolean =>
+ a.street === b.street &&
+ a.city === b.city &&
+ a.county === b.county &&
+ a.postalCode === b.postalCode &&
+ a.country === b.country;
+
 export const Shipping: React.FC = () => {
  const { t, i18n } = useTranslation();
  const language = i18n.resolvedLanguage?.split('-')[0] ?? i18n.language?.split('-')[0];
@@ -187,6 +204,11 @@ export const Shipping: React.FC = () => {
  en: 'Delivery is available only in Romania. The shipping tariff is not yet confirmed; real payments are unavailable until it is configured.',
  de: 'Die Lieferung ist nur innerhalb Rumäniens möglich. Die Versandkosten stehen noch nicht fest; echte Zahlungen sind bis zur Festlegung nicht verfügbar.',
  };
+ const shippingRateNotice = {
+ ro: { rate: 'Transport', free: 'Transport gratuit pentru comenzi peste' },
+ en: { rate: 'Shipping', free: 'Free shipping on orders over' },
+ de: { rate: 'Versand', free: 'Kostenloser Versand ab' },
+ }[language === 'en' || language === 'de' ? language : 'ro'];
  const countryCorrection = t('shipping.romaniaOnlyCorrection', {
  defaultValue: {
  ro: 'Livrăm doar în România. Corectează țara adresei salvate pentru a continua.',
@@ -197,8 +219,11 @@ export const Shipping: React.FC = () => {
  const navigate = useNavigate();
  const { setShippingData, shippingData } = useShipping();
  const { state: cartState } = useCart();
- const { customer } = useCustomerProfile();
+ const { customer, isLoading: isProfileLoading } = useCustomerProfile();
+ const { settings: shippingSettings } = useShippingSettings();
+ const isProductionEnv = import.meta.env?.VITE_APP_ENV === 'production';
  const { isSignedIn } = useAuth();
+ const { user, isLoaded: isUserLoaded } = useUser();
  const { signUp, isLoaded: isSignUpLoaded, setActive } = useSignUp();
  const upsertCustomerFromShipping = useMutation(api.customers.upsertFromShipping);
  const hasPreFilled = useRef(false);
@@ -219,15 +244,35 @@ export const Shipping: React.FC = () => {
  clearErrors,
  setError,
  trigger,
- formState: { errors },
+ formState: { errors, isDirty },
  } = useForm<ShippingFormData>({
  defaultValues: shippingData ?? EMPTY_DEFAULTS,
  });
 
- // Pre-fill form when a returning Clerk user's profile loads
+ // Pre-fill the form for a signed-in account once its profile resolution
+ // finishes. Saved shippingData wins only when it belongs to this account;
+ // guest-era data (another person, another session) is overridden.
  useEffect(() => {
- if (customer && !hasPreFilled.current && !shippingData) {
+ if (
+ !isSignedIn ||
+ hasPreFilled.current ||
+ isProfileLoading ||
+ !isUserLoaded ||
+ isDirty
+ ) {
+ return;
+ }
  hasPreFilled.current = true;
+
+ const accountEmail = user?.primaryEmailAddress?.emailAddress ?? '';
+ const belongsToAccount =
+ !accountEmail ||
+ (shippingData?.email ?? '').toLowerCase() === accountEmail.toLowerCase();
+ if (shippingData && belongsToAccount) {
+ return;
+ }
+
+ if (customer) {
  reset({
  email: customer.email,
  phone: customer.phone ?? '',
@@ -236,13 +281,30 @@ export const Shipping: React.FC = () => {
  password: '',
  shippingAddress: customer.shippingAddress,
  billingAddress: customer.billingAddress,
- sameAsShipping: true,
+ sameAsShipping: sameAddress(customer.billingAddress, customer.shippingAddress),
  newsletter: customer.newsletter,
  acceptPolicy: false,
  createAccount: false,
  });
+ return;
  }
- }, [customer, shippingData, reset]);
+
+ reset({
+ ...EMPTY_DEFAULTS,
+ email: accountEmail,
+ firstName: user?.firstName ?? '',
+ lastName: user?.lastName ?? '',
+ });
+ }, [
+ customer,
+ isProfileLoading,
+ isSignedIn,
+ isDirty,
+ isUserLoaded,
+ shippingData,
+ user,
+ reset,
+ ]);
 
  const sameAsShipping = watch('sameAsShipping');
  const createAccount = watch('createAccount');
@@ -509,11 +571,13 @@ export const Shipping: React.FC = () => {
  Completează datele de mai jos pentru a continua comanda.
  </p>
 
+ {!isSignedIn && (
  <div className="text-sm text-muted-foreground mb-6">
  <Link to="/login" className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-400 font-medium underline">
  Ai deja cont? Conectează-te
  </Link>
  </div>
+ )}
 
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
  {/* Contact */}
@@ -529,6 +593,8 @@ export const Shipping: React.FC = () => {
  autoComplete="email"
  placeholder="adresa@exemplu.ro"
  error={errors.email?.message}
+ hint={isSignedIn ? 'Emailul contului tău; profilul se salvează pe acesta.' : undefined}
+ readOnly={isSignedIn}
  required
  registration={register('email', {
  required: 'Adresa de email este obligatorie',
@@ -619,7 +685,12 @@ export const Shipping: React.FC = () => {
  }}
  />
  <p className="text-sm text-stone-600 dark:text-stone-300" role="status">
- {t('shipping.tariffPendingNotice', { defaultValue: shippingNotice[language === 'en' || language === 'de' ? language : 'ro'] })}
+ {isProductionEnv
+ ? t('shipping.tariffPendingNotice', { defaultValue: shippingNotice[language === 'en' || language === 'de' ? language : 'ro'] })
+ : `${t('shipping.flatRate', { defaultValue: shippingRateNotice.rate })}: ${(shippingSettings.flatRateCents / 100).toFixed(2)} RON` +
+ (shippingSettings.freeShippingThresholdCents !== undefined
+ ? ` · ${t('shipping.freeOver', { defaultValue: shippingRateNotice.free })} ${(shippingSettings.freeShippingThresholdCents / 100).toFixed(2)} RON`
+ : '')}
  </p>
  {shippingCountry !== 'România' && (
  <p className="text-sm text-red-600 dark:text-red-400">{countryCorrection}</p>

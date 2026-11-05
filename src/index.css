@@ -116,3 +116,207 @@ h6 {
     scroll-behavior: auto !important;
   }
 }
+
+/* WoodenLoginReveal: one-shot 8-bit wood-block entrance around the sign-in card */
+.wooden-login-reveal {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  --chip-spread: 22px;
+  --block-left: -12px;
+  --block-right: calc(100% - 4px);
+}
+
+@media (min-width: 768px) {
+  .wooden-login-reveal {
+    --chip-spread: 48px;
+    --block-left: -24px;
+    --block-right: calc(100% + 8px);
+  }
+}
+
+.wooden-login-reveal__stage,
+.wooden-login-reveal__chips {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.wooden-login-reveal__chips {
+  z-index: 30;
+}
+
+.wooden-login-reveal__block {
+  position: absolute;
+  image-rendering: pixelated;
+  opacity: 0;
+  background-color: var(--block-color);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.18) 0 2px,
+    transparent 2px 6px
+  );
+  box-shadow:
+    inset -3px -3px 0 rgba(0, 0, 0, 0.28),
+    inset 3px 3px 0 rgba(255, 255, 255, 0.16);
+  animation: wooden-block-drop 1.05s steps(7) var(--block-delay) both;
+}
+
+.wooden-login-reveal__card {
+  position: relative;
+  z-index: 10;
+  animation: wooden-card-pop 0.4s steps(4) 0.3s both;
+}
+
+.wooden-login-reveal__frame {
+  position: absolute;
+  inset: -12px;
+  z-index: 20;
+  image-rendering: pixelated;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.14) 0 3px,
+      transparent 3px 9px
+    ),
+    linear-gradient(150deg, #d9a95f 0%, #b8864b 45%, #8a5a2b 100%);
+  clip-path: polygon(
+    evenodd,
+    0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0,
+    calc(100% - 8px) 0, calc(100% - 8px) 4px, calc(100% - 4px) 4px,
+    calc(100% - 4px) 8px, 100% 8px,
+    100% calc(100% - 8px), calc(100% - 4px) calc(100% - 8px),
+    calc(100% - 4px) calc(100% - 4px), calc(100% - 8px) calc(100% - 4px),
+    calc(100% - 8px) 100%,
+    8px 100%, 8px calc(100% - 4px), 4px calc(100% - 4px),
+    4px calc(100% - 8px), 0 calc(100% - 8px),
+    8px 16px, 12px 16px, 12px 12px, 16px 12px, 16px 8px,
+    calc(100% - 16px) 8px, calc(100% - 16px) 12px,
+    calc(100% - 12px) 12px, calc(100% - 12px) 16px,
+    calc(100% - 8px) 16px,
+    calc(100% - 8px) calc(100% - 16px),
+    calc(100% - 12px) calc(100% - 16px),
+    calc(100% - 12px) calc(100% - 12px),
+    calc(100% - 16px) calc(100% - 12px),
+    calc(100% - 16px) calc(100% - 8px),
+    16px calc(100% - 8px), 16px calc(100% - 12px),
+    12px calc(100% - 12px), 12px calc(100% - 16px),
+    8px calc(100% - 16px)
+  );
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+  animation: wooden-frame-in 0.25s steps(2) 0.8s both;
+}
+
+.dark .wooden-login-reveal__frame {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.22) 0 3px,
+      transparent 3px 9px
+    ),
+    linear-gradient(150deg, #c9985a 0%, #8a5a2b 45%, #5c3a1e 100%);
+}
+
+.wooden-login-reveal__frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#2e1c0d 0 0),
+    linear-gradient(#2e1c0d 0 0),
+    linear-gradient(#2e1c0d 0 0),
+    linear-gradient(#2e1c0d 0 0);
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  background-position:
+    7px 7px,
+    calc(100% - 11px) 7px,
+    7px calc(100% - 11px),
+    calc(100% - 11px) calc(100% - 11px);
+}
+
+.wooden-login-reveal__chip {
+  position: absolute;
+  image-rendering: pixelated;
+  opacity: 0;
+  background-color: var(--chip-color);
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.3);
+  animation: wooden-chip-burst 0.55s steps(5) 0.8s both;
+}
+
+@keyframes wooden-block-drop {
+  0% {
+    transform: translateY(-320%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  58% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(-16%);
+  }
+  80% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+@keyframes wooden-card-pop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes wooden-frame-in {
+  0% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes wooden-chip-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--chip-dx) * var(--chip-spread)),
+        calc(var(--chip-dy) * var(--chip-spread))
+      )
+      rotate(var(--chip-rotate))
+      scale(0.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wooden-login-reveal__stage,
+  .wooden-login-reveal__chips {
+    display: none;
+  }
+
+  .wooden-login-reveal__card,
+  .wooden-login-reveal__frame {
+    animation: none;
+  }
+}

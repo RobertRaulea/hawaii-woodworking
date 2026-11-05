@@ -36,9 +36,21 @@ interface CustomerProfile {
   newsletter: boolean;
 }
 
+// GDPR proof for ad campaigns: stamp when consent is first given, keep it
+// while it stays granted, and clear it when consent is withdrawn.
+const newsletterConsentAt = (
+  storedNewsletter: boolean,
+  storedConsentAt: number | undefined,
+  incomingNewsletter: boolean,
+): number | undefined => {
+  if (!incomingNewsletter) return undefined;
+  if (storedNewsletter && storedConsentAt !== undefined) return storedConsentAt;
+  return Date.now();
+};
+
 // Links a customer record to a Clerk account only when the account's
 // verified email matches the profile email; never trusts client ids.
-const saveCustomer = async (
+export const saveCustomer = async (
   ctx: MutationCtx,
   args: CustomerProfile,
   callerId: string | undefined,
@@ -76,6 +88,11 @@ const saveCustomer = async (
       shippingAddress: args.shippingAddress,
       billingAddress: args.billingAddress,
       newsletter: args.newsletter,
+      newsletterConsentAt: newsletterConsentAt(
+        existing.newsletter,
+        existing.newsletterConsentAt,
+        args.newsletter,
+      ),
       isRegistered: Boolean(callerId) || existing.isRegistered,
       ...(linkId ? { clerkUserId: linkId } : {}),
     });
@@ -92,6 +109,7 @@ const saveCustomer = async (
     shippingAddress: args.shippingAddress,
     billingAddress: args.billingAddress,
     newsletter: args.newsletter,
+    newsletterConsentAt: args.newsletter ? Date.now() : undefined,
     createdAt: Date.now(),
   });
 };
@@ -167,6 +185,50 @@ export const getByClerkUserId = query({
   },
 });
 
+/**
+ * Links a guest-era customer row to the signed-in Clerk account. Guest
+ * checkout created rows without clerkUserId, so getByClerkUserId cannot
+ * find them; the only safe link is the account's own verified email.
+ */
+export const syncMyProfile = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const linked = await ctx.db
+      .query("customers")
+      .withIndex("by_clerkUserId", (q) =>
+        q.eq("clerkUserId", identity.subject),
+      )
+      .first();
+    if (linked) return linked;
+
+    if (identity.emailVerified !== true || !identity.email) return null;
+
+    const findByEmail = (email: string) =>
+      ctx.db
+        .query("customers")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+    const lowercased = identity.email.toLowerCase();
+    const candidate =
+      (await findByEmail(lowercased)) ??
+      (lowercased !== identity.email ? await findByEmail(identity.email) : null);
+    if (!candidate) return null;
+    if (candidate.clerkUserId && candidate.clerkUserId !== identity.subject) {
+      return null;
+    }
+    if (candidate.clerkUserId === identity.subject) return candidate;
+
+    await ctx.db.patch(candidate._id, {
+      clerkUserId: identity.subject,
+      isRegistered: true,
+    });
+    return await ctx.db.get(candidate._id);
+  },
+});
+
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -230,7 +292,14 @@ export const updateCustomer = mutation({
       throw new Error("Customer not found");
     }
 
-    await ctx.db.patch(customerId, updates);
+    await ctx.db.patch(customerId, {
+      ...updates,
+      newsletterConsentAt: newsletterConsentAt(
+        customer.newsletter,
+        customer.newsletterConsentAt,
+        updates.newsletter,
+      ),
+    });
     return customerId;
   },
 });
@@ -272,7 +341,9 @@ export const getNewsletterSubscribers = query({
       email: sub.email,
       firstName: sub.firstName,
       lastName: sub.lastName,
+      phone: sub.phone,
       isRegistered: sub.isRegistered,
+      newsletterConsentAt: sub.newsletterConsentAt,
       createdAt: sub.createdAt,
     }));
   },

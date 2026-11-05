@@ -20,6 +20,7 @@ export const PERMISSIONS = {
   'fairs.manage': ['admin'],
   'catalog.manage': ['admin'],
   'customers.manage': ['admin'],
+  'shipping.manage': ['admin'],
   'staff.manage': ['admin'],
   'reports.view': ['admin'],
   'dashboard.view': ['admin', 'seller', 'atelier'],

@@ -42,6 +42,7 @@ const ProductForm = lazy(() => import('./pages/Admin/Products/ProductForm').then
 const MyOrders = lazy(() => import('./pages/MyOrders/MyOrders').then((m) => ({ default: m.MyOrders })));
 const MyOrderDetail = lazy(() => import('./pages/MyOrders/MyOrderDetail').then((m) => ({ default: m.MyOrderDetail })));
 const AdminOrders = lazy(() => import('./pages/Admin/Orders/AdminOrders').then((m) => ({ default: m.AdminOrders })));
+const AdminShipping = lazy(() => import('./pages/Admin/Shipping/AdminShipping').then((m) => ({ default: m.AdminShipping })));
 const AdminCustomers = lazy(() => import('./pages/Admin/Customers/AdminCustomers').then((m) => ({ default: m.AdminCustomers })));
 const CustomerDetail = lazy(() => import('./pages/Admin/Customers/CustomerDetail').then((m) => ({ default: m.CustomerDetail })));
 const OrderDetail = lazy(() => import('./pages/Admin/Orders/OrderDetail').then((m) => ({ default: m.OrderDetail })));
@@ -140,6 +141,9 @@ function App() {
  </Route>
  <Route element={<AdminRoute permission="reports.view" />}>
  <Route path="reports" element={<Reports />} />
+ </Route>
+ <Route element={<AdminRoute permission="shipping.manage" />}>
+ <Route path="shipping" element={<AdminShipping />} />
  </Route>
  <Route element={<AdminRoute permission="orders.manage" />}>
  <Route path="orders" element={<AdminOrders />} />

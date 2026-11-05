@@ -95,6 +95,7 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({ label, address }) => (
 
 interface EditFormData {
  email: string;
+ phone: string;
  firstName: string;
  lastName: string;
  shippingAddress: {
@@ -155,6 +156,7 @@ export const CustomerDetail: React.FC = () => {
  const handleEdit = () => {
  setEditForm({
  email: customer.email,
+ phone: customer.phone ?? '',
  firstName: customer.firstName,
  lastName: customer.lastName,
  shippingAddress: { ...customer.shippingAddress },
@@ -172,6 +174,7 @@ export const CustomerDetail: React.FC = () => {
  await updateCustomer({
  customerId: customer._id,
  email: editForm.email,
+ phone: editForm.phone.trim() || undefined,
  firstName: editForm.firstName,
  lastName: editForm.lastName,
  shippingAddress: editForm.shippingAddress,
@@ -259,8 +262,17 @@ export const CustomerDetail: React.FC = () => {
  <p className="text-sm text-foreground">{formatDate(customer.createdAt)}</p>
  </div>
  <div>
+ <h4 className="text-sm font-medium text-muted-foreground mb-1">Telefon</h4>
+ <p className="text-sm text-foreground">{customer.phone || '—'}</p>
+ </div>
+ <div>
  <h4 className="text-sm font-medium text-muted-foreground mb-1">Newsletter</h4>
- <p className="text-sm text-foreground">{customer.newsletter ? 'Abonat' : 'Neabonat'}</p>
+ <p className="text-sm text-foreground">
+ {customer.newsletter ? 'Abonat' : 'Neabonat'}
+ {customer.newsletter && customer.newsletterConsentAt
+ ? ` (din ${formatDate(customer.newsletterConsentAt)})`
+ : ''}
+ </p>
  </div>
  <AddressDisplay label="Adresă de livrare" address={customer.shippingAddress} />
  <AddressDisplay label="Adresă de facturare" address={customer.billingAddress} />
@@ -415,6 +427,16 @@ export const CustomerDetail: React.FC = () => {
  type="email"
  value={editForm.email}
  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+ className="h-auto w-full px-3 py-2"
+ />
+ </div>
+ <div>
+ <Label htmlFor="edit-phone" className="mb-1 block">Telefon</Label>
+ <Input
+ id="edit-phone"
+ type="tel"
+ value={editForm.phone}
+ onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
  className="h-auto w-full px-3 py-2"
  />
  </div>

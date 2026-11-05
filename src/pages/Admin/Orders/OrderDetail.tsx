@@ -156,6 +156,10 @@ export const OrderDetail: React.FC = () => {
  >
  {manualRefund
  ? 'Plătită — rambursare manuală necesară'
+ : order.paymentMethod === 'cod' && order.paymentStatus === 'pending'
+ ? `Ramburs — de încasat ${order.total.toFixed(2)} RON`
+ : order.paymentMethod === 'cod'
+ ? 'Ramburs — încasat'
  : PAYMENT_LABELS[order.paymentStatus]}
  </Badge>
  <Badge
@@ -307,7 +311,37 @@ export const OrderDetail: React.FC = () => {
  ))}
  </TableBody>
  <TableFooter className="bg-transparent">
+ {order.shippingCost !== undefined && (
+ <>
  <TableRow className="border-t-2 border-border hover:bg-transparent">
+ <TableCell colSpan={3} className="pt-3 text-right text-sm text-stone-600 dark:text-stone-300 ">
+ Subtotal produse
+ </TableCell>
+ <TableCell className="pt-3 text-right text-sm font-medium text-foreground">
+ {formatPrice((order.total ?? 0) - order.shippingCost - (order.codFee ?? 0))}
+ </TableCell>
+ </TableRow>
+ <TableRow className="hover:bg-transparent">
+ <TableCell colSpan={3} className="py-1 text-right text-sm text-stone-600 dark:text-stone-300 ">
+ Transport
+ </TableCell>
+ <TableCell className="py-1 text-right text-sm font-medium text-foreground">
+ {order.shippingCost > 0 ? formatPrice(order.shippingCost) : 'Gratuit'}
+ </TableCell>
+ </TableRow>
+ {(order.codFee ?? 0) > 0 && (
+ <TableRow className="hover:bg-transparent">
+ <TableCell colSpan={3} className="py-1 text-right text-sm text-stone-600 dark:text-stone-300 ">
+ Taxă ramburs
+ </TableCell>
+ <TableCell className="py-1 text-right text-sm font-medium text-foreground">
+ {formatPrice(order.codFee ?? 0)}
+ </TableCell>
+ </TableRow>
+ )}
+ </>
+ )}
+ <TableRow className={`${order.shippingCost === undefined ? 'border-t-2 border-border ' : ''}hover:bg-transparent`}>
  <TableCell
  colSpan={3}
  className="pt-3 text-right font-semibold text-stone-800 dark:text-stone-100 "

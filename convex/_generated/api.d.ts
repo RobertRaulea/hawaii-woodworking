@@ -10,6 +10,7 @@
 
 import type * as categories from "../categories.js";
 import type * as checkout from "../checkout.js";
+import type * as codOrders from "../codOrders.js";
 import type * as customers from "../customers.js";
 import type * as demoCatalog from "../demoCatalog.js";
 import type * as demoData from "../demoData.js";
@@ -20,7 +21,9 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as lib_demoProducts from "../lib/demoProducts.js";
 import type * as lib_directory from "../lib/directory.js";
 import type * as lib_environment from "../lib/environment.js";
+import type * as lib_oblio from "../lib/oblio.js";
 import type * as lib_permissions from "../lib/permissions.js";
+import type * as lib_posthog from "../lib/posthog.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_storage from "../lib/storage.js";
 import type * as lib_translations from "../lib/translations.js";
@@ -31,6 +34,7 @@ import type * as postPayment from "../postPayment.js";
 import type * as products from "../products.js";
 import type * as reports from "../reports.js";
 import type * as seedCategories from "../seedCategories.js";
+import type * as shipping from "../shipping.js";
 import type * as siteAssets from "../siteAssets.js";
 import type * as staff from "../staff.js";
 import type * as stripeVerify from "../stripeVerify.js";
@@ -46,6 +50,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   checkout: typeof checkout;
+  codOrders: typeof codOrders;
   customers: typeof customers;
   demoCatalog: typeof demoCatalog;
   demoData: typeof demoData;
@@ -56,7 +61,9 @@ declare const fullApi: ApiFromModules<{
   "lib/demoProducts": typeof lib_demoProducts;
   "lib/directory": typeof lib_directory;
   "lib/environment": typeof lib_environment;
+  "lib/oblio": typeof lib_oblio;
   "lib/permissions": typeof lib_permissions;
+  "lib/posthog": typeof lib_posthog;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/storage": typeof lib_storage;
   "lib/translations": typeof lib_translations;
@@ -67,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   reports: typeof reports;
   seedCategories: typeof seedCategories;
+  shipping: typeof shipping;
   siteAssets: typeof siteAssets;
   staff: typeof staff;
   stripeVerify: typeof stripeVerify;
