@@ -96,6 +96,13 @@ const invoke = (
  orderId: request.orderId,
  reason: request.reason,
  });
+ case 'returned':
+ return convex.mutation(api.orders.markReturned, {
+ requestId: request.requestId,
+ orderId: request.orderId,
+ reason: request.reason,
+ restock: request.restock,
+ });
  }
 };
 

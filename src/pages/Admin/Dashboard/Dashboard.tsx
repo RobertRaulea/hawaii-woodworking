@@ -207,6 +207,12 @@ export const Dashboard: React.FC = () => {
                   Ambalate <Badge>{data.fulfillment.packed}</Badge>
                 </Link>
               </Button>
+              <Button asChild variant="outline">
+                <Link to="/admin/orders">
+                  Retururi de procesat{' '}
+                  <Badge>{data.fulfillment.returnRequests}</Badge>
+                </Link>
+              </Button>
             </div>
           </Section>
         ) : null}

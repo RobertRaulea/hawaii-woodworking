@@ -316,9 +316,16 @@ export const dashboard = query({
             ) {
               counts[state] += 1;
             }
+            if (
+              order.status === "delivered" &&
+              order.returnRequestedAt !== undefined &&
+              order.returnedAt === undefined
+            ) {
+              counts.returnRequests += 1;
+            }
             return counts;
           },
-          { ready: 0, preparing: 0, packed: 0 },
+          { ready: 0, preparing: 0, packed: 0, returnRequests: 0 },
         )
       : null;
 

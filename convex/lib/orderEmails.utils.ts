@@ -300,3 +300,212 @@ export function generateCustomerEmailHtml(
 </body>
 </html>`;
 }
+
+export type OrderNoticeKind =
+  | "customer_cancelled"
+  | "return_requested"
+  | "returned";
+
+export interface OrderNotice {
+  // The "returned" notice goes to the customer only; the other two also
+  // notify the admin.
+  sendToAdmin: boolean;
+  adminSubject: string;
+  adminHtml: string;
+  customerSubject: string;
+  customerHtml: string;
+}
+
+const noticeReason = (order: OrderWithCustomer, kind: OrderNoticeKind) =>
+  kind === "customer_cancelled"
+    ? order.cancelReason
+    : kind === "return_requested"
+      ? order.returnRequestReason
+      : order.returnReason;
+
+const noticeAdminTitle: Record<OrderNoticeKind, string> = {
+  customer_cancelled: "Comandă anulată de client",
+  return_requested: "Cerere de retur",
+  returned: "Retur înregistrat",
+};
+
+const generateOrderNoticeAdminHtml = (
+  order: OrderWithCustomer,
+  kind: OrderNoticeKind,
+): string => {
+  const number = shortOrderNumber(order._id);
+  const reason = noticeReason(order, kind);
+  const itemsHtml = order.items
+    .map(
+      (item: OrderItem) => `
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(item.name)}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${(item.price * item.quantity).toFixed(2)} RON</td>
+    </tr>`,
+    )
+    .join("");
+  const flags: string[] = [];
+  if (order.refundStatus === "manual_required") {
+    flags.push("Ramburs manual necesar pentru suma plătită.");
+  }
+  if (kind === "returned") {
+    flags.push(
+      order.returnRestocked
+        ? "Stocul a fost restabilit în magazin."
+        : "Stocul NU a fost restabilit.",
+    );
+  }
+  if (kind === "return_requested" && order.deliveredAt) {
+    const delivered = formatOrderDateRo(order.deliveredAt);
+    if (delivered) flags.push(`Livrată pe ${escapeHtml(delivered)}.`);
+  }
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+        <h1 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">${noticeAdminTitle[kind]}</h1>
+        <p style="margin: 0; color: #6b7280;">Comandă #${escapeHtml(number)}</p>
+      </div>
+
+      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #111827;">Client</h2>
+        <p style="margin: 4px 0;"><strong>Nume:</strong> ${escapeHtml(order.customer.firstName)} ${escapeHtml(order.customer.lastName)}</p>
+        <p style="margin: 4px 0;"><strong>Email:</strong> ${escapeHtml(order.customer.email)}</p>
+        <p style="margin: 4px 0;"><strong>Telefon:</strong> ${escapeHtml(order.shipping?.phone ?? order.customer.phone ?? "")}</p>
+      </div>
+
+      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #111827;">Produse</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="padding: 12px 8px; text-align: right; font-weight: bold;">Total:</td>
+              <td style="padding: 12px 8px; text-align: right; font-weight: bold;">${order.total.toFixed(2)} RON</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      ${reason ? `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;"><h2 style="margin: 0 0 8px 0; font-size: 18px; color: #111827;">Motiv</h2><p style="margin: 0;">${escapeHtml(reason)}</p></div>` : ""}
+      ${flags.length ? `<div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 24px;">${flags.map((flag) => `<p style="margin: 0 0 4px 0; font-weight: 600; color: #92400e;">${escapeHtml(flag)}</p>`).join("")}</div>` : ""}
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="margin: 0; color: #6b7280; font-size: 14px;">${escapeHtml(SITE_NAME)} - Sistem automat de notificări</p>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const generateOrderNoticeCustomerHtml = (
+  order: OrderWithCustomer,
+  kind: OrderNoticeKind,
+): { headline: string; paragraphs: string[] } => {
+  const number = shortOrderNumber(order._id);
+  if (kind === "customer_cancelled") {
+    const paragraphs = [`Comanda ta #${escapeHtml(number)} a fost anulată.`];
+    if (order.refundStatus === "manual_required") {
+      paragraphs.push(
+        "Suma plătită îți va fi rambursată manual, prin aceeași metodă de plată, în cel mult 14 zile calendaristice.",
+      );
+    } else if (order.paymentMethod === "cod") {
+      paragraphs.push(
+        "Plata era ramburs (la livrare), deci nu ai efectuat nicio plată.",
+      );
+    }
+    return { headline: "Comanda ta a fost anulată", paragraphs };
+  }
+  if (kind === "return_requested") {
+    return {
+      headline: "Cererea ta de retur a fost înregistrată",
+      paragraphs: [
+        `Am primit cererea de retur pentru comanda #${escapeHtml(number)}.`,
+        "Te contactăm în cel mai scurt timp pentru a stabili împreună pașii următori.",
+      ],
+    };
+  }
+  const paragraphs = [
+    `Am înregistrat returul pentru comanda #${escapeHtml(number)}.`,
+  ];
+  if (order.refundStatus === "manual_required") {
+    paragraphs.push(
+      `Îți vom rambursa integral suma plătită (${order.total.toFixed(2)} RON). Rambursarea este procesată manual, conform politicii de retur.`,
+    );
+  }
+  return { headline: "Returul a fost înregistrat", paragraphs };
+};
+
+export const buildOrderNotice = (
+  order: OrderWithCustomer,
+  kind: OrderNoticeKind,
+  isTest = false,
+): OrderNotice => {
+  const number = shortOrderNumber(order._id);
+  const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
+  const adminSubjects: Record<OrderNoticeKind, string> = {
+    customer_cancelled: `Comandă anulată #${number} - ${customerName}`,
+    return_requested: `Cerere de retur #${number} - ${customerName}`,
+    returned: `Retur înregistrat #${number} - ${customerName}`,
+  };
+  const customerSubjects: Record<OrderNoticeKind, string> = {
+    customer_cancelled: `Comanda #${number} a fost anulată - ${SITE_NAME}`,
+    return_requested: `Cerere de retur pentru comanda #${number} - ${SITE_NAME}`,
+    returned: `Returul pentru comanda #${number} a fost înregistrat - ${SITE_NAME}`,
+  };
+  const { headline, paragraphs } = generateOrderNoticeCustomerHtml(
+    order,
+    kind,
+  );
+  const customerHtml = `<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>${escapeHtml(SITE_NAME)}</title>
+</head>
+<body style="margin: 0; padding: 0; background: #fafaf9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1c1917;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #fafaf9;">
+    <tr>
+      <td align="center" style="padding: 24px 12px;">
+        ${isTest ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; margin: 0 0 12px 0;"><tr><td style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; color: #92400e; font-size: 13px; text-align: center;">Mediu TEST - nu s-a efectuat nicio plată reală și nu s-a emis nicio factură fiscală.</td></tr></table>` : ""}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; background: #ffffff; border: 1px solid #e7e5e4; border-radius: 12px;">
+          <tr>
+            <td style="padding: 32px 28px;">
+              <p style="margin: 0 0 24px 0; color: #78716c; font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;">${escapeHtml(SITE_NAME)}</p>
+              <h1 style="margin: 0 0 8px 0; color: #1c1917; font-size: 24px; font-weight: 700; line-height: 1.3;">${headline}</h1>
+              <p style="margin: 0 0 24px 0; color: #78716c; font-size: 14px;">Comandă #${escapeHtml(number)}</p>
+              ${paragraphs.map((paragraph) => `<p style="margin: 0 0 12px 0; color: #1c1917; font-size: 14px;">${paragraph}</p>`).join("")}
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px;">
+          <tr>
+            <td style="padding: 20px 8px 0 8px; text-align: center;">
+              <p style="margin: 0 0 4px 0; color: #78716c; font-size: 13px;">${escapeHtml(BUSINESS.legalName)}</p>
+              <p style="margin: 0 0 4px 0; color: #78716c; font-size: 13px;">${escapeHtml(BUSINESS.email)} · ${escapeHtml(BUSINESS.phoneDisplay)}</p>
+              <p style="margin: 12px 0 0 0; color: #a8a29e; font-size: 12px;">© ${new Date().getFullYear()} ${escapeHtml(SITE_NAME)}. Toate drepturile rezervate.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  return {
+    sendToAdmin: kind !== "returned",
+    adminSubject: adminSubjects[kind],
+    adminHtml: generateOrderNoticeAdminHtml(order, kind),
+    customerSubject: customerSubjects[kind],
+    customerHtml,
+  };
+};

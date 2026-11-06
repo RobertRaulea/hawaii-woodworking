@@ -446,6 +446,7 @@ export const Reports: React.FC = () => {
                         ['delivered', 'Livrată'],
                         ['blocked', 'Blocată'],
                         ['cancelled', 'Anulată'],
+                        ['returned', 'Returnate'],
                       ] as const
                     ).map(([state, label]) => (
                       <TableRow key={state}>

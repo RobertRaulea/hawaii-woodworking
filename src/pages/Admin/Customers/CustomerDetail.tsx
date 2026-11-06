@@ -38,17 +38,19 @@ import {
  TableRow,
 } from '@/components/ui/table';
 
-type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+type OrderStatus =
+ 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
 
 const STATUS_BADGES: Record<
  OrderStatus,
- 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive'
+ 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive' | 'stone'
 > = {
  pending: 'yellow',
  paid: 'success',
  shipped: 'blue',
  delivered: 'emerald',
  cancelled: 'destructive',
+ returned: 'stone',
 };
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -57,6 +59,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
  shipped: 'Expediată',
  delivered: 'Livrată',
  cancelled: 'Anulată',
+ returned: 'Returnată',
 };
 
 const formatDate = (timestamp: number): string => {

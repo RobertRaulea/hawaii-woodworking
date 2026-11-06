@@ -1,15 +1,32 @@
 import type React from 'react';
+import { useRef, useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { useConvexAuth } from 'convex/react';
+import { useConvexAuth, useMutation } from 'convex/react';
+import { ConvexError } from 'convex/values';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { useAdminQuery } from '../../hooks/useAdminQuery';
+import {
+ canCancelOrder,
+ canRequestReturn,
+ RETURN_WINDOW_MS,
+} from '../../utils/orderActions.utils';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+ Dialog,
+ DialogContent,
+ DialogHeader,
+ DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
  Table,
  TableBody,
@@ -20,17 +37,19 @@ import {
  TableRow,
 } from '@/components/ui/table';
 
-type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+type OrderStatus =
+ 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
 
 const STATUS_BADGES: Record<
  OrderStatus,
- 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive'
+ 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive' | 'stone'
 > = {
  pending: 'yellow',
  paid: 'success',
  shipped: 'blue',
  delivered: 'emerald',
  cancelled: 'destructive',
+ returned: 'stone',
 };
 
 
@@ -72,7 +91,24 @@ export const MyOrderDetail: React.FC = () => {
  shipped: t('orders.shipped'),
  delivered: t('orders.delivered'),
  cancelled: t('orders.cancelled'),
+ returned: t('orders.returned'),
  };
+
+ const cancelMine = useMutation(api.orders.cancelMine);
+ const requestReturnMine = useMutation(api.orders.requestReturnMine);
+ // One requestId per dialog open, kept across retries until success.
+ const cancelRequestId = useRef<string | null>(null);
+ const returnRequestId = useRef<string | null>(null);
+ const [cancelOpen, setCancelOpen] = useState(false);
+ const [cancelReason, setCancelReason] = useState('');
+ const [returnOpen, setReturnOpen] = useState(false);
+ const [returnReason, setReturnReason] = useState('');
+ const [busy, setBusy] = useState(false);
+
+ const backendMessage = (error: unknown, fallback: string) =>
+ error instanceof ConvexError && typeof error.data === 'string'
+ ? error.data
+ : fallback;
 
  const formatDate = (timestamp: number): string => {
  const locale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'en' ? 'en-US' : 'ro-RO';
@@ -190,6 +226,78 @@ export const MyOrderDetail: React.FC = () => {
  </div>
  </div>
 
+ {/* Status messages */}
+ {order.status === 'cancelled' && order.refundStatus === 'manual_required' ? (
+ <Alert variant="info" className="mb-6">
+ <AlertDescription>{t('orders.statusCancelledRefund')}</AlertDescription>
+ </Alert>
+ ) : order.status === 'cancelled' && order.paymentMethod === 'cod' ? (
+ <Alert variant="info" className="mb-6">
+ <AlertDescription>{t('orders.statusCancelledCod')}</AlertDescription>
+ </Alert>
+ ) : order.status === 'returned' &&
+ order.refundStatus === 'manual_required' &&
+ order.paymentMethod !== 'cod' ? (
+ <Alert variant="info" className="mb-6">
+ <AlertDescription>{t('orders.statusReturnedRefundCard')}</AlertDescription>
+ </Alert>
+ ) : order.status === 'returned' && order.refundStatus === 'manual_required' ? (
+ <Alert variant="info" className="mb-6">
+ <AlertDescription>{t('orders.statusReturnedRefundCod')}</AlertDescription>
+ </Alert>
+ ) : order.status === 'returned' ? (
+ <Alert variant="info" className="mb-6">
+ <AlertDescription>{t('orders.statusReturnedNoPayment')}</AlertDescription>
+ </Alert>
+ ) : null}
+
+ {/* Actions */}
+ {canCancelOrder(order) || canRequestReturn(order) || order.returnRequestedAt ? (
+ <Card className="mb-6 rounded-lg border-border p-5 shadow-none">
+ <div className="flex flex-col gap-3">
+ {order.returnRequestedAt && order.status !== 'returned' ? (
+ <p className="text-sm text-stone-600 dark:text-stone-300">
+ {t('orders.returnSent', {
+ date: formatDate(order.returnRequestedAt),
+ })}
+ </p>
+ ) : null}
+ <div className="flex flex-wrap gap-3">
+ {canCancelOrder(order) ? (
+ <Button
+ type="button"
+ variant="destructive"
+ disabled={busy}
+ onClick={() => {
+ cancelRequestId.current ??= crypto.randomUUID();
+ setCancelReason('');
+ setCancelOpen(true);
+ }}
+ className="rounded-md"
+ >
+ {t('orders.cancelOrder')}
+ </Button>
+ ) : null}
+ {canRequestReturn(order) ? (
+ <Button
+ type="button"
+ variant="outline"
+ disabled={busy}
+ onClick={() => {
+ returnRequestId.current ??= crypto.randomUUID();
+ setReturnReason('');
+ setReturnOpen(true);
+ }}
+ className="rounded-md"
+ >
+ {t('orders.requestReturn')}
+ </Button>
+ ) : null}
+ </div>
+ </div>
+ </Card>
+ ) : null}
+
  {/* Addresses */}
  {order.customer && (
  <Card className="mb-6 rounded-lg border-border p-5 shadow-none">
@@ -252,6 +360,155 @@ export const MyOrderDetail: React.FC = () => {
  </Table>
  </div>
  </Card>
+
+ <Dialog
+ open={cancelOpen}
+ onOpenChange={(open) => {
+ if (!open && !busy) setCancelOpen(false);
+ }}
+ >
+ <DialogContent>
+ <DialogHeader>
+ <DialogTitle>{t('orders.cancelDialogTitle')}</DialogTitle>
+ </DialogHeader>
+ <form
+ onSubmit={async (event) => {
+ event.preventDefault();
+ if (busy || !cancelRequestId.current) return;
+ setBusy(true);
+ try {
+ await cancelMine({
+ requestId: cancelRequestId.current,
+ orderId: order._id,
+ ...(cancelReason.trim()
+ ? { reason: cancelReason.trim() }
+ : {}),
+ });
+ cancelRequestId.current = null;
+ setCancelOpen(false);
+ toast.success(t('orders.cancelSuccess'));
+ } catch (mutationError) {
+ toast.error(
+ backendMessage(mutationError, t('orders.cancelError')),
+ );
+ } finally {
+ setBusy(false);
+ }
+ }}
+ className="space-y-4"
+ >
+ <p className="text-sm text-stone-600 dark:text-stone-300">
+ {t('orders.cancelExplain')}
+ {order.paymentMethod !== 'cod' &&
+ order.paymentConfirmedAt !== undefined
+ ? ` ${t('orders.cancelExplainRefund')}`
+ : ''}
+ </p>
+ <div>
+ <Label htmlFor="my-cancel-reason">
+ {t('orders.cancelReasonOptional')}
+ </Label>
+ <Textarea
+ id="my-cancel-reason"
+ value={cancelReason}
+ onChange={(event) => setCancelReason(event.target.value)}
+ rows={3}
+ maxLength={300}
+ className="mt-1 w-full rounded-lg px-3 py-2"
+ />
+ </div>
+ <div className="flex justify-end gap-2">
+ <Button
+ type="button"
+ variant="outline"
+ disabled={busy}
+ onClick={() => setCancelOpen(false)}
+ >
+ {t('orders.dismiss')}
+ </Button>
+ <Button type="submit" variant="destructive" disabled={busy}>
+ {t('orders.confirmCancel')}
+ </Button>
+ </div>
+ </form>
+ </DialogContent>
+ </Dialog>
+
+ <Dialog
+ open={returnOpen}
+ onOpenChange={(open) => {
+ if (!open && !busy) setReturnOpen(false);
+ }}
+ >
+ <DialogContent>
+ <DialogHeader>
+ <DialogTitle>{t('orders.returnDialogTitle')}</DialogTitle>
+ </DialogHeader>
+ <form
+ onSubmit={async (event) => {
+ event.preventDefault();
+ if (busy || !returnRequestId.current) return;
+ setBusy(true);
+ try {
+ await requestReturnMine({
+ requestId: returnRequestId.current,
+ orderId: order._id,
+ reason: returnReason.trim(),
+ });
+ returnRequestId.current = null;
+ setReturnOpen(false);
+ toast.success(t('orders.returnSuccess'));
+ } catch (mutationError) {
+ toast.error(
+ backendMessage(mutationError, t('orders.returnError')),
+ );
+ } finally {
+ setBusy(false);
+ }
+ }}
+ className="space-y-4"
+ >
+ {order.deliveredAt ? (
+ <p className="text-sm text-stone-600 dark:text-stone-300">
+ {t('orders.returnExplainDeadline', {
+ date: formatDate(order.deliveredAt + RETURN_WINDOW_MS),
+ })}
+ </p>
+ ) : null}
+ <div>
+ <Label htmlFor="my-return-reason">
+ {t('orders.returnReason')}
+ </Label>
+ <Textarea
+ id="my-return-reason"
+ value={returnReason}
+ onChange={(event) => setReturnReason(event.target.value)}
+ rows={3}
+ required
+ minLength={3}
+ maxLength={300}
+ className="mt-1 w-full rounded-lg px-3 py-2"
+ />
+ </div>
+ <div className="flex justify-end gap-2">
+ <Button
+ type="button"
+ variant="outline"
+ disabled={busy}
+ onClick={() => setReturnOpen(false)}
+ >
+ {t('orders.dismiss')}
+ </Button>
+ <Button
+ type="submit"
+ disabled={busy || returnReason.trim().length < 3}
+ >
+ {t('orders.confirmReturn')}
+ </Button>
+ </div>
+ </form>
+ </DialogContent>
+ </Dialog>
  </div>
  );
 };

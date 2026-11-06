@@ -51,7 +51,15 @@ export const orderSaleDate = (order: Doc<"orders">) =>
   businessDate(orderSaleTs(order));
 
 export const orderReturnDate = (order: Doc<"orders">) =>
-  businessDate(Math.max(order.cancelledAt ?? orderSaleTs(order), orderSaleTs(order)));
+  businessDate(
+    Math.max(
+      order.returnedAt ?? order.cancelledAt ?? orderSaleTs(order),
+      orderSaleTs(order),
+    ),
+  );
+
+const isReturnBucket = (order: Doc<"orders">) =>
+  order.status === "cancelled" || order.status === "returned";
 
 export const orderGrossCents = (order: Doc<"orders">) =>
   order.items.reduce(
@@ -83,10 +91,7 @@ export const onlineSales = (
       totals.count += 1;
       totals.units += orderUnits(order);
     }
-    if (
-      order.status === "cancelled" &&
-      inPeriod(orderReturnDate(order), from, to)
-    ) {
+    if (isReturnBucket(order) && inPeriod(orderReturnDate(order), from, to)) {
       totals.returnsCents += gross - discount;
       totals.returnCount += 1;
       totals.returnUnits += orderUnits(order);
@@ -164,7 +169,7 @@ export const collections = (
     }
     if (
       order.refundStatus === "manual_required" &&
-      order.status === "cancelled" &&
+      isReturnBucket(order) &&
       inPeriod(orderReturnDate(order), from, to)
     ) {
       result.refundsManualCents! +=
@@ -182,6 +187,7 @@ export interface OrdersByState {
 
 const FULFILLMENT_STATES: FulfillmentState[] = [
   "cancelled",
+  "returned",
   "delivered",
   "shipped",
   "packed",
@@ -296,8 +302,7 @@ export const productsSold = (
     if (!isPaidOrder(order)) continue;
     const soldHere = inPeriod(orderSaleDate(order), from, to);
     const returnedHere =
-      order.status === "cancelled" &&
-      inPeriod(orderReturnDate(order), from, to);
+      isReturnBucket(order) && inPeriod(orderReturnDate(order), from, to);
     for (const item of order.items) {
       if (!soldHere && !returnedHere) continue;
       const entry = row(item.productId, item.name);
@@ -357,7 +362,7 @@ export const byDay = (
     if (saleDay) {
       saleDay.onlineNetCents += orderGrossCents(order) - orderDiscountCents(order);
     }
-    if (order.status === "cancelled") {
+    if (isReturnBucket(order)) {
       const returnDay = rows.get(orderReturnDate(order));
       if (returnDay) {
         returnDay.onlineNetCents -=

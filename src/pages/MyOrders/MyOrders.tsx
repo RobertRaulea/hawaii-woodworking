@@ -11,17 +11,19 @@ import { Empty } from '@/components/ui/empty';
 import { Spinner } from '@/components/ui/spinner';
 import { Card } from '@/components/ui/card';
 
-type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+type OrderStatus =
+ 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
 
 const STATUS_BADGES: Record<
  OrderStatus,
- 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive'
+ 'yellow' | 'success' | 'blue' | 'emerald' | 'destructive' | 'stone'
 > = {
  pending: 'yellow',
  paid: 'success',
  shipped: 'blue',
  delivered: 'emerald',
  cancelled: 'destructive',
+ returned: 'stone',
 };
 
 
@@ -43,6 +45,7 @@ export const MyOrders: React.FC = () => {
  shipped: t('orders.shipped'),
  delivered: t('orders.delivered'),
  cancelled: t('orders.cancelled'),
+ returned: t('orders.returned'),
  };
 
  const formatDate = (timestamp: number): string => {

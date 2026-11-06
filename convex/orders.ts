@@ -21,6 +21,8 @@ import {
   fulfillmentState,
   paymentStatus,
 } from "./lib/orders.utils";
+import { cancelOrderCore } from "./lib/orderCancel.utils";
+import { enforceRateLimit } from "./lib/rateLimit";
 import { analyticsContextValidator, purchaseSnapshot } from "./lib/analytics.utils";
 
 interface PaymentResult {
@@ -261,26 +263,27 @@ export const markOrderPaid = internalMutation({
       };
     }
     const paymentConfirmedAt = Date.now();
-    const cancelled = order.status === "cancelled";
+    // A late payment never reopens a closed order.
+    const closed = order.status === "cancelled" || order.status === "returned";
     await ctx.db.patch(order._id, {
       paymentConfirmedAt,
-      status: cancelled ? "cancelled" : "paid",
+      status: closed ? order.status : "paid",
       ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
     });
     const result = await applyOrderStock(
       ctx,
       {
         ...order,
-        status: cancelled ? "cancelled" : "paid",
+        status: closed ? order.status : "paid",
         paymentConfirmedAt,
       },
       "system:stripe",
-      cancelled,
+      closed,
     );
     if (result.inventoryStatus === "applied" || result.inventoryStatus === "needs_review") {
       const snapshot = purchaseSnapshot({
         ...order,
-        status: cancelled ? "cancelled" : "paid",
+        status: closed ? order.status : "paid",
         paymentConfirmedAt,
         inventoryStatus: result.inventoryStatus,
       });
@@ -442,6 +445,72 @@ export const updateStatus = mutation({
   },
 });
 
+type OrderNoticeKind = "customer_cancelled" | "return_requested" | "returned";
+
+// Email notices are best-effort: scheduling must never roll back the order
+// change when delivery is unconfigured or unavailable.
+const scheduleOrderNotice = async (
+  ctx: MutationCtx,
+  orderId: Id<"orders">,
+  kind: OrderNoticeKind,
+) => {
+  try {
+    await ctx.scheduler.runAfter(0, internal.postPayment.sendOrderNotice, {
+      orderId,
+      kind,
+    });
+  } catch {
+    console.error("Notificarea de comandă nu a putut fi programată.");
+  }
+};
+
+const orderEventReplay = async (
+  ctx: MutationCtx,
+  requestId: string,
+  actorId: string,
+  kind: Doc<"orderEvents">["kind"],
+  orderId: Id<"orders">,
+) => {
+  if (!requestIdIsValid(requestId)) {
+    throw new ConvexError("Identificator de operațiune invalid.");
+  }
+  const previous = await ctx.db
+    .query("orderEvents")
+    .withIndex("by_request", (q) => q.eq("requestId", requestId))
+    .unique();
+  if (!previous) return null;
+  if (
+    previous.actorId !== actorId ||
+    previous.kind !== kind ||
+    previous.orderId !== orderId
+  ) {
+    throw new ConvexError(
+      "Identificator deja utilizat pentru alta operațiune.",
+    );
+  }
+  return previous;
+};
+
+// Customer-owned order lookup: a missing account, missing order or foreign
+// order all get the same generic error so the endpoint leaks nothing.
+const requireOwnedOrder = async (ctx: MutationCtx, orderId: Id<"orders">) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new ConvexError("Trebuie să fii autentificat.");
+  }
+  const customer = await ctx.db
+    .query("customers")
+    .withIndex("by_clerkUserId", (q) =>
+      q.eq("clerkUserId", identity.subject),
+    )
+    .first();
+  const order = await ctx.db.get(orderId);
+  if (!customer || !order || order.customerId !== customer._id) {
+    throw new ConvexError("Comanda nu există.");
+  }
+  return { identity, customer, order };
+};
+
 export const cancel = mutation({
   args: {
     requestId: v.string(),
@@ -450,77 +519,189 @@ export const cancel = mutation({
   },
   handler: async (ctx, { requestId, orderId, reason }) => {
     const { identity } = await requirePermission(ctx, "orders.manage");
-    if (!requestIdIsValid(requestId)) {
-      throw new ConvexError("Identificator de operațiune invalid.");
+    const result = await cancelOrderCore(ctx, {
+      requestId,
+      orderId,
+      reason,
+      actorId: identity.subject,
+    });
+    // Admin cancellations do not notify: the customer-cancel email text only
+    // fits self-service cancels, and staff cancels are handled out-of-band.
+    return result.order;
+  },
+});
+
+export const cancelMine = mutation({
+  args: {
+    requestId: v.string(),
+    orderId: v.id("orders"),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, { requestId, orderId, reason }) => {
+    const { identity } = await requireOwnedOrder(ctx, orderId);
+    await enforceRateLimit(
+      ctx,
+      `order-cancel:${identity.subject}`,
+      20,
+      60 * 60 * 1000,
+    );
+    const trimmed = reason?.trim() ?? "";
+    const result = await cancelOrderCore(ctx, {
+      requestId,
+      orderId,
+      reason: trimmed.length < 3 ? "Anulată de client" : trimmed,
+      actorId: identity.subject,
+      checkEligible: (order) => {
+        if (order.status === "cancelled") {
+          throw new ConvexError("Comanda este deja anulată.");
+        }
+        if (order.status === "returned") {
+          throw new ConvexError(
+            "Comanda returnată nu mai poate fi anulată.",
+          );
+        }
+        if (order.status === "shipped" || order.status === "delivered") {
+          throw new ConvexError(
+            "Comanda este deja expediată. Pentru retur sau alte modificări, contactează-ne.",
+          );
+        }
+        if (order.fulfillmentStatus === "packed") {
+          throw new ConvexError(
+            "Comanda este deja ambalată pentru expediere. Contactează-ne urgent dacă vrei să o anulezi.",
+          );
+        }
+        // Self-cancel needs stock cleanly applied and money either already
+        // collected by card or due on delivery (COD); anything else is
+        // reconciled by staff, not by the customer.
+        if (
+          order.inventoryStatus !== "applied" ||
+          (paymentStatus(order) !== "paid" && order.paymentMethod !== "cod")
+        ) {
+          throw new ConvexError(
+            "Comanda nu poate fi anulată online. Contactează-ne și o rezolvăm împreună.",
+          );
+        }
+      },
+    });
+    if (result.cancelledNow) {
+      await scheduleOrderNotice(ctx, orderId, "customer_cancelled");
     }
-    const previous = await ctx.db
-      .query("orderEvents")
-      .withIndex("by_request", (q) => q.eq("requestId", requestId))
-      .unique();
-    if (previous) {
-      if (
-        previous.actorId !== identity.subject ||
-        previous.orderId !== orderId ||
-        previous.kind !== "cancelled"
-      ) {
-        throw new ConvexError(
-          "Identificator deja utilizat pentru alta operațiune.",
-        );
-      }
-      return ctx.db.get(orderId);
-    }
+    return result.order;
+  },
+});
+
+const RETURN_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
+export const requestReturnMine = mutation({
+  args: {
+    requestId: v.string(),
+    orderId: v.id("orders"),
+    reason: v.string(),
+  },
+  handler: async (ctx, { requestId, orderId, reason }) => {
+    const { identity, order } = await requireOwnedOrder(ctx, orderId);
+    await enforceRateLimit(
+      ctx,
+      `order-return:${identity.subject}`,
+      20,
+      60 * 60 * 1000,
+    );
+    const previous = await orderEventReplay(
+      ctx,
+      requestId,
+      identity.subject,
+      "return_requested",
+      orderId,
+    );
+    if (previous) return ctx.db.get(orderId);
     const trimmed = reason.trim();
     if (trimmed.length < 3 || trimmed.length > 300) {
       throw new ConvexError(
-        "Motivul anulării trebuie să aibă între 3 și 300 de caractere.",
+        "Motivul returului trebuie să aibă între 3 și 300 de caractere.",
+      );
+    }
+    if (order.status !== "delivered") {
+      throw new ConvexError(
+        "Returul se poate cere doar pentru comenzi livrate.",
+      );
+    }
+    const now = Date.now();
+    if (
+      order.deliveredAt === undefined ||
+      now - order.deliveredAt > RETURN_WINDOW_MS
+    ) {
+      throw new ConvexError(
+        "Perioada de retur de 14 zile a expirat. Contactează-ne pentru detalii.",
+      );
+    }
+    if (order.returnRequestedAt !== undefined) {
+      throw new ConvexError("Ai cerut deja returul pentru această comandă.");
+    }
+    await ctx.db.patch(orderId, {
+      returnRequestedAt: now,
+      returnRequestReason: trimmed,
+    });
+    await ctx.db.insert("orderEvents", {
+      orderId,
+      requestId,
+      actorId: identity.subject,
+      kind: "return_requested",
+      note: trimmed,
+      createdAt: now,
+    });
+    await scheduleOrderNotice(ctx, orderId, "return_requested");
+    return ctx.db.get(orderId);
+  },
+});
+
+export const markReturned = mutation({
+  args: {
+    requestId: v.string(),
+    orderId: v.id("orders"),
+    reason: v.string(),
+    restock: v.boolean(),
+  },
+  handler: async (ctx, { requestId, orderId, reason, restock }) => {
+    const { identity } = await requirePermission(ctx, "orders.manage");
+    const previous = await orderEventReplay(
+      ctx,
+      requestId,
+      identity.subject,
+      "returned",
+      orderId,
+    );
+    if (previous) return ctx.db.get(orderId);
+    const trimmed = reason.trim();
+    if (trimmed.length < 3 || trimmed.length > 300) {
+      throw new ConvexError(
+        "Motivul returului trebuie să aibă între 3 și 300 de caractere.",
       );
     }
     const order = await ctx.db.get(orderId);
     if (!order) throw new ConvexError("Comanda nu există.");
-    if (order.status === "shipped" || order.status === "delivered") {
+    if (order.status === "returned") {
+      throw new ConvexError("Comanda este deja returnată.");
+    }
+    // "delivered" covers the withdrawal window and "shipped" covers the
+    // parcel refused at the door.
+    if (order.status !== "delivered" && order.status !== "shipped") {
       throw new ConvexError(
-        "Comanda expediată nu mai poate fi anulată.",
+        "Doar comenzile expediate sau livrate pot fi marcate ca returnate.",
       );
     }
     const now = Date.now();
     const actorId = identity.subject;
-    let eventNote = trimmed;
-
-    if (order.status === "cancelled") {
-      if (order.inventoryStatus !== "needs_review") {
-        throw new ConvexError("Comanda este deja anulată.");
-      }
-      // Paid after cancel: release the held claims only.
-      await ctx.db.patch(orderId, {
-        inventoryStatus: "released",
-        refundStatus: "manual_required",
-        cancelReason: trimmed,
-      });
-      await ctx.db.insert("orderEvents", {
-        orderId,
-        requestId,
-        actorId: identity.subject,
-        kind: "cancelled",
-        note: trimmed,
-        createdAt: now,
-      });
-      return ctx.db.get(orderId);
-    }
-
-    const paid = paymentStatus(order) === "paid";
-    // COD orders also hold applied stock; cancel restocks but is never a refund.
-    const codApplied =
-      order.paymentMethod === "cod" && order.inventoryStatus === "applied";
     const notes: string[] = [];
     const patch: Record<string, unknown> = {
-      status: "cancelled",
-      cancelledAt: now,
-      cancelledBy: actorId,
-      cancelReason: trimmed,
+      status: "returned",
+      returnedAt: now,
+      returnedBy: actorId,
+      returnReason: trimmed,
+      returnRestocked: restock,
       assignedTo: undefined,
       assignedAt: undefined,
     };
-    if (paid || codApplied) {
+    if (restock) {
       const applied = order.inventoryAppliedItems ?? [];
       if (applied.length > 0) {
         for (const item of applied) {
@@ -537,7 +718,7 @@ export const cancel = mutation({
             requestId,
             productId: item.productId,
             location: "workshop",
-            kind: "online_cancel",
+            kind: "online_return",
             quantity: item.quantity,
             balanceAfter: after,
             actorId,
@@ -552,18 +733,24 @@ export const cancel = mutation({
         );
       }
       patch.inventoryStatus = "released";
-      if (paid) patch.refundStatus = "manual_required";
     }
-    if (notes.length > 0) eventNote = `${trimmed} — ${notes.join(" ")}`;
+    // Money is refunded manually; a refused unpaid COD parcel has nothing
+    // to refund.
+    const collected =
+      (order.paymentMethod !== "cod" && paymentStatus(order) === "paid") ||
+      (order.paymentMethod === "cod" && order.paymentConfirmedAt !== undefined);
+    if (collected) patch.refundStatus = "manual_required";
+    const eventNote = `${trimmed} — ${restock ? "stoc restabilit" : "fără restocare"}${notes.length > 0 ? ` — ${notes.join(" ")}` : ""}`;
     await ctx.db.patch(orderId, patch);
     await ctx.db.insert("orderEvents", {
       orderId,
       requestId,
       actorId,
-      kind: "cancelled",
+      kind: "returned",
       note: eventNote,
       createdAt: now,
     });
+    await scheduleOrderNotice(ctx, orderId, "returned");
     return ctx.db.get(orderId);
   },
 });

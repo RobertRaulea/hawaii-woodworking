@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from "@/utils/cn.utils";
 import { AssigneeChip } from "./AssigneeChip";
+import { CancelOrderDialog } from "../../../components/CancelOrderDialog/CancelOrderDialog";
 import { FulfillmentFeedback } from "./FulfillmentFeedback";
 import { useQueueActivity } from "./useQueueActivity";
 import { STATE_LABELS } from "./fulfillmentLabels";
@@ -84,6 +85,7 @@ const STATE_BADGES: Record<
  shipped: { variant: "emerald" },
  delivered: { variant: "emerald" },
  cancelled: { variant: "destructive" },
+ returned: { variant: "stone" },
  blocked: { variant: "stone" },
 };
 
@@ -129,6 +131,9 @@ export const FulfillmentQueue: React.FC = () => {
  const tabParam = searchParams.get("tab");
  const tab: Tab = isTab(tabParam) ? tabParam : "ready";
  const [flashId, setFlashId] = useState<Id<"orders"> | null>(null);
+ const isAdmin = can("orders.manage");
+ const [cancelOrder, setCancelOrder] =
+ useState<FulfillmentQueueItem | null>(null);
  const handledEvent = useRef<string | null>(null);
  const activity = useQueueActivity(orders, userId, userLabel);
 
@@ -450,6 +455,21 @@ export const FulfillmentQueue: React.FC = () => {
  Preia
  </Button>
  ) : null}
+ {isAdmin && order.state !== "shipped" ? (
+ <Button
+ type="button"
+ variant="destructive"
+ disabled={
+ controller.busy ||
+ controller.blocked ||
+ !controller.online
+ }
+ onClick={() => setCancelOrder(order)}
+ className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium hover:bg-red-700"
+ >
+ Anulează
+ </Button>
+ ) : null}
  <Button
  asChild
  variant="outline"
@@ -505,6 +525,25 @@ export const FulfillmentQueue: React.FC = () => {
  </ul>
  )}
  </section>
+
+ {cancelOrder ? (
+ <CancelOrderDialog
+ paid={cancelOrder.paymentMethod !== "cod"}
+ cod={cancelOrder.paymentMethod === "cod"}
+ canAct={
+ !controller.busy && !controller.blocked && controller.online
+ }
+ onClose={() => setCancelOrder(null)}
+ onSubmit={(reason) => {
+ void controller.start({
+ kind: "cancelled",
+ orderId: cancelOrder._id,
+ reason,
+ });
+ setCancelOrder(null);
+ }}
+ />
+ ) : null}
  </section>
  );
 };
