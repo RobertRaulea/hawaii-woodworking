@@ -124,7 +124,7 @@ test('TEST build: no convex client, empty sitemap, deny robots, noindex static p
       const html = await read(dir, file);
       assert.equal(countMatches(html, /name="robots"/g), 1, file);
       assert.ok(html.includes('noindex, nofollow, noarchive'), file);
-      assert.ok(html.includes('<div id="root"><header>'), file);
+      assert.ok(html.includes('<div id="root"><div data-prerender><header>'), file);
       assert.ok(html.includes('<h1>'), file);
       assert.ok(html.includes('/assets/index-ABC123.js'), file);
     }
