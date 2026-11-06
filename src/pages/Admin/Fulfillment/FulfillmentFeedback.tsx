@@ -24,6 +24,8 @@ const KIND_PAST_TENSE: Record<FulfillmentEvent['kind'], string> = {
  shipped: 'expediată',
  delivered: 'livrată',
  cancelled: 'anulată',
+ return_requested: 'marcată cu cerere de retur',
+ returned: 'returnată',
 };
 
 export const FulfillmentFeedback = ({

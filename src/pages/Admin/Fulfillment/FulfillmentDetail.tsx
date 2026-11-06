@@ -10,6 +10,7 @@ import { useStaffDirectory } from "../../../hooks/useStaffDirectory";
 import { useAdminQuery } from "../../../hooks/useAdminQuery";
 import { useOrderAction } from "../../../hooks/useOrderAction";
 import { AdminDialog } from "../../../components/AdminDialog/AdminDialog";
+import { CancelOrderDialog } from "../../../components/CancelOrderDialog/CancelOrderDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -35,6 +36,8 @@ const EVENT_LABELS: Record<FulfillmentEvent["kind"], string> = {
  shipped: "Expediată",
  delivered: "Livrată",
  cancelled: "Anulată",
+ return_requested: "Retur cerut",
+ returned: "Returnată",
 };
 
 const formatDate = (timestamp: number): string =>
@@ -64,6 +67,7 @@ export const FulfillmentDetail: React.FC = () => {
  const [carrier, setCarrier] = useState("");
  const [reassignOpen, setReassignOpen] = useState(false);
  const [reassignTarget, setReassignTarget] = useState("");
+ const [cancelOpen, setCancelOpen] = useState(false);
 
  // Close dialogs / clear inputs only after the action is confirmed, so a
  // failed request never discards what the operator typed.
@@ -399,6 +403,20 @@ export const FulfillmentDetail: React.FC = () => {
  comanda.
  </p>
  ) : null}
+ {isAdmin &&
+ (order.state === "ready" ||
+ order.state === "preparing" ||
+ order.state === "packed") ? (
+ <Button
+ type="button"
+ variant="destructive"
+ disabled={!canAct}
+ onClick={() => setCancelOpen(true)}
+ className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium hover:bg-red-700"
+ >
+ Anulează comanda
+ </Button>
+ ) : null}
  </div>
  {order.awb || order.carrier ? (
  <p className="mt-3 text-sm text-stone-600 dark:text-stone-300 ">
@@ -485,6 +503,23 @@ export const FulfillmentDetail: React.FC = () => {
  )}
  </CardContent>
  </Card>
+
+ {cancelOpen ? (
+ <CancelOrderDialog
+ paid={order.paymentMethod !== "cod"}
+ cod={order.paymentMethod === "cod"}
+ canAct={canAct}
+ onClose={() => setCancelOpen(false)}
+ onSubmit={(reason) => {
+ void controller.start({
+ kind: "cancelled",
+ orderId: order._id,
+ reason,
+ });
+ setCancelOpen(false);
+ }}
+ />
+ ) : null}
 
  {shipOpen ? (
  <AdminDialog

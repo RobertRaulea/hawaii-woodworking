@@ -215,6 +215,7 @@ test('summary computes exact online/POS/total figures for D', async () => {
   });
   assert.deepEqual(result.ordersByState.byFulfillment, {
     cancelled: 2,
+    returned: 0,
     delivered: 0,
     shipped: 0,
     packed: 0,
@@ -418,6 +419,7 @@ test('dashboard sections match summary, queue, overview and transfers', async ()
     ready: queueCount('ready'),
     preparing: queueCount('preparing'),
     packed: queueCount('packed'),
+    returnRequests: 0,
   });
   assert.equal(dash.fulfillment.ready, 2);
 

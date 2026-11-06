@@ -47,6 +47,7 @@ const FULFILLMENT_LABELS: Record<string, string> = {
  delivered: 'Livrată',
  blocked: 'Blocată',
  cancelled: 'Anulată',
+ returned: 'Returnată',
 };
 
 const FULFILLMENT_BADGES: Record<
@@ -63,6 +64,7 @@ const FULFILLMENT_BADGES: Record<
  delivered: { variant: 'emerald' },
  blocked: { variant: 'stone' },
  cancelled: { variant: 'destructive' },
+ returned: { variant: 'stone' },
 };
 
 const formatDate = (timestamp: number): string =>
@@ -114,7 +116,13 @@ export const AdminOrders: React.FC = () => {
  if (paymentFilter !== 'all' && order.paymentStatus !== paymentFilter)
  return false;
  if (
- fulfillmentFilter !== 'all' &&
+ fulfillmentFilter === 'return_requested'
+ ? !(
+ order.status === 'delivered' &&
+ order.returnRequestedAt !== undefined &&
+ order.returnedAt === undefined
+ )
+ : fulfillmentFilter !== 'all' &&
  order.fulfillmentState !== fulfillmentFilter
  )
  return false;
@@ -249,6 +257,8 @@ export const AdminOrders: React.FC = () => {
  { value: 'delivered', label: 'Livrată' },
  { value: 'blocked', label: 'Blocată' },
  { value: 'cancelled', label: 'Anulată' },
+ { value: 'returned', label: 'Returnată' },
+ { value: 'return_requested', label: 'Retur cerut' },
  ]}
  />
  </div>
@@ -334,6 +344,13 @@ export const AdminOrders: React.FC = () => {
  >
  {FULFILLMENT_LABELS[order.fulfillmentState]}
  </Badge>
+ {order.status === 'delivered' &&
+ order.returnRequestedAt !== undefined &&
+ order.returnedAt === undefined ? (
+ <Badge variant="amber" className="ml-1 font-medium">
+ Retur cerut
+ </Badge>
+ ) : null}
  </TableCell>
  <TableCell className="px-4 py-3">
  <Button

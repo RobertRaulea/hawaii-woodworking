@@ -25,7 +25,8 @@ export type OrderActionRequest =
  | (FunctionArgs<typeof api.fulfillment.markDelivered> & {
  kind: 'delivered';
  })
- | (FunctionArgs<typeof api.orders.cancel> & { kind: 'cancelled' });
+ | (FunctionArgs<typeof api.orders.cancel> & { kind: 'cancelled' })
+ | (FunctionArgs<typeof api.orders.markReturned> & { kind: 'returned' });
 
 type WithoutRequestId<T> = T extends { requestId: string }
  ? Omit<T, 'requestId'> & { requestId?: string }

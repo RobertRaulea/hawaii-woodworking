@@ -252,6 +252,8 @@ export const addNote = mutation({
     const order = await getOrderOrThrow(ctx, orderId);
     if (order.status === "cancelled")
       throw new ConvexError("Comanda este anulată.");
+    if (order.status === "returned")
+      throw new ConvexError("Comanda este returnată.");
     const trimmed = note.trim();
     if (trimmed.length < 3 || trimmed.length > 500)
       throw new ConvexError("Notița trebuie să aibă între 3 și 500 de caractere.");
