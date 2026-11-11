@@ -121,10 +121,14 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  onClick={() => navigate('/cart')}
  className="relative z-50 h-auto w-auto rounded-full p-2 hover:bg-muted [&_svg]:size-6"
  aria-label={t('nav.cart')}
+ data-cart-icon
  >
  <ShoppingBag className="size-6 text-foreground" />
  {totalItems > 0 && (
- <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-amber-500 text-xs font-semibold text-white">
+ <span
+ data-cart-badge
+ className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-amber-500 text-xs font-semibold text-white"
+ >
  {totalItems}
  </span>
  )}

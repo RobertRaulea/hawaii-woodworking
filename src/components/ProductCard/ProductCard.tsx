@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
+import { flyToCart } from '../../utils/flyToCart.utils';
 import { ImageCarousel } from '../ImageCarousel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -112,14 +113,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ name, price, imageUrls
  ) : (
  <Button
  variant="outline"
- onClick={() =>
- addItem({
- id,
- name,
- price,
- image: coverImage || 'https://placehold.co/100x100?text=No+Image',
- }, currentStock, isTrackingStock)
+ onClick={(event) => {
+ const button = event.currentTarget;
+ const image = coverImage || 'https://placehold.co/100x100?text=No+Image';
+ const added = addItem({ id, name, price, image }, currentStock, isTrackingStock);
+ if (added) {
+ flyToCart(button, image);
  }
+ }}
  className="h-auto w-full rounded-md border-stone-900 dark:border-stone-400 px-2 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-medium text-foreground transition-all duration-200 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-50 dark:hover:text-stone-900"
  >
  {t('product.addToCart')}
