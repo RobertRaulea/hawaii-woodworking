@@ -79,9 +79,62 @@
   },
   "hero": {
     "subtitle": "Craftsmanship & CNC Technology",
-    "title": "Welcome to Hawaii Woodworking",
+    "title": "Nature creates the material. We give it personality.",
+    "titleLine1": "Nature creates the material.",
+    "titleLine2": "We give it personality.",
     "description": "We combine traditional woodworking with state-of-the-art CNC technology to create unique, durable and personalized pieces.",
+    "viewProducts": "View products",
     "viewCatalog": "View our work"
+  },
+  "home": {
+    "video": {
+      "playLabel": "Play video",
+      "pauseLabel": "Pause video"
+    },
+    "story": {
+      "ariaLabel": "The story of the workshop",
+      "sceneAriaLabel": "Scene {{n}}: {{title}}",
+      "scene0": {
+        "kicker": "Hawaii Woodworking · Sibiu",
+        "scrollHint": "Scroll"
+      },
+      "scene1": {
+        "kicker": "About me",
+        "title": "I'm Robert, from Hawaii Woodworking Sibiu.",
+        "text": "I make wooden objects in my workshop, with my own hands and with the help of a CNC. Let me tell you how it all began."
+      },
+      "scene2": {
+        "kicker": "Why Hawaii?",
+        "title": "The summer in grandma's yard",
+        "text": "When I was little, I spent some time at my grandmother's in Cristian. When I went back to school in Sibiu, I showed up in the yard in shorts and a flowered T-shirt. My classmates asked me why I was dressed like that, and I told them that where I come from it's warm. “And where do you come from?” “From Hawaii.”"
+      },
+      "scene3": {
+        "kicker": "A name that stuck",
+        "title": "From grandma's yard to the workshop",
+        "text": "The name stayed with me ever since. And my Hawaii, my grandmother's yard in Cristian, has now become the workshop where I work."
+      },
+      "scene4": {
+        "kicker": "The beginning",
+        "title": "The first cutting board, for my mum",
+        "text": "In 2020 I made a cutting board for my mother. That's when I discovered how beautiful it is to give someone something you made yourself, something they use every day and keep for years. That's how Hawaii Woodworking began."
+      },
+      "scene5": {
+        "kicker": "Between technology and wood",
+        "title": "Code by day, workshop by night",
+        "text": "By day I work in technology and hunt for mistakes so I can fix them before they reach people. In the evening and on weekends I go into the workshop, where I'm not chasing cold perfection but character: the knots, the grain and the shades that make every piece of wood different."
+      },
+      "scene6": {
+        "kicker": "How I work",
+        "title": "Me and the CNC machine",
+        "text": "The CNC brings the precision. I choose the wood, draw the designs, sand, finish and check every piece before it leaves for you. The machine cuts the lines, but I add the story."
+      },
+      "scene7": {
+        "kicker": "For you",
+        "title": "Made with the same care",
+        "text": "Whether it's a cutting board for your kitchen, an icon for someone dear or a personalized gift, I make it with the same care I put into the first cutting board for my mum.",
+        "quote": "Made of wood, with soul. Made to last."
+      }
+    }
   },
   "customWork": {
     "title": "Made to order",
@@ -93,7 +146,15 @@
     "price": "Price",
     "priceOnRequest": "Price on request",
     "legacyDescription": "Handcrafted in the Hawaii Woodworking workshop.",
-    "close": "Close"
+    "close": "Close",
+    "pricePaid": "Crafted for",
+    "requestSimilar": "Request a similar piece",
+    "previousWork": "Previous piece",
+    "nextWork": "Next piece",
+    "photoCount": "{{count}} photos",
+    "photoOf": "Photo {{current}} of {{total}}",
+    "previousPhoto": "Previous photo",
+    "nextPhoto": "Next photo"
   },
   "cart": {
     "title": "Shopping Cart",

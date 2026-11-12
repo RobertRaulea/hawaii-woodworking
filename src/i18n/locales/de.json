@@ -79,9 +79,62 @@
   },
   "hero": {
     "subtitle": "Handwerk & CNC-Technologie",
-    "title": "Willkommen bei Hawaii Woodworking",
+    "title": "Die Natur erschafft das Material. Wir geben ihm Persönlichkeit.",
+    "titleLine1": "Die Natur erschafft das Material.",
+    "titleLine2": "Wir geben ihm Persönlichkeit.",
     "description": "Wir verbinden traditionelle Holzbearbeitung mit modernster CNC-Technologie, um einzigartige, langlebige und personalisierte Stücke zu schaffen.",
+    "viewProducts": "Produkte ansehen",
     "viewCatalog": "Arbeiten ansehen"
+  },
+  "home": {
+    "video": {
+      "playLabel": "Video abspielen",
+      "pauseLabel": "Video anhalten"
+    },
+    "story": {
+      "ariaLabel": "Die Geschichte der Werkstatt",
+      "sceneAriaLabel": "Szene {{n}}: {{title}}",
+      "scene0": {
+        "kicker": "Hawaii Woodworking · Sibiu",
+        "scrollHint": "Scrollen"
+      },
+      "scene1": {
+        "kicker": "Über mich",
+        "title": "Ich bin Robert, von Hawaii Woodworking Sibiu.",
+        "text": "Ich fertige Objekte aus Holz in meiner Werkstatt, mit meinen Händen und mit Hilfe einer CNC. Ich erzähle dir, wie alles begann."
+      },
+      "scene2": {
+        "kicker": "Warum Hawaii?",
+        "title": "Der Sommer im Hof der Großmutter",
+        "text": "Als ich klein war, habe ich eine Zeit bei meiner Großmutter in Cristian verbracht. Als ich in Sibiu wieder zur Schule ging, bin ich im Hof in kurzen Hosen und mit einem T-Shirt mit Blumen aufgetaucht. Meine Mitschüler fragten mich, warum ich so angezogen bin, und ich sagte ihnen, dass es dort, woher ich komme, warm ist. „Und woher kommst du?\" „Aus Hawaii.\""
+      },
+      "scene3": {
+        "kicker": "Ein Name, der blieb",
+        "title": "Vom Hof der Großmutter in die Werkstatt",
+        "text": "Seitdem ist der Name geblieben. Und mein Hawaii, der Hof meiner Großmutter in Cristian, ist jetzt die Werkstatt, in der ich arbeite."
+      },
+      "scene4": {
+        "kicker": "Der Anfang",
+        "title": "Das erste Schneidebrett, für meine Mutter",
+        "text": "2020 habe ich ein Schneidebrett für meine Mutter gemacht. Da habe ich entdeckt, wie schön es ist, jemandem etwas zu geben, das man selbst gemacht hat, etwas, das er jeden Tag benutzt und jahrelang behält. So hat Hawaii Woodworking begonnen."
+      },
+      "scene5": {
+        "kicker": "Zwischen Technologie und Holz",
+        "title": "Tagsüber Code, abends Werkstatt",
+        "text": "Tagsüber arbeite ich in der Technologie und suche nach Fehlern, um sie zu beheben, bevor sie Menschen erreichen. Abends und am Wochenende gehe ich in die Werkstatt, wo ich nicht die kalte Perfektion suche, sondern den Charakter: die Äste, die Maserung und die Nuancen, die jedes Stück Holz anders machen."
+      },
+      "scene6": {
+        "kicker": "Wie ich arbeite",
+        "title": "Ich und die CNC-Maschine",
+        "text": "Die CNC bringt die Präzision. Ich wähle das Holz, zeichne die Modelle, schleife, finish und prüfe jedes Stück, bevor es zu dir geht. Die Maschine schneidet die Linien, aber die Geschichte gebe ich."
+      },
+      "scene7": {
+        "kicker": "Für dich",
+        "title": "Mit derselben Sorgfalt gemacht",
+        "text": "Ob ein Schneidebrett für deine Küche, eine Ikone für jemanden Liebes oder ein personalisiertes Geschenk – ich fertige es mit derselben Sorgfalt wie das erste Schneidebrett für meine Mutter.",
+        "quote": "Aus Holz, mit Seele. Gemacht, um zu bleiben."
+      }
+    }
   },
   "customWork": {
     "title": "Individuelle Auftragsarbeiten",
@@ -93,7 +146,15 @@
     "price": "Preis",
     "priceOnRequest": "Preis auf Anfrage",
     "legacyDescription": "Handgefertigt in der Hawaii Woodworking Werkstatt.",
-    "close": "Schließen"
+    "close": "Schließen",
+    "pricePaid": "Gefertigt zum Preis von",
+    "requestSimilar": "Ähnliches Stück anfragen",
+    "previousWork": "Vorheriges Stück",
+    "nextWork": "Nächstes Stück",
+    "photoCount": "{{count}} Fotos",
+    "photoOf": "Foto {{current}} von {{total}}",
+    "previousPhoto": "Vorheriges Foto",
+    "nextPhoto": "Nächstes Foto"
   },
   "cart": {
     "title": "Warenkorb",

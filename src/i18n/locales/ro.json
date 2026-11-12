@@ -79,9 +79,62 @@
   },
   "hero": {
     "subtitle": "Artizanat & Tehnologie CNC",
-    "title": "Bun venit la Hawaii Woodworking",
+    "title": "Natura creează materia. Noi îi dăm personalitate.",
+    "titleLine1": "Natura creează materia.",
+    "titleLine2": "Noi îi dăm personalitate.",
     "description": "Îmbinăm tradiția prelucrării lemnului cu tehnologia CNC de ultimă generație pentru a crea piese unice, durabile și personalizate.",
+    "viewProducts": "Vezi produsele",
     "viewCatalog": "Vezi lucrările"
+  },
+  "home": {
+    "video": {
+      "playLabel": "Redă videoclipul",
+      "pauseLabel": "Întrerupe videoclipul"
+    },
+    "story": {
+      "ariaLabel": "Povestea atelierului",
+      "sceneAriaLabel": "Scena {{n}}: {{title}}",
+      "scene0": {
+        "kicker": "Hawaii Woodworking · Sibiu",
+        "scrollHint": "Derulează"
+      },
+      "scene1": {
+        "kicker": "Despre mine",
+        "title": "Sunt Robert, de la Hawaii Woodworking Sibiu.",
+        "text": "Fac obiecte din lemn în atelierul meu, cu mâinile mele și cu ajutorul unui CNC. Hai să-ți povestesc cum a început totul."
+      },
+      "scene2": {
+        "kicker": "De ce Hawaii?",
+        "title": "Vara din curtea bunicii",
+        "text": "Când eram mic, am stat o vreme la bunica mea, în Cristian. Când m-am întors la școală, în Sibiu, am apărut în curte în pantaloni scurți și cu un tricou cu flori. Colegii m-au întrebat de ce sunt îmbrăcat așa, iar eu le-am spus că acolo de unde vin e cald. „Și de unde vii?” „Din Hawaii.”"
+      },
+      "scene3": {
+        "kicker": "Un nume care a rămas",
+        "title": "Din curtea bunicii, în atelier",
+        "text": "De atunci mi-a rămas numele. Iar Hawaii-ul meu, curtea bunicii din Cristian, a devenit acum atelierul în care lucrez."
+      },
+      "scene4": {
+        "kicker": "Începutul",
+        "title": "Primul tocător, pentru mama",
+        "text": "În 2020 am făcut un tocător pentru mama mea. Atunci am descoperit cât de frumos e să dai cuiva ceva făcut de tine, ceva ce folosește în fiecare zi și păstrează ani la rând. Așa a început Hawaii Woodworking."
+      },
+      "scene5": {
+        "kicker": "Între tehnologie și lemn",
+        "title": "Ziua în cod, seara în atelier",
+        "text": "Ziua lucrez în tehnologie și caut greșeli ca să le repar înainte să ajungă la oameni. Seara și în weekend intru în atelier, unde nu caut perfecțiunea rece, ci caracterul: nodurile, fibra și nuanțele care fac fiecare bucată de lemn diferită."
+      },
+      "scene6": {
+        "kicker": "Cum lucrez",
+        "title": "Eu și mașina CNC",
+        "text": "CNC-ul aduce precizia. Eu aleg lemnul, desenez modelele, șlefuiesc, finisez și verific fiecare piesă înainte să plece spre tine. Mașina taie liniile, dar povestea o pun eu."
+      },
+      "scene7": {
+        "kicker": "Pentru tine",
+        "title": "Făcut cu aceeași grijă",
+        "text": "Fie că e un tocător pentru bucătăria ta, o icoană pentru cineva drag sau un cadou personalizat, îl fac cu aceeași grijă cu care am făcut primul tocător pentru mama.",
+        "quote": "Din lemn, cu suflet. Creat să rămână."
+      }
+    }
   },
   "customWork": {
     "title": "Lucrări la comandă",
@@ -93,7 +146,15 @@
     "price": "Preț",
     "priceOnRequest": "Preț la cerere",
     "legacyDescription": "Lucrare realizată în atelierul Hawaii Woodworking.",
-    "close": "Închide"
+    "close": "Închide",
+    "pricePaid": "Realizat la prețul de",
+    "requestSimilar": "Vreau o lucrare similară",
+    "previousWork": "Lucrarea anterioară",
+    "nextWork": "Lucrarea următoare",
+    "photoCount": "{{count}} poze",
+    "photoOf": "Foto {{current}} din {{total}}",
+    "previousPhoto": "Fotografia anterioară",
+    "nextPhoto": "Fotografia următoare"
   },
   "cart": {
     "title": "Coș de cumpărături",
