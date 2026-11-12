@@ -21,6 +21,29 @@ export const resolveImageUrls = async (
 };
 
 /**
+ * Resolve an ordered list of gallery storage IDs to `{ storageId, url }`
+ * entries. Entries whose URL could not be resolved are dropped.
+ */
+export const resolveGalleryUrls = async (
+  ctx: QueryCtx,
+  storageIds: Id<"_storage">[] | undefined
+): Promise<{ storageId: Id<"_storage">; url: string }[]> => {
+  if (!storageIds || storageIds.length === 0) return [];
+
+  const entries = await Promise.all(
+    storageIds.map(async (storageId) => ({
+      storageId,
+      url: await ctx.storage.getUrl(storageId),
+    }))
+  );
+
+  return entries.filter(
+    (entry): entry is { storageId: Id<"_storage">; url: string } =>
+      typeof entry.url === "string" && entry.url.length > 0
+  );
+};
+
+/**
  * Given an array of siteAsset documents, resolve each storageId to a URL.
  * Returns only assets whose URL resolved successfully.
  */

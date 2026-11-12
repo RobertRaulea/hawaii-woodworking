@@ -23,6 +23,9 @@ export type OrderWithCustomer = {
   returnReason?: string;
   returnRestocked?: boolean;
   deliveredAt?: number;
+  shippedAt?: number;
+  awb?: string;
+  carrier?: string;
   shipping?: { firstName: string; lastName: string; phone?: string; address: Address };
   billing?: { firstName: string; lastName: string; phone?: string; address: Address };
   customer: {

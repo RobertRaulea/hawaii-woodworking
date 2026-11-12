@@ -21,7 +21,7 @@ const KIND_PAST_TENSE: Record<FulfillmentEvent['kind'], string> = {
  checked: 'marcată ca verificată',
  note: 'completată cu o notiță',
  packed: 'ambalată',
- shipped: 'expediată',
+ shipped: 'expediată, iar clientul a fost anunțat prin email',
  delivered: 'livrată',
  cancelled: 'anulată',
  return_requested: 'marcată cu cerere de retur',

@@ -11,6 +11,7 @@ import {
   buildOrderNotice,
   generateAdminEmailHtml,
   generateCustomerEmailHtml,
+  generateShippedEmailHtml,
   shortOrderNumber,
 } from "./lib/orderEmails.utils";
 import type { InvoiceInfo } from "./lib/orderEmails.utils";
@@ -107,6 +108,53 @@ export const sendOrderNotice = internalAction({
       });
     } catch {
       console.error("Order notice customer email failed");
+    }
+  },
+});
+
+// Customer-only "order shipped" notice with AWB and tracking link. Sent
+// after the ship mutation commits; best-effort like the other notices.
+export const sendShippedNotice = internalAction({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, { orderId }) => {
+    const isTest = readEnvironment().name === "test";
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@hawaii-woodworking.ro";
+
+    if (!resendApiKey) {
+      if (isTest) {
+        console.info("TEST: shipped notice skipped; Resend credentials missing", orderId);
+      } else {
+        console.error("Missing Resend API credentials");
+      }
+      return;
+    }
+
+    const order = await ctx.runMutation(internal.orders.getOrderWithCustomer, {
+      orderId,
+    });
+    if (!order) {
+      console.error(`Shipped notice skipped; order not found: ${orderId}`);
+      return;
+    }
+    if (!order.awb) {
+      console.error(`Shipped notice skipped; order has no AWB: ${orderId}`);
+      return;
+    }
+
+    const resend = new Resend(resendApiKey);
+    const number = shortOrderNumber(order._id);
+    try {
+      await resend.emails.send({
+        from: fromEmail,
+        to: order.customer.email,
+        subject: `${isTest ? "[TEST] " : ""}Comanda #${number} a fost expediată - ${SITE_NAME}`,
+        html: generateShippedEmailHtml(order, isTest),
+      });
+    } catch {
+      console.error("Shipped notice customer email failed");
     }
   },
 });

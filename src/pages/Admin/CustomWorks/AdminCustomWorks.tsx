@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery } from 'convex/react';
 import { ImagePlus, Pencil, X } from 'lucide-react';
@@ -24,10 +24,13 @@ interface CatalogAsset {
  name: string;
  category: string;
  url: string;
+ gallery?: { storageId: Id<'_storage'>; url: string }[];
  title?: string;
  description?: string;
  price?: number;
 }
+
+const MAX_GALLERY_PHOTOS = 8;
 
 const legacyTitles: Record<string, string> = {
  'test.jpeg': 'Platou 5 locașuri',
@@ -46,6 +49,11 @@ export const AdminCustomWorks: React.FC = () => {
  const [selectedFile, setSelectedFile] = useState<File | null>(null);
  const [submitError, setSubmitError] = useState<string | null>(null);
  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+ const [keptGallery, setKeptGallery] = useState<{ storageId: Id<'_storage'>; url: string }[]>([]);
+ const [newGalleryFiles, setNewGalleryFiles] = useState<{ file: File; previewUrl: string }[]>([]);
+ const [galleryTouched, setGalleryTouched] = useState(false);
+ const [galleryError, setGalleryError] = useState<string | null>(null);
+ const galleryPreviewsRef = useRef<string[]>([]);
 
  const {
  register,
@@ -61,10 +69,26 @@ export const AdminCustomWorks: React.FC = () => {
  return () => URL.revokeObjectURL(previewUrl);
  }, [previewUrl]);
 
+ useEffect(() => {
+ const createdPreviews = galleryPreviewsRef;
+ return () => createdPreviews.current.forEach((url) => URL.revokeObjectURL(url));
+ }, []);
+
+ const clearGalleryState = () => {
+ galleryPreviewsRef.current = [];
+ setKeptGallery([]);
+ setNewGalleryFiles([]);
+ setGalleryTouched(false);
+ setGalleryError(null);
+ };
+
  const startEditing = (asset: CatalogAsset) => {
  setEditingAsset(asset);
  setSelectedFile(null);
  setPreviewUrl(null);
+ newGalleryFiles.forEach(({ previewUrl: url }) => URL.revokeObjectURL(url));
+ clearGalleryState();
+ setKeptGallery(asset.gallery ?? []);
  reset({
  title: asset.title ?? legacyTitles[asset.name] ?? asset.name.replace(/\.[^/.]+$/, ''),
  price: asset.price ?? 0,
@@ -77,6 +101,8 @@ export const AdminCustomWorks: React.FC = () => {
  setEditingAsset(null);
  setSelectedFile(null);
  setPreviewUrl(null);
+ newGalleryFiles.forEach(({ previewUrl: url }) => URL.revokeObjectURL(url));
+ clearGalleryState();
  reset({ title: '', price: 0, description: '' });
  setSubmitError(null);
  };
@@ -86,19 +112,35 @@ export const AdminCustomWorks: React.FC = () => {
  setPreviewUrl(file ? URL.createObjectURL(file) : null);
  };
 
- const onSubmit = async (values: CustomWorkFormValues) => {
- setSubmitError(null);
- if (!editingAsset && !selectedFile) {
- setSubmitError('Alege o fotografie pentru lucrare înainte de publicare.');
- return;
+ const handleGalleryFiles = (files: FileList | null) => {
+ if (!files || files.length === 0) return;
+ const remaining = MAX_GALLERY_PHOTOS - keptGallery.length - newGalleryFiles.length;
+ const picked = Array.from(files).slice(0, Math.max(remaining, 0));
+ if (picked.length < files.length) {
+ setGalleryError(`Maxim ${MAX_GALLERY_PHOTOS} poze suplimentare.`);
+ } else {
+ setGalleryError(null);
  }
+ const entries = picked.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+ galleryPreviewsRef.current.push(...entries.map(({ previewUrl: url }) => url));
+ setNewGalleryFiles((current) => [...current, ...entries]);
+ setGalleryTouched(true);
+ };
 
- try {
- let storageId: Id<'_storage'> | undefined;
- let name = editingAsset?.name;
+ const removeKeptPhoto = (storageId: Id<'_storage'>) => {
+ setKeptGallery((current) => current.filter((entry) => entry.storageId !== storageId));
+ setGalleryTouched(true);
+ };
 
- if (selectedFile) {
- const compressedFile = await compressImage(selectedFile);
+ const removeNewPhoto = (url: string) => {
+ URL.revokeObjectURL(url);
+ galleryPreviewsRef.current = galleryPreviewsRef.current.filter((created) => created !== url);
+ setNewGalleryFiles((current) => current.filter((entry) => entry.previewUrl !== url));
+ setGalleryTouched(true);
+ };
+
+ const uploadImage = async (file: File): Promise<{ storageId: Id<'_storage'>; name: string }> => {
+ const compressedFile = await compressImage(file);
  const uploadUrl = await generateUploadUrl({});
  const response = await fetch(uploadUrl, {
  method: 'POST',
@@ -111,14 +153,43 @@ export const AdminCustomWorks: React.FC = () => {
  }
 
  const result = (await response.json()) as { storageId: string };
- storageId = result.storageId as Id<'_storage'>;
- name = editingAsset?.name ?? `${Date.now()}-${compressedFile.name}`;
+ return { storageId: result.storageId as Id<'_storage'>, name: compressedFile.name };
+ };
+
+ const onSubmit = async (values: CustomWorkFormValues) => {
+ setSubmitError(null);
+ if (!editingAsset && !selectedFile) {
+ setSubmitError('Alege o fotografie pentru lucrare înainte de publicare.');
+ return;
+ }
+ if (keptGallery.length + newGalleryFiles.length > MAX_GALLERY_PHOTOS) {
+ setGalleryError(`Maxim ${MAX_GALLERY_PHOTOS} poze suplimentare.`);
+ return;
+ }
+
+ try {
+ let storageId: Id<'_storage'> | undefined;
+ let name = editingAsset?.name;
+
+ if (selectedFile) {
+ const uploaded = await uploadImage(selectedFile);
+ storageId = uploaded.storageId;
+ name = editingAsset?.name ?? `${Date.now()}-${uploaded.name}`;
+ }
+
+ let galleryStorageIds: Id<'_storage'>[] | undefined;
+ if (!editingAsset || galleryTouched) {
+ const uploadedIds = await Promise.all(
+ newGalleryFiles.map(({ file }) => uploadImage(file).then(({ storageId: id }) => id))
+ );
+ galleryStorageIds = [...keptGallery.map((entry) => entry.storageId), ...uploadedIds];
  }
 
  await saveSiteAsset({
  name: name ?? '',
  category: 'catalog',
  ...(storageId ? { storageId } : {}),
+ ...(galleryStorageIds ? { galleryStorageIds } : {}),
  title: values.title.trim(),
  price: values.price,
  description: values.description.trim(),
@@ -181,6 +252,57 @@ export const AdminCustomWorks: React.FC = () => {
  />
  </label>
  {editingAsset && <p className="-mt-3 mb-4 text-xs text-muted-foreground">Alege o fotografie nouă pentru a o înlocui pe cea actuală.</p>}
+
+ <div className="mb-5">
+ <span className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-stone-300 ">Poze suplimentare</span>
+ <p className="mb-3 text-xs text-muted-foreground">Maxim {MAX_GALLERY_PHOTOS} poze suplimentare, afișate după fotografia de copertă.</p>
+ {(keptGallery.length > 0 || newGalleryFiles.length > 0) && (
+ <div className="mb-3 flex flex-wrap gap-2">
+ {keptGallery.map((entry) => (
+ <div key={entry.storageId} className="relative">
+ <img src={entry.url} alt="Poză existentă" className="h-16 w-16 rounded-md object-cover" />
+ <button
+ type="button"
+ onClick={() => removeKeptPhoto(entry.storageId)}
+ aria-label="Elimină poza"
+ className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-stone-900 text-white transition hover:bg-red-600"
+ >
+ <X className="size-3" />
+ </button>
+ </div>
+ ))}
+ {newGalleryFiles.map((entry) => (
+ <div key={entry.previewUrl} className="relative">
+ <img src={entry.previewUrl} alt="Poză nouă" className="h-16 w-16 rounded-md object-cover" />
+ <button
+ type="button"
+ onClick={() => removeNewPhoto(entry.previewUrl)}
+ aria-label="Elimină poza"
+ className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-stone-900 text-white transition hover:bg-red-600"
+ >
+ <X className="size-3" />
+ </button>
+ </div>
+ ))}
+ </div>
+ )}
+ <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-stone-300 px-3.5 py-2 text-sm text-stone-600 transition hover:border-amber-500 hover:bg-amber-50/40 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-amber-950/60">
+ <ImagePlus className="size-4 text-amber-700 dark:text-amber-400 " />
+ Adaugă poze
+ <Input
+ type="file"
+ accept="image/*"
+ multiple
+ className="sr-only"
+ onChange={(event) => {
+ handleGalleryFiles(event.target.files);
+ event.target.value = '';
+ }}
+ />
+ </label>
+ <p className="mt-1.5 text-xs text-muted-foreground">{keptGallery.length + newGalleryFiles.length}/{MAX_GALLERY_PHOTOS} poze</p>
+ {galleryError && <p className="mt-1 text-xs text-red-600 dark:text-red-400 ">{galleryError}</p>}
+ </div>
 
  <div className="space-y-4">
  <div>
@@ -265,6 +387,7 @@ export const AdminCustomWorks: React.FC = () => {
  <p className="mt-1 text-sm font-semibold text-amber-800 dark:text-amber-300 ">
  {asset.price === undefined ? 'Preț necompletat' : `${asset.price.toFixed(2)} RON`}
  </p>
+ {asset.gallery && asset.gallery.length > 0 && <p className="mt-1 text-xs text-muted-foreground">+{asset.gallery.length} poze</p>}
  {asset.description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{asset.description}</p>}
  </div>
  <Button

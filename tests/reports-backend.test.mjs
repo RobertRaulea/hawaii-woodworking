@@ -354,6 +354,42 @@ test('posByFair row for fair A matches pos.dailySummary', async () => {
   assert.equal(row.units, daily.units);
 });
 
+test('split POS sales divide the total between cash and card', async () => {
+  const db = fixture();
+  admin(db);
+  seedFair2(db);
+  seedPosSale(db, 's-split', {
+    paymentMethod: 'split',
+    cashCents: 1000,
+    totalCents: 2500,
+  });
+  const result = await db.run(reports.summary, summaryArgs());
+  assert.equal(result.collections.posCashCents, 1000);
+  assert.equal(result.collections.posCardCents, 1500);
+  assert.equal(result.sales.pos.netCents, 2500);
+  assert.deepEqual(result.posByFair, [
+    {
+      fairId: 'fair-1',
+      fairName: 'Targ Craciun',
+      grossCents: 2500,
+      discountCents: 0,
+      netCents: 2500,
+      cashCents: 1000,
+      cardCents: 1500,
+      count: 1,
+      units: 1,
+    },
+  ]);
+  const daily = await db.run(pos.dailySummary, { fairId: 'fair-1', date: D });
+  assert.equal(daily.cashCents, 1000);
+  assert.equal(daily.cardCents, 1500);
+  // A split sale stored before cashCents existed falls back to card.
+  db.ctx.db.patch('s-split', { cashCents: undefined });
+  const legacy = await db.run(reports.summary, summaryArgs());
+  assert.equal(legacy.collections.posCashCents, 0);
+  assert.equal(legacy.collections.posCardCents, 2500);
+});
+
 test('dashboard sections match summary, queue, overview and transfers', async () => {
   const db = fixture();
   admin(db);

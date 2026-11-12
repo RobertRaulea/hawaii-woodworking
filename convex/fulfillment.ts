@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requirePermission } from "./lib/auth";
@@ -330,17 +331,19 @@ export const ship = mutation({
     if (!isFulfillEligible(order))
       throw new ConvexError("Comanda nu mai este eligibilă pentru expediere.");
     const trimmedAwb = awb?.trim();
-    if (trimmedAwb && !/^[A-Za-z0-9-]{3,50}$/.test(trimmedAwb))
+    if (!trimmedAwb) throw new ConvexError("Introdu numărul AWB.");
+    if (!/^[A-Za-z0-9-]{3,50}$/.test(trimmedAwb))
       throw new ConvexError("Număr AWB invalid.");
     const trimmedCarrier = carrier?.trim();
-    if (trimmedCarrier && trimmedCarrier.length > 50)
+    if (!trimmedCarrier) throw new ConvexError("Alege curierul.");
+    if (trimmedCarrier.length > 50)
       throw new ConvexError("Numele curierului este prea lung.");
     await ctx.db.patch(orderId, {
       status: "shipped",
       shippedAt: Date.now(),
       shippedBy: staff.identity.subject,
-      awb: trimmedAwb || undefined,
-      carrier: trimmedCarrier || undefined,
+      awb: trimmedAwb,
+      carrier: trimmedCarrier,
     });
     await insertEvent(ctx, {
       orderId,
@@ -349,6 +352,15 @@ export const ship = mutation({
       kind: "shipped",
       data: { awb: trimmedAwb, carrier: trimmedCarrier },
     });
+    // Best-effort customer email; a scheduling failure must not roll back
+    // the shipment.
+    try {
+      await ctx.scheduler.runAfter(0, internal.postPayment.sendShippedNotice, {
+        orderId,
+      });
+    } catch {
+      console.error("Notificarea de expediere nu a putut fi programată.");
+    }
     return ctx.db.get(orderId);
   },
 });

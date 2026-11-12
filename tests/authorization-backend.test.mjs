@@ -492,6 +492,8 @@ test('atelier sees a redacted fulfillable order view', async () => {
   await db.run(fulfillment.ship, {
     requestId: 'req-ship-auth-00001',
     orderId: 'o-paid',
+    awb: 'AWB-AUTH-001',
+    carrier: 'FAN Courier',
   });
   await db.run(orders.updateStatus, {
     orderId: 'o-shipped',

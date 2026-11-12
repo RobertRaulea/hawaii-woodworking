@@ -269,7 +269,12 @@ const SellerWorkspace = ({ sellerId }: SellerWorkspaceProps) => {
  className="mt-2 block h-auto min-h-11 w-auto whitespace-normal rounded-lg bg-amber-900 px-4 py-3 text-left text-sm text-white hover:bg-amber-800"
  >
  Recupereaza {formatMoney(attempt.totalCents)} ·{' '}
- {attempt.paymentMethod === 'cash' ? 'Numerar' : 'Card'} ·{' '}
+ {attempt.paymentMethod === 'cash'
+ ? 'Numerar'
+ : attempt.paymentMethod === 'split'
+ ? 'Cash + Card'
+ : 'Card'}{' '}
+ ·{' '}
  {attempt.requestId.slice(-8)}
  </Button>
  ))}

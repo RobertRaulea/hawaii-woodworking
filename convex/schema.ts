@@ -209,6 +209,7 @@ export default defineSchema({
     name: v.string(),
     category: v.string(),
     storageId: v.id("_storage"),
+    galleryStorageIds: v.optional(v.array(v.id("_storage"))),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
     price: v.optional(v.number()),
@@ -269,7 +270,11 @@ export default defineSchema({
     requestId: v.string(),
     sellerId: v.string(),
     fairId: v.id("fairs"),
-    paymentMethod: v.union(v.literal("cash"), v.literal("card")),
+    paymentMethod: v.union(
+      v.literal("cash"),
+      v.literal("card"),
+      v.literal("split"),
+    ),
     status: v.union(
       v.literal("prepared"),
       v.literal("completed"),
@@ -296,7 +301,11 @@ export default defineSchema({
     requestId: v.string(),
     sellerId: v.string(),
     fairId: v.id("fairs"),
-    paymentMethod: v.union(v.literal("cash"), v.literal("card")),
+    paymentMethod: v.union(
+      v.literal("cash"),
+      v.literal("card"),
+      v.literal("split"),
+    ),
     items: v.array(
       v.object({
         productId: v.id("products"),
@@ -310,6 +319,7 @@ export default defineSchema({
     discountReason: v.string(),
     totalCents: v.number(),
     receivedCents: v.optional(v.number()),
+    cashCents: v.optional(v.number()),
     changeCents: v.number(),
     completedAt: v.number(),
     businessDate: v.string(),

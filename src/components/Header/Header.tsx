@@ -27,7 +27,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  const navigate = useNavigate();
  const { totalItems } = useCart();
 
- const isActive = (path: string) => location.pathname === path;
+ const isActive = (path: string) =>
+ location.pathname === path || (path !== '/' && location.pathname.startsWith(`${path}/`));
+ const linkStateClass = (path: string) =>
+ isActive(path)
+ ? 'bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white'
+ : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800';
 
  const navLinks = [
  { to: '/', label: t('nav.home') },
@@ -67,11 +72,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
  {t('nav.menu')}
  </SheetDescription>
  <div className="space-y-2">
- {navLinks.filter((link) => !isActive(link.to)).map((link) => (
+ {navLinks.map((link) => (
  <SheetClose asChild key={link.to}>
  <Link
  to={link.to}
- className="block rounded-full px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800"
+ aria-current={isActive(link.to) ? 'page' : undefined}
+ className={`block rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${linkStateClass(link.to)}`}
  >
  {link.label}
  </Link>
@@ -89,11 +95,12 @@ export const Header: React.FC<HeaderProps> = ({ logoSrc }) => {
 
  {/* Left menu items - Desktop */}
  <div className="hidden md:flex items-center md:space-x-0.5 lg:space-x-2 xl:space-x-8">
- {navLinks.filter((link) => !isActive(link.to)).map((link) => (
+ {navLinks.map((link) => (
  <Link
  key={link.to}
  to={link.to}
- className="px-1.5 lg:px-2 xl:px-4 py-1.5 rounded-full text-xs lg:text-sm font-medium text-stone-700 dark:text-stone-300 transition-all duration-200 hover:bg-stone-100 dark:hover:bg-stone-800"
+ aria-current={isActive(link.to) ? 'page' : undefined}
+ className={`px-1.5 lg:px-2 xl:px-4 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all duration-200 ${linkStateClass(link.to)}`}
  >
  {link.label}
  </Link>

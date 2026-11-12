@@ -155,24 +155,29 @@ it('customer and staff Clerk titles use serif with matching stone light/dark car
   }
 });
 
-it('each desktop current route is omitted from navigation', () => {
+it('each desktop current route stays in navigation, highlighted, with aria-current', () => {
   for (const [path, name] of [
     ['/', 'Acasă'], ['/products', 'Produse'], ['/catalog', 'La comandă'], ['/servicii', 'Servicii'],
+    ['/servicii/prelucrare-cnc-lemn', 'Servicii'],
   ]) {
     const view = render(<MemoryRouter initialEntries={[path]}><Header logoSrc="/logo.svg" /></MemoryRouter>);
-    assert.equal(screen.queryByRole('link', { name }), null);
-    assert.equal(screen.getAllByRole('link').length, 4);
+    const current = screen.getByRole('link', { name });
+    assert.equal(current.getAttribute('aria-current'), 'page');
+    assert.ok(current.classList.contains('bg-stone-100'));
+    assert.ok(current.classList.contains('dark:bg-stone-800'));
+    assert.equal(document.querySelectorAll('a[aria-current="page"]').length, 1);
+    assert.equal(screen.getAllByRole('link').length, 5);
     view.unmount();
   }
 });
 
-it('the responsive sheet omits the current route and closes when another is selected', async () => {
+it('the responsive sheet keeps the current route highlighted and closes when a link is selected', async () => {
   const user = userEvent.setup();
   render(<MemoryRouter initialEntries={['/products']}><Header logoSrc="/logo.svg" /></MemoryRouter>);
   await user.click(screen.getByRole('button', { name: 'Meniu' }));
   const sheet = await screen.findByRole('dialog');
-  assert.equal(within(sheet).queryByRole('link', { name: 'Produse' }), null);
-  assert.equal(within(sheet).getAllByRole('link').length, 3);
+  assert.equal(within(sheet).getByRole('link', { name: 'Produse' }).getAttribute('aria-current'), 'page');
+  assert.equal(within(sheet).getAllByRole('link').length, 4);
   await user.click(within(sheet).getByRole('link', { name: 'Acasă' }));
   await waitFor(() => assert.equal(screen.queryByRole('dialog'), null));
 });

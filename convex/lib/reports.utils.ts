@@ -102,6 +102,13 @@ export const onlineSales = (
   return totals;
 };
 
+export const saleCashCents = (sale: Doc<"posSales">): number =>
+  sale.paymentMethod === "cash"
+    ? sale.totalCents
+    : sale.paymentMethod === "split"
+      ? (sale.cashCents ?? 0)
+      : 0;
+
 export const posTotals = (sales: Doc<"posSales">[]): ReportTotals & {
   cashCents: number;
   cardCents: number;
@@ -113,8 +120,8 @@ export const posTotals = (sales: Doc<"posSales">[]): ReportTotals & {
     totals.netCents += sale.totalCents;
     totals.count += 1;
     totals.units += sale.items.reduce((sum, item) => sum + item.quantity, 0);
-    if (sale.paymentMethod === "cash") totals.cashCents += sale.totalCents;
-    else totals.cardCents += sale.totalCents;
+    totals.cashCents += saleCashCents(sale);
+    totals.cardCents += sale.totalCents - saleCashCents(sale);
   }
   return totals;
 };
@@ -148,8 +155,8 @@ export const collections = (
   };
   for (const sale of sales ?? []) {
     if (!inPeriod(sale.businessDate, from, to)) continue;
-    if (sale.paymentMethod === "cash") result.posCashCents! += sale.totalCents;
-    else result.posCardCents! += sale.totalCents;
+    result.posCashCents! += saleCashCents(sale);
+    result.posCardCents! += sale.totalCents - saleCashCents(sale);
   }
   for (const order of orders ?? []) {
     if (!isPaidOrder(order)) continue;
@@ -254,8 +261,8 @@ export const posByFair = (
     row.grossCents += sale.subtotalCents;
     row.discountCents += sale.discountCents;
     row.netCents += sale.totalCents;
-    if (sale.paymentMethod === "cash") row.cashCents += sale.totalCents;
-    else row.cardCents += sale.totalCents;
+    row.cashCents += saleCashCents(sale);
+    row.cardCents += sale.totalCents - saleCashCents(sale);
     row.count += 1;
     row.units += sale.items.reduce((sum, item) => sum + item.quantity, 0);
     byFair.set(sale.fairId, row);

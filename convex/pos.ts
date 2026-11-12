@@ -31,7 +31,11 @@ import {
   transferInventory,
 } from "./lib/inventory.utils";
 
-const paymentMethod = v.union(v.literal("cash"), v.literal("card"));
+const paymentMethod = v.union(
+  v.literal("cash"),
+  v.literal("card"),
+  v.literal("split"),
+);
 const lineValidator = v.object({
   productId: v.id("products"),
   quantity: v.number(),
@@ -691,8 +695,12 @@ export const cancel = mutation({
 });
 
 export const complete = mutation({
-  args: { requestId: v.string(), receivedCents: v.optional(v.number()) },
-  handler: async (ctx, { requestId, receivedCents }) => {
+  args: {
+    requestId: v.string(),
+    receivedCents: v.optional(v.number()),
+    cashCents: v.optional(v.number()),
+  },
+  handler: async (ctx, { requestId, receivedCents, cashCents }) => {
     const { identity } = await requirePermission(ctx, "pos.sell");
     const attempt = await getAttempt(ctx, requestId, identity.subject);
     if (!attempt || attempt.status === "cancelled")
@@ -721,6 +729,11 @@ export const complete = mutation({
     );
     let changeCents = 0;
     if (attempt.paymentMethod === "cash") {
+      if (cashCents !== undefined) {
+        throw new ConvexError(
+          "Partea de numerar este permisa numai la plata mixta.",
+        );
+      }
       if (
         receivedCents !== undefined &&
         (!Number.isSafeInteger(receivedCents) ||
@@ -731,7 +744,21 @@ export const complete = mutation({
       if (receivedCents !== undefined) {
         changeCents = receivedCents - sale.totalCents;
       }
-    } else if (receivedCents !== undefined) {
+    } else if (attempt.paymentMethod === "split") {
+      if (receivedCents !== undefined) {
+        throw new ConvexError("Plata mixta nu are suma primita separata.");
+      }
+      if (
+        cashCents === undefined ||
+        !Number.isSafeInteger(cashCents) ||
+        cashCents <= 0 ||
+        cashCents >= sale.totalCents
+      ) {
+        throw new ConvexError(
+          "Partea cash trebuie sa fie mai mare decat zero si mai mica decat totalul.",
+        );
+      }
+    } else if (receivedCents !== undefined || cashCents !== undefined) {
       throw new ConvexError("Plata cu cardul nu are suma numerar.");
     }
     const completedAt = Date.now();
@@ -742,6 +769,7 @@ export const complete = mutation({
       fairId: attempt.fairId,
       paymentMethod: attempt.paymentMethod,
       receivedCents,
+      cashCents: attempt.paymentMethod === "split" ? cashCents : undefined,
       changeCents,
       completedAt,
       businessDate: businessDate(completedAt),

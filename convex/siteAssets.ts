@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/auth";
-import { resolveAssetUrls } from "./lib/storage";
+import { resolveAssetUrls, resolveGalleryUrls } from "./lib/storage";
 
 export const generateAssetUploadUrl = mutation({
   args: {},
@@ -16,12 +16,19 @@ export const saveSiteAsset = mutation({
     name: v.string(),
     category: v.string(),
     storageId: v.optional(v.id("_storage")),
+    galleryStorageIds: v.optional(v.array(v.id("_storage"))),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
     price: v.optional(v.number()),
   },
-  handler: async (ctx, { name, category, storageId, title, description, price }) => {
+  handler: async (
+    ctx,
+    { name, category, storageId, galleryStorageIds, title, description, price }
+  ) => {
     await requireAdmin(ctx);
+    if (galleryStorageIds && galleryStorageIds.length > 8) {
+      throw new Error("A custom work can have at most 8 extra photos");
+    }
     const existing = await ctx.db
       .query("siteAssets")
       .withIndex("by_category_name", (q) => q.eq("category", category).eq("name", name))
@@ -36,6 +43,7 @@ export const saveSiteAsset = mutation({
 
       await ctx.db.patch(primary._id, {
         ...(storageId ? { storageId } : {}),
+        ...(galleryStorageIds ? { galleryStorageIds } : {}),
         title,
         description,
         price,
@@ -52,6 +60,7 @@ export const saveSiteAsset = mutation({
       name,
       category,
       storageId,
+      ...(galleryStorageIds ? { galleryStorageIds } : {}),
       title,
       description,
       price,
@@ -63,7 +72,13 @@ export const getAll = query({
   args: {},
   handler: async (ctx) => {
     const assets = await ctx.db.query("siteAssets").collect();
-    return await resolveAssetUrls(ctx, assets);
+    const withUrls = await resolveAssetUrls(ctx, assets);
+    return await Promise.all(
+      withUrls.map(async (asset) => ({
+        ...asset,
+        gallery: await resolveGalleryUrls(ctx, asset.galleryStorageIds),
+      }))
+    );
   },
 });
 
@@ -77,6 +92,12 @@ export const getByCategory = query({
       .withIndex("by_category", (q) => q.eq("category", category))
       .collect();
 
-    return await resolveAssetUrls(ctx, assets);
+    const withUrls = await resolveAssetUrls(ctx, assets);
+    return await Promise.all(
+      withUrls.map(async (asset) => ({
+        ...asset,
+        gallery: await resolveGalleryUrls(ctx, asset.galleryStorageIds),
+      }))
+    );
   },
 });

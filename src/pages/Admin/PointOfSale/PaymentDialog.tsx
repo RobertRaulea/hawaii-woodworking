@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { AlertTriangle, Banknote, CreditCard } from 'lucide-react';
+import { AlertTriangle, Banknote, CreditCard, Split } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,10 @@ interface PaymentDialogProps {
  payment: ReturnType<typeof usePosPayment>;
 }
 
-interface CashFields {
+interface PaymentFields {
  received: string;
+ cash: string;
+ card: string;
 }
 
 export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
@@ -25,18 +27,31 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  register,
  watch,
  handleSubmit,
+ setValue,
+ getValues,
  formState: { errors },
- } = useForm<CashFields>();
+ } = useForm<PaymentFields>();
  const { pending, attempt, busy, online, error, confirm, verify, abandon } =
  payment;
  const thumbnails = useProductThumbnails();
  useEffect(() => {
  const element = dialog.current;
- element?.showModal();
- return () => element?.close();
+ if (!element) return;
+ // Chromium may close the modal on a second Esc even when `cancel` was
+ // prevented; reopen so the pending payment never becomes unreachable.
+ const reopen = () => {
+ if (!element.open) element.showModal();
+ };
+ element.addEventListener('close', reopen);
+ element.showModal();
+ return () => {
+ element.removeEventListener('close', reopen);
+ element.close();
+ };
  }, []);
  if (!pending) return null;
  const isCash = pending.args.paymentMethod === 'cash';
+ const isSplit = pending.args.paymentMethod === 'split';
  const paid = pending.phase === 'paid';
  const total =
  attempt?.totalCents ??
@@ -45,12 +60,26 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  0,
  ) - pending.args.discountCents;
  const received = parseMoney(watch('received') || '');
+ const splitCash = parseMoney(watch('cash') || '');
+ const splitCard = parseMoney(watch('card') || '');
  const ready = attempt?.status === 'prepared';
  const Icon = paid
  ? AlertTriangle
  : isCash
  ? Banknote
+ : isSplit
+ ? Split
  : CreditCard;
+
+ const syncSplit = (source: 'cash' | 'card', raw: string) => {
+ const cents = parseMoney(raw);
+ const target = source === 'cash' ? 'card' : 'cash';
+ if (cents === null) {
+ setValue(target, '');
+ return;
+ }
+ setValue(target, ((total - cents) / 100).toFixed(2));
+ };
 
  return (
  <dialog
@@ -72,6 +101,8 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  ? 'Plata de verificat'
  : isCash
  ? 'Plata in numerar'
+ : isSplit
+ ? 'Plata mixta (cash + card)'
  : 'Plata cu cardul'}
  </h2>
  <p
@@ -82,6 +113,8 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  ? 'Plata a fost confirmata de vanzator. Verifica salvarea aceleiasi operatiuni, fara a solicita clientului o noua plata. Cosul ramane blocat pana la confirmarea vanzarii.'
  : isCash
  ? 'Confirma numai dupa ce ai primit banii. Suma primita este optionala; completeaz-o doar daca vrei calculul restului.'
+ : isSplit
+ ? 'Incasaza partea cash de la client si introdu partea de card pe terminalul bancar separat. Confirma numai dupa ce ambele plati sunt finalizate. Plata mixta nu are rest.'
  : 'Aplicatia nu debiteaza cardul. Introdu suma pe terminalul bancar separat. Confirma aici numai dupa aprobarea terminalului.'}
  </p>
  {payment.recovered && !paid ? (
@@ -151,8 +184,12 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  ) : ready ? (
  <form
  onSubmit={handleSubmit((values) =>
- confirm(
- isCash ? (parseMoney(values.received) ?? undefined) : undefined,
+ isSplit
+ ? confirm(undefined, parseMoney(values.cash) ?? undefined)
+ : confirm(
+ isCash
+ ? (parseMoney(values.received) ?? undefined)
+ : undefined,
  ),
  )}
  >
@@ -199,6 +236,77 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  </div>
  </div>
  ) : null}
+ {isSplit ? (
+ <div className="mb-5">
+ <Label
+ htmlFor="pos-split-cash"
+ className="mb-2 block text-sm font-medium"
+ >
+ Cash primit (lei)
+ </Label>
+ <Input
+ id="pos-split-cash"
+ inputMode="decimal"
+ disabled={busy}
+ placeholder="0,00"
+ className="h-auto w-full rounded-xl border-stone-300 dark:border-stone-700 px-4 py-3 text-xl"
+ {...register('cash', {
+ onChange: (event) => syncSplit('cash', event.target.value),
+ validate: (value) => {
+ const cents = parseMoney(value);
+ return (
+ (cents !== null && cents > 0 && cents < total) ||
+ 'Suma cash trebuie sa fie mai mare decat 0 si mai mica decat totalul.'
+ );
+ },
+ })}
+ />
+ {errors.cash ? (
+ <FieldError  className="mt-2 text-red-700 dark:text-red-400">
+ {errors.cash.message}
+ </FieldError>
+ ) : null}
+ <Label
+ htmlFor="pos-split-card"
+ className="mb-2 mt-4 block text-sm font-medium"
+ >
+ Card (lei)
+ </Label>
+ <Input
+ id="pos-split-card"
+ inputMode="decimal"
+ disabled={busy}
+ placeholder="0,00"
+ className="h-auto w-full rounded-xl border-stone-300 dark:border-stone-700 px-4 py-3 text-xl"
+ {...register('card', {
+ onChange: (event) => syncSplit('card', event.target.value),
+ validate: (value) => {
+ const cents = parseMoney(value);
+ const cashCents = parseMoney(getValues('cash') || '');
+ return (
+ (cents !== null &&
+ cents > 0 &&
+ cashCents !== null &&
+ cashCents + cents === total) ||
+ 'Ambele parti trebuie sa fie mai mari decat 0 si sa totalizeze suma de incasat.'
+ );
+ },
+ })}
+ />
+ {errors.card ? (
+ <FieldError  className="mt-2 text-red-700 dark:text-red-400">
+ {errors.card.message}
+ </FieldError>
+ ) : null}
+ <p
+ className="mt-3 text-sm text-emerald-800 dark:text-emerald-300 "
+ aria-live="polite"
+ >
+ Cash {splitCash !== null ? formatMoney(splitCash) : '—'} · Card{' '}
+ {splitCard !== null ? formatMoney(splitCard) : '—'}
+ </p>
+ </div>
+ ) : null}
  <Button
  type="submit"
  size="2xl"
@@ -209,6 +317,8 @@ export const PaymentDialog = ({ payment }: PaymentDialogProps) => {
  ? 'Se salveaza...'
  : isCash
  ? 'Am primit banii · Confirma plata'
+ : isSplit
+ ? 'Cash primit + terminal aprobat · Confirma plata'
  : 'Terminal aprobat · Confirma plata'}
  </Button>
  </form>

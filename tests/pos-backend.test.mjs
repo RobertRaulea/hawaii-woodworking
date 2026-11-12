@@ -226,6 +226,61 @@ test('card confirmation records only the external payment acknowledgement and ap
   assert.equal(summary.cashCents, 0);
 });
 
+test('split completion records the exact cash part and the rest goes to card', async () => {
+  const db = fixture();
+  const args = example('request-split-000001', 'split');
+  await db.run(pos.prepare, args);
+  await assert.rejects(
+    db.run(pos.complete, { requestId: args.requestId }),
+    /Partea cash/,
+  );
+  for (const cashCents of [0, -100, 10000, 10001, 1.5, NaN]) {
+    await assert.rejects(
+      db.run(pos.complete, { requestId: args.requestId, cashCents }),
+      /Partea cash/,
+    );
+  }
+  await assert.rejects(
+    db.run(pos.complete, {
+      requestId: args.requestId,
+      cashCents: 4000,
+      receivedCents: 10000,
+    }),
+    /suma primita/,
+  );
+  const result = await db.run(pos.complete, {
+    requestId: args.requestId,
+    cashCents: 4000,
+  });
+  assert.equal(result.changeCents, 0);
+  const sale = db.all('posSales')[0];
+  assert.equal(sale.paymentMethod, 'split');
+  assert.equal(sale.cashCents, 4000);
+  assert.equal(sale.receivedCents, undefined);
+  assert.equal(sale.totalCents, 10000);
+  assert.equal(db.all('stockMovements').length, 3);
+  const summary = await db.run(pos.dailySummary, {
+    fairId: 'fair-1',
+    date: businessDate(Date.now()),
+  });
+  assert.equal(summary.cashCents, 4000);
+  assert.equal(summary.cardCents, 6000);
+});
+
+test('cash and card completions reject a split cash part', async () => {
+  const db = fixture();
+  for (const paymentMethod of ['cash', 'card']) {
+    const args = example(`request-nosplit-${paymentMethod}-01`, paymentMethod);
+    await db.run(pos.prepare, args);
+    await assert.rejects(
+      db.run(pos.complete, { requestId: args.requestId, cashCents: 100 }),
+      paymentMethod === 'cash' ? /plata mixta/ : /numerar/,
+    );
+    assert.equal(db.all('posSales').length, 0);
+    await db.run(pos.cancel, { requestId: args.requestId });
+  }
+});
+
 test('workshop transfer is idempotent and has both sides of the inventory audit', async () => {
   const db = fixture();
   const draft = await db.run(transfers.create, {

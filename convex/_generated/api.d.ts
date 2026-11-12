@@ -20,12 +20,14 @@ import type * as inventory from "../inventory.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_demoProducts from "../lib/demoProducts.js";
 import type * as lib_directory from "../lib/directory.js";
+import type * as lib_downloadImage from "../lib/downloadImage.js";
 import type * as lib_environment from "../lib/environment.js";
 import type * as lib_oblio from "../lib/oblio.js";
 import type * as lib_permissions from "../lib/permissions.js";
 import type * as lib_posthog from "../lib/posthog.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_storage from "../lib/storage.js";
+import type * as lib_testProducts from "../lib/testProducts.js";
 import type * as lib_translations from "../lib/translations.js";
 import type * as maintenance from "../maintenance.js";
 import type * as orders from "../orders.js";
@@ -39,6 +41,8 @@ import type * as siteAssets from "../siteAssets.js";
 import type * as staff from "../staff.js";
 import type * as stripeVerify from "../stripeVerify.js";
 import type * as stripeWebhook from "../stripeWebhook.js";
+import type * as testCatalog from "../testCatalog.js";
+import type * as testCatalogData from "../testCatalogData.js";
 import type * as transfers from "../transfers.js";
 
 import type {
@@ -60,12 +64,14 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/demoProducts": typeof lib_demoProducts;
   "lib/directory": typeof lib_directory;
+  "lib/downloadImage": typeof lib_downloadImage;
   "lib/environment": typeof lib_environment;
   "lib/oblio": typeof lib_oblio;
   "lib/permissions": typeof lib_permissions;
   "lib/posthog": typeof lib_posthog;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/storage": typeof lib_storage;
+  "lib/testProducts": typeof lib_testProducts;
   "lib/translations": typeof lib_translations;
   maintenance: typeof maintenance;
   orders: typeof orders;
@@ -79,6 +85,8 @@ declare const fullApi: ApiFromModules<{
   staff: typeof staff;
   stripeVerify: typeof stripeVerify;
   stripeWebhook: typeof stripeWebhook;
+  testCatalog: typeof testCatalog;
+  testCatalogData: typeof testCatalogData;
   transfers: typeof transfers;
 }>;
 

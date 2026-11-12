@@ -71,7 +71,9 @@ export const readCheckpoint = (
  typeof args.requestId !== 'string' ||
  !/^[a-zA-Z0-9-]{16,100}$/.test(args.requestId) ||
  typeof args.fairId !== 'string' ||
- (args.paymentMethod !== 'cash' && args.paymentMethod !== 'card') ||
+ (args.paymentMethod !== 'cash' &&
+ args.paymentMethod !== 'card' &&
+ args.paymentMethod !== 'split') ||
  typeof args.discountCents !== 'number' ||
  !Number.isSafeInteger(args.discountCents) ||
  args.discountCents < 0 ||
@@ -93,9 +95,16 @@ export const readCheckpoint = (
  (typeof data.receivedCents !== 'number' ||
  !Number.isSafeInteger(data.receivedCents) ||
  data.receivedCents < 0)) ||
+ (data.cashCents !== undefined &&
+ (typeof data.cashCents !== 'number' ||
+ !Number.isSafeInteger(data.cashCents) ||
+ data.cashCents < 0)) ||
  (data.phase === 'paid' &&
  args.paymentMethod === 'cash' &&
- data.receivedCents === undefined)
+ data.receivedCents === undefined) ||
+ (data.phase === 'paid' &&
+ args.paymentMethod === 'split' &&
+ data.cashCents === undefined)
  ) {
  throw new Error('Invalid checkpoint');
  }

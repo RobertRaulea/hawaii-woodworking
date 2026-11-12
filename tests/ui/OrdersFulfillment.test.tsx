@@ -633,6 +633,84 @@ it("adminul poate realoca comanda din pagina de detalii", async () => {
   );
 });
 
+const renderPackedDetail = async () => {
+ staff = staffAdmin;
+ detailData = fulfillmentDetail({ state: "packed", assignedToMe: true });
+ setup();
+ render(
+ <MemoryRouter initialEntries={[`/admin/fulfillment/${orderId}`]}>
+ <Routes>
+ <Route
+ path="/admin/fulfillment/:id"
+ element={<FulfillmentDetail />}
+ />
+ </Routes>
+ </MemoryRouter>,
+ );
+ const user = userEvent.setup();
+ await user.click(
+ await screen.findByRole("button", { name: "Expediază" }),
+ );
+ const dialog = await screen.findByRole("dialog");
+ return { user, dialog };
+};
+
+it("dialogul Expediază cere AWB și curier înainte de trimitere", async () => {
+ const { user, dialog } = await renderPackedDetail();
+ const submit = within(dialog).getByRole("button", { name: "Expediază" });
+ assert.ok((submit as HTMLButtonElement).disabled);
+
+ // The courier list contains the three couriers plus "Altul".
+ await user.click(within(dialog).getByLabelText("Curier"));
+ for (const name of ["FAN Courier", "Sameday", "Cargus", "Altul"]) {
+ assert.ok(await screen.findByRole("option", { name }));
+ }
+ await user.click(screen.getByRole("option", { name: "FAN Courier" }));
+
+ // Still blocked while the AWB is empty or malformed.
+ assert.ok((submit as HTMLButtonElement).disabled);
+ const awbInput = within(dialog).getByLabelText("AWB");
+ await user.type(awbInput, "x!");
+ assert.ok((submit as HTMLButtonElement).disabled);
+ await user.clear(awbInput);
+ await user.type(awbInput, "AWB-12345");
+ assert.ok(!(submit as HTMLButtonElement).disabled);
+
+ await user.click(submit);
+ await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
+ assert.equal(
+ getFunctionName(mutation.mock.calls[0].arguments[0] as never),
+ "fulfillment:ship",
+ );
+ const args = mutation.mock.calls[0].arguments[1] as {
+ awb: string;
+ carrier: string;
+ };
+ assert.equal(args.awb, "AWB-12345");
+ assert.equal(args.carrier, "FAN Courier");
+});
+
+it('opțiunea „Altul" cere numele curierului și îl trimite ca carrier', async () => {
+ const { user, dialog } = await renderPackedDetail();
+ assert.equal(within(dialog).queryByLabelText("Nume curier"), null);
+
+ await pickOption(user, within(dialog).getByLabelText("Curier"), "Altul");
+ const nameInput = within(dialog).getByLabelText("Nume curier");
+ await user.type(within(dialog).getByLabelText("AWB"), "AWB-9");
+ const submit = within(dialog).getByRole("button", { name: "Expediază" });
+ assert.ok((submit as HTMLButtonElement).disabled);
+ await user.type(nameInput, "DPD");
+ assert.ok(!(submit as HTMLButtonElement).disabled);
+
+ await user.click(submit);
+ await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
+ const args = mutation.mock.calls[0].arguments[1] as {
+ awb: string;
+ carrier: string;
+ };
+ assert.equal(args.carrier, "DPD");
+});
+
 it("adminul vede Anulează în coadă pe comenzi neexpediate și o trimite cu motiv", async () => {
  const user = userEvent.setup();
  staff = staffAdmin;
