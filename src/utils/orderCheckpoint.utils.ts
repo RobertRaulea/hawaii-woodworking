@@ -13,6 +13,7 @@ const KINDS = new Set([
  'shipped',
  'delivered',
  'cancelled',
+ 'returned',
 ]);
 
 export const readOrderCheckpoint = (
@@ -44,6 +45,11 @@ export const readOrderCheckpoint = (
  throw new Error('Invalid note');
  if (value.kind === 'cancelled' && typeof value.reason !== 'string')
  throw new Error('Invalid cancel');
+ if (
+ value.kind === 'returned' &&
+ (typeof value.reason !== 'string' || typeof value.restock !== 'boolean')
+ )
+ throw new Error('Invalid return');
  return { pending: value as unknown as OrderActionRequest, error: '' };
  } catch {
  return {

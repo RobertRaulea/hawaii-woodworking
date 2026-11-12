@@ -5,6 +5,7 @@ import {
  Minus,
  Plus,
  ShoppingBag,
+ Split,
  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -302,6 +303,16 @@ export const OrderPanel = ({
  className="w-full rounded-xl border-stone-300 dark:border-stone-700 bg-card px-4 py-3 font-semibold text-stone-800 dark:text-stone-100 hover:bg-muted hover:text-stone-800 dark:hover:text-stone-100 disabled:cursor-not-allowed [&_svg]:size-5"
  >
  <CreditCard className="size-5" /> Plata cu cardul
+ </Button>
+ <Button
+ type="button"
+ variant="outline"
+ size="2xl"
+ onClick={pay('split')}
+ disabled={disabled || !canPay || cart.length === 0}
+ className="w-full rounded-xl border-stone-300 dark:border-stone-700 bg-card px-4 py-3 font-semibold text-stone-800 dark:text-stone-100 hover:bg-muted hover:text-stone-800 dark:hover:text-stone-100 disabled:cursor-not-allowed [&_svg]:size-5"
+ >
+ <Split className="size-5" /> Plata mixta CASH + CARD
  </Button>
  <Button
  type="button"

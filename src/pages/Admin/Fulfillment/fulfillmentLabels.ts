@@ -5,5 +5,6 @@ export const STATE_LABELS: Record<string, string> = {
  shipped: "Expediată",
  delivered: "Livrată",
  cancelled: "Anulată",
+ returned: "Returnată",
  blocked: "Blocată",
 };

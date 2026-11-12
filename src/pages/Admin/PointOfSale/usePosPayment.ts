@@ -119,7 +119,7 @@ export const usePosPayment = (sellerId: string, onCompleted: () => void) => {
  }
  });
 
- const confirm = (receivedCents?: number) => {
+ const confirm = (receivedCents?: number, cashCents?: number) => {
  if (working.current) return;
  const checkpoint = current.current;
  if (
@@ -130,7 +130,7 @@ export const usePosPayment = (sellerId: string, onCompleted: () => void) => {
  const paid: PaymentCheckpoint =
  checkpoint.phase === 'paid'
  ? checkpoint
- : { ...checkpoint, phase: 'paid', receivedCents };
+ : { ...checkpoint, phase: 'paid', receivedCents, cashCents };
  try {
  persist(paid);
  } catch {
@@ -146,6 +146,7 @@ export const usePosPayment = (sellerId: string, onCompleted: () => void) => {
  complete({
  requestId: paid.args.requestId,
  receivedCents: paid.receivedCents,
+ cashCents: paid.cashCents,
  }),
  );
  settle({ ...result, requestId: paid.args.requestId });

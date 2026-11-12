@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ShoppingCart, Minus, Plus, Trash2, XCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -13,12 +13,14 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ProductQuickView } from '../../components/ProductQuickView';
 
 export const Cart: React.FC = () => {
  const { t } = useTranslation();
  const { state, removeItem, updateQuantity } = useCart();
  const navigate = useNavigate();
  const [searchParams, setSearchParams] = useSearchParams();
+ const [quickViewId, setQuickViewId] = useState<string | null>(null);
  const isCanceled = searchParams.get('canceled') === 'true';
  const cartImageFallback = 'https://placehold.co/100x100?text=No+Image';
 
@@ -124,13 +126,28 @@ export const Cart: React.FC = () => {
  <div className="flex-grow">
  {state.items.map((item: CartItem) => (
  <div key={item.id} className="flex flex-col md:flex-row items-start md:items-center gap-5 border-b border-border py-6 first:pt-0">
+ <button
+ type="button"
+ onClick={() => setQuickViewId(item.id)}
+ aria-label={`${t('product.viewDetails')}: ${item.name}`}
+ className="shrink-0 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+ >
  <img
  src={getCartImageSrc(item.image)}
  alt={item.name}
  className="w-20 h-20 object-cover rounded-md"
  />
+ </button>
  <div className="flex-grow">
- <h3 className="font-medium text-foreground">{item.name}</h3>
+ <h3 className="font-medium text-foreground">
+ <button
+ type="button"
+ onClick={() => setQuickViewId(item.id)}
+ className="rounded-sm text-left transition-colors hover:text-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:hover:text-amber-400"
+ >
+ {item.name}
+ </button>
+ </h3>
  <p className="text-muted-foreground text-sm mt-0.5">{formatPrice(item.price)}</p>
  </div>
  <div className="flex items-center gap-3">
@@ -194,6 +211,13 @@ export const Cart: React.FC = () => {
  </Card>
  </div>
  </div>
+ <ProductQuickView
+ productId={quickViewId}
+ open={quickViewId !== null}
+ onOpenChange={(open) => {
+ if (!open) setQuickViewId(null);
+ }}
+ />
  </div>
  );
 };

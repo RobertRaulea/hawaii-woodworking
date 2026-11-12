@@ -9,6 +9,7 @@ import { useStaffDirectory } from '../../../hooks/useStaffDirectory';
 import { useAdminQuery } from '../../../hooks/useAdminQuery';
 import { useOrderAction } from '../../../hooks/useOrderAction';
 import { AdminDialog } from '../../../components/AdminDialog/AdminDialog';
+import { CancelOrderDialog } from '../../../components/CancelOrderDialog/CancelOrderDialog';
 import { ProductThumb } from '../../../components/ProductThumb';
 import { useProductThumbnails } from '../../../hooks/useProductThumbnails';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -26,6 +27,7 @@ import {
  TableHeader,
  TableRow,
 } from '@/components/ui/table';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { OrderInventoryReview } from './OrderInventoryReview';
 import type { OrderAdminEvent } from '../../../types/orders.types';
@@ -53,6 +55,7 @@ const FULFILLMENT_LABELS: Record<string, string> = {
  delivered: 'Livrată',
  blocked: 'Blocată',
  cancelled: 'Anulată',
+ returned: 'Returnată',
 };
 
 const EVENT_LABELS: Record<OrderAdminEvent['kind'], string> = {
@@ -65,6 +68,8 @@ const EVENT_LABELS: Record<OrderAdminEvent['kind'], string> = {
  shipped: 'Expediată',
  delivered: 'Livrată',
  cancelled: 'Anulată',
+ return_requested: 'Retur cerut',
+ returned: 'Returnată',
 };
 
 const formatDate = (timestamp: number): string =>
@@ -90,9 +95,11 @@ export const OrderDetail: React.FC = () => {
  );
  const [note, setNote] = useState('');
  const [cancelOpen, setCancelOpen] = useState(false);
- const [cancelReason, setCancelReason] = useState('');
  const [reassignOpen, setReassignOpen] = useState(false);
  const [reassignUser, setReassignUser] = useState('');
+ const [returnOpen, setReturnOpen] = useState(false);
+ const [returnReason, setReturnReason] = useState('');
+ const [returnRestock, setReturnRestock] = useState<boolean | null>(null);
 
  if (orderError) {
  return (
@@ -128,12 +135,27 @@ export const OrderDetail: React.FC = () => {
  const cancellable =
  order.status !== 'cancelled' &&
  order.status !== 'shipped' &&
- order.status !== 'delivered';
+ order.status !== 'delivered' &&
+ order.status !== 'returned';
+ const returnable =
+ order.status === 'shipped' || order.status === 'delivered';
+ const returnRequested =
+ order.status === 'delivered' &&
+ order.returnRequestedAt !== undefined &&
+ order.returnedAt === undefined;
  const reassignable =
  order.fulfillmentState === 'preparing' ||
  order.fulfillmentState === 'packed';
- const manualRefund =
- order.status === 'cancelled' && order.paymentStatus === 'paid';
+ const manualRefund = order.refundStatus === 'manual_required';
+ // Same rule as the backend: only money actually collected is refunded.
+ const refundInfo =
+ order.paymentMethod === 'cod'
+ ? order.paymentConfirmedAt !== undefined
+ ? `Clientul a plătit la curier: restituire manuală (transfer bancar): ${formatPrice(order.total ?? 0)}`
+ : 'Colet refuzat: nimic de restituit'
+ : order.paymentStatus === 'paid'
+ ? `Rambursare manuală necesară: ${formatPrice(order.total ?? 0)}, din Stripe`
+ : 'Comanda nu este plătită: nimic de restituit';
 
  return (
  <section className="max-w-4xl space-y-6">
@@ -155,7 +177,9 @@ export const OrderDetail: React.FC = () => {
  className="px-3 py-1 text-sm font-medium"
  >
  {manualRefund
- ? 'Plătită — rambursare manuală necesară'
+ ? order.status === 'returned'
+ ? 'Retur: rambursare manuală'
+ : 'Plătită — rambursare manuală necesară'
  : order.paymentMethod === 'cod' && order.paymentStatus === 'pending'
  ? `Ramburs — de încasat ${order.total.toFixed(2)} RON`
  : order.paymentMethod === 'cod'
@@ -168,6 +192,11 @@ export const OrderDetail: React.FC = () => {
  >
  {FULFILLMENT_LABELS[order.fulfillmentState]}
  </Badge>
+ {returnRequested ? (
+ <Badge variant="amber" className="px-3 py-1 text-sm font-medium">
+ Retur cerut
+ </Badge>
+ ) : null}
  </div>
  </div>
  <p className="mt-1 text-sm text-muted-foreground">
@@ -198,6 +227,23 @@ export const OrderDetail: React.FC = () => {
  ) : null}
 
  <OrderInventoryReview order={order} />
+
+ {returnRequested ? (
+ <Alert variant="warning">
+ <AlertDescription>
+ <span className="font-medium">Retur cerut de client</span>
+ {order.returnRequestReason ? ` — ${order.returnRequestReason}` : ''}
+ <span className="block text-xs text-muted-foreground">
+ Cerut la {formatDate(order.returnRequestedAt!)}
+ {order.deliveredAt
+ ? ` · termen legal ${formatDate(
+ order.deliveredAt + 14 * 24 * 60 * 60 * 1000,
+ )}`
+ : ''}
+ </span>
+ </AlertDescription>
+ </Alert>
+ ) : null}
 
  {order.customer ? (
  <Card className="rounded-lg">
@@ -400,6 +446,20 @@ export const OrderDetail: React.FC = () => {
  <dd className="text-foreground">{order.cancelReason}</dd>
  </div>
  ) : null}
+ {order.status === 'returned' ? (
+ <div className="md:col-span-2">
+ <dt className="font-medium text-muted-foreground">Retur</dt>
+ <dd className="text-foreground">
+ {order.returnReason ?? ''}
+ {order.returnedAt ? ` · ${formatDate(order.returnedAt)}` : ''}
+ {order.returnedBy ? ` · ${userLabel(order.returnedBy)}` : ''}
+ {' · '}
+ {order.returnRestocked
+ ? 'stoc restabilit'
+ : 'fără restocare'}
+ </dd>
+ </div>
+ ) : null}
  </dl>
  <div className="mt-4 flex flex-wrap gap-2">
  {order.fulfillmentState !== 'cancelled' ? (
@@ -433,6 +493,21 @@ export const OrderDetail: React.FC = () => {
  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium hover:bg-red-700"
  >
  Anulează comanda
+ </Button>
+ ) : null}
+ {returnable ? (
+ <Button
+ type="button"
+ variant="outline"
+ disabled={!canAct}
+ onClick={() => {
+ setReturnReason('');
+ setReturnRestock(null);
+ setReturnOpen(true);
+ }}
+ className="rounded-lg"
+ >
+ Înregistrează retur
  </Button>
  ) : null}
  {order.invoicePdfUrl ? (
@@ -563,45 +638,50 @@ export const OrderDetail: React.FC = () => {
  </Card>
 
  {cancelOpen ? (
- <AdminDialog
- title="Anulează comanda"
+ <CancelOrderDialog
+ paid={order.paymentStatus === 'paid'}
+ cod={order.paymentMethod === 'cod'}
+ canAct={canAct}
  onClose={() => setCancelOpen(false)}
+ onSubmit={(reason) => {
+ void controller.start({
+ kind: 'cancelled',
+ orderId: order._id,
+ reason,
+ });
+ setCancelOpen(false);
+ }}
+ />
+ ) : null}
+
+ {returnOpen ? (
+ <AdminDialog
+ title="Înregistrează retur"
+ onClose={() => setReturnOpen(false)}
  >
  <form
  onSubmit={(event) => {
  event.preventDefault();
+ if (returnRestock === null) return;
  void controller.start({
- kind: 'cancelled',
+ kind: 'returned',
  orderId: order._id,
- reason: cancelReason.trim(),
+ reason: returnReason.trim(),
+ restock: returnRestock,
  });
- setCancelOpen(false);
+ setReturnOpen(false);
  }}
  className="space-y-4"
  >
- {order.paymentStatus === 'paid' ? (
- <Alert variant="warning">
- <AlertDescription>
- Comanda este plătită. Dacă stocul a fost alocat, va fi
- returnat automat în Atelier. Rambursarea banilor se face
- manual în Stripe — nu este procesată automat.
- </AlertDescription>
- </Alert>
- ) : (
  <Alert variant="info">
- <AlertDescription>
- Comanda nu este plătită; stocul nu va fi modificat.
- </AlertDescription>
+ <AlertDescription>{refundInfo}</AlertDescription>
  </Alert>
- )}
  <div>
- <Label htmlFor="cancel-reason">
- Motivul anulării (obligatoriu)
- </Label>
+ <Label htmlFor="return-reason">Motivul returului (obligatoriu)</Label>
  <Textarea
- id="cancel-reason"
- value={cancelReason}
- onChange={(event) => setCancelReason(event.target.value)}
+ id="return-reason"
+ value={returnReason}
+ onChange={(event) => setReturnReason(event.target.value)}
  rows={3}
  required
  minLength={3}
@@ -609,22 +689,48 @@ export const OrderDetail: React.FC = () => {
  className="mt-1 w-full rounded-lg px-3 py-2"
  />
  </div>
+ <fieldset>
+ <legend className="text-sm font-medium text-foreground">
+ Stoc (obligatoriu)
+ </legend>
+ <RadioGroup
+ value={returnRestock === null ? '' : String(returnRestock)}
+ onValueChange={(value) => setReturnRestock(value === 'true')}
+ className="mt-2 space-y-2"
+ >
+ <div className="flex items-start gap-2">
+ <RadioGroupItem value="true" id="restock-yes" />
+ <Label htmlFor="restock-yes" className="font-normal">
+ Restochează produsele (verificate fizic, în stare bună)
+ </Label>
+ </div>
+ <div className="flex items-start gap-2">
+ <RadioGroupItem value="false" id="restock-no" />
+ <Label htmlFor="restock-no" className="font-normal">
+ Nu restocha (deteriorate sau lipsă)
+ </Label>
+ </div>
+ </RadioGroup>
+ </fieldset>
  <div className="flex justify-end gap-2">
  <Button
  type="button"
  variant="outline"
- onClick={() => setCancelOpen(false)}
+ onClick={() => setReturnOpen(false)}
  className="rounded-lg"
  >
  Renunță
  </Button>
  <Button
  type="submit"
- variant="destructive"
- disabled={!canAct || cancelReason.trim().length < 3}
- className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium hover:bg-red-700"
+ disabled={
+ !canAct ||
+ returnReason.trim().length < 3 ||
+ returnRestock === null
+ }
+ className="rounded-lg"
  >
- Anulează comanda
+ Înregistrează retur
  </Button>
  </div>
  </form>

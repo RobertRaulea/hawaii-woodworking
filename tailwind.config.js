@@ -70,6 +70,12 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(-10deg)' },
+          '50%': { transform: 'rotate(8deg)' },
+          '75%': { transform: 'rotate(-4deg)' },
+        },
         'accordion-down': {
           from: { height: '0' },
           to: { height: 'var(--radix-accordion-content-height)' },
@@ -84,6 +90,7 @@ export default {
         'fade-in': 'fade-in 0.5s ease-out forwards',
         'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
         'scale-in': 'scale-in 0.4s ease-out forwards',
+        wiggle: 'wiggle 0.6s ease-in-out',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },

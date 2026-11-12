@@ -8,8 +8,10 @@ import { readEnvironment } from "./lib/environment";
 import { createOblioInvoice } from "./lib/oblio";
 import { SITE_NAME } from "../shared/seo/seo.utils";
 import {
+  buildOrderNotice,
   generateAdminEmailHtml,
   generateCustomerEmailHtml,
+  generateShippedEmailHtml,
   shortOrderNumber,
 } from "./lib/orderEmails.utils";
 import type { InvoiceInfo } from "./lib/orderEmails.utils";
@@ -43,6 +45,117 @@ export const capturePurchaseAnalytics = internalAction({
     }
     if (result === "retry") console.error("Purchase analytics delivery exhausted");
     return result;
+  },
+});
+
+// Cancel/return lifecycle notices. Unlike post-payment processing these are
+// purely best-effort: failures are logged, never retried, never thrown.
+export const sendOrderNotice = internalAction({
+  args: {
+    orderId: v.id("orders"),
+    kind: v.union(
+      v.literal("customer_cancelled"),
+      v.literal("return_requested"),
+      v.literal("returned"),
+    ),
+  },
+  handler: async (ctx, { orderId, kind }) => {
+    const isTest = readEnvironment().name === "test";
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@hawaii-woodworking.ro";
+
+    if (!resendApiKey || !adminEmail) {
+      if (isTest) {
+        console.info("TEST: order notice skipped; Resend credentials or admin email missing", orderId, kind);
+      } else {
+        console.error("Missing Resend API credentials or admin email");
+      }
+      return;
+    }
+
+    const order = await ctx.runMutation(internal.orders.getOrderWithCustomer, {
+      orderId,
+    });
+    if (!order) {
+      console.error(`Order notice skipped; order not found: ${orderId}`);
+      return;
+    }
+
+    const resend = new Resend(resendApiKey);
+    const notice = buildOrderNotice(order, kind, isTest);
+    const subjectPrefix = isTest ? "[TEST] " : "";
+
+    if (notice.sendToAdmin) {
+      try {
+        await resend.emails.send({
+          from: fromEmail,
+          to: adminEmail,
+          subject: `${subjectPrefix}${notice.adminSubject}`,
+          html: notice.adminHtml,
+        });
+      } catch {
+        console.error("Order notice admin email failed");
+      }
+    }
+
+    try {
+      await resend.emails.send({
+        from: fromEmail,
+        to: order.customer.email,
+        subject: `${subjectPrefix}${notice.customerSubject}`,
+        html: notice.customerHtml,
+      });
+    } catch {
+      console.error("Order notice customer email failed");
+    }
+  },
+});
+
+// Customer-only "order shipped" notice with AWB and tracking link. Sent
+// after the ship mutation commits; best-effort like the other notices.
+export const sendShippedNotice = internalAction({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, { orderId }) => {
+    const isTest = readEnvironment().name === "test";
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@hawaii-woodworking.ro";
+
+    if (!resendApiKey) {
+      if (isTest) {
+        console.info("TEST: shipped notice skipped; Resend credentials missing", orderId);
+      } else {
+        console.error("Missing Resend API credentials");
+      }
+      return;
+    }
+
+    const order = await ctx.runMutation(internal.orders.getOrderWithCustomer, {
+      orderId,
+    });
+    if (!order) {
+      console.error(`Shipped notice skipped; order not found: ${orderId}`);
+      return;
+    }
+    if (!order.awb) {
+      console.error(`Shipped notice skipped; order has no AWB: ${orderId}`);
+      return;
+    }
+
+    const resend = new Resend(resendApiKey);
+    const number = shortOrderNumber(order._id);
+    try {
+      await resend.emails.send({
+        from: fromEmail,
+        to: order.customer.email,
+        subject: `${isTest ? "[TEST] " : ""}Comanda #${number} a fost expediată - ${SITE_NAME}`,
+        html: generateShippedEmailHtml(order, isTest),
+      });
+    } catch {
+      console.error("Shipped notice customer email failed");
+    }
   },
 });
 

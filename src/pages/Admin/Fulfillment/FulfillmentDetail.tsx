@@ -10,6 +10,7 @@ import { useStaffDirectory } from "../../../hooks/useStaffDirectory";
 import { useAdminQuery } from "../../../hooks/useAdminQuery";
 import { useOrderAction } from "../../../hooks/useOrderAction";
 import { AdminDialog } from "../../../components/AdminDialog/AdminDialog";
+import { CancelOrderDialog } from "../../../components/CancelOrderDialog/CancelOrderDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,6 +25,14 @@ import { FulfillmentFeedback } from "./FulfillmentFeedback";
 import { FulfillmentStepper } from "./FulfillmentStepper";
 import { PackingSlip } from "./PackingSlip";
 import type { FulfillmentEvent } from "../../../types/orders.types";
+import { CARRIERS, OTHER_CARRIER_LABEL } from "../../../../shared/carriers.utils";
+
+const AWB_PATTERN = /^[A-Za-z0-9-]{3,50}$/;
+
+const CARRIER_OPTIONS = [
+ ...CARRIERS.map((carrier) => ({ value: carrier.label, label: carrier.label })),
+ { value: OTHER_CARRIER_LABEL, label: OTHER_CARRIER_LABEL },
+];
 
 const EVENT_LABELS: Record<FulfillmentEvent["kind"], string> = {
  claimed: "Preluată",
@@ -35,6 +44,8 @@ const EVENT_LABELS: Record<FulfillmentEvent["kind"], string> = {
  shipped: "Expediată",
  delivered: "Livrată",
  cancelled: "Anulată",
+ return_requested: "Retur cerut",
+ returned: "Returnată",
 };
 
 const formatDate = (timestamp: number): string =>
@@ -62,8 +73,10 @@ export const FulfillmentDetail: React.FC = () => {
  const [shipOpen, setShipOpen] = useState(false);
  const [awb, setAwb] = useState("");
  const [carrier, setCarrier] = useState("");
+ const [carrierOther, setCarrierOther] = useState("");
  const [reassignOpen, setReassignOpen] = useState(false);
  const [reassignTarget, setReassignTarget] = useState("");
+ const [cancelOpen, setCancelOpen] = useState(false);
 
  // Close dialogs / clear inputs only after the action is confirmed, so a
  // failed request never discards what the operator typed.
@@ -76,6 +89,7 @@ export const FulfillmentDetail: React.FC = () => {
  setShipOpen(false);
  setAwb("");
  setCarrier("");
+ setCarrierOther("");
  } else if (kind === "note") {
  setNote("");
  }
@@ -108,6 +122,10 @@ export const FulfillmentDetail: React.FC = () => {
  const heldByOther =
  Boolean(order.assignedTo) && !order.assignedToMe && !isAdmin;
  const canAct = !controller.busy && !controller.blocked && controller.online;
+ const carrierValid =
+ carrier !== "" &&
+ (carrier !== OTHER_CARRIER_LABEL || carrierOther.trim().length > 0);
+ const shipFormValid = AWB_PATTERN.test(awb.trim()) && carrierValid;
  const allChecked =
  order.checklist.length > 0 && order.checklist.every((line) => line.checked);
  const quantityOf = (productId: Id<"products">) =>
@@ -399,6 +417,20 @@ export const FulfillmentDetail: React.FC = () => {
  comanda.
  </p>
  ) : null}
+ {isAdmin &&
+ (order.state === "ready" ||
+ order.state === "preparing" ||
+ order.state === "packed") ? (
+ <Button
+ type="button"
+ variant="destructive"
+ disabled={!canAct}
+ onClick={() => setCancelOpen(true)}
+ className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium hover:bg-red-700"
+ >
+ Anulează comanda
+ </Button>
+ ) : null}
  </div>
  {order.awb || order.carrier ? (
  <p className="mt-3 text-sm text-stone-600 dark:text-stone-300 ">
@@ -486,6 +518,23 @@ export const FulfillmentDetail: React.FC = () => {
  </CardContent>
  </Card>
 
+ {cancelOpen ? (
+ <CancelOrderDialog
+ paid={order.paymentMethod !== "cod"}
+ cod={order.paymentMethod === "cod"}
+ canAct={canAct}
+ onClose={() => setCancelOpen(false)}
+ onSubmit={(reason) => {
+ void controller.start({
+ kind: "cancelled",
+ orderId: order._id,
+ reason,
+ });
+ setCancelOpen(false);
+ }}
+ />
+ ) : null}
+
  {shipOpen ? (
  <AdminDialog
  title="Expediază comanda"
@@ -494,11 +543,15 @@ export const FulfillmentDetail: React.FC = () => {
  <form
  onSubmit={(event) => {
  event.preventDefault();
+ if (!shipFormValid) return;
  void controller.start({
  kind: "shipped",
  orderId: order._id,
- awb: awb.trim() || undefined,
- carrier: carrier.trim() || undefined,
+ awb: awb.trim(),
+ carrier:
+ carrier === OTHER_CARRIER_LABEL
+ ? carrierOther.trim()
+ : carrier,
  });
  }}
  className="space-y-4"
@@ -508,13 +561,15 @@ export const FulfillmentDetail: React.FC = () => {
  htmlFor="ship-awb"
  className="text-sm font-medium text-stone-700 dark:text-stone-300 "
  >
- AWB (opțional)
+ AWB
  </Label>
  <Input
  id="ship-awb"
  value={awb}
  onChange={(event) => setAwb(event.target.value)}
  placeholder="ex. AWB-12345"
+ required
+ maxLength={50}
  className="mt-1 h-auto w-full rounded-lg px-3 py-2 text-sm"
  />
  </div>
@@ -523,17 +578,38 @@ export const FulfillmentDetail: React.FC = () => {
  htmlFor="ship-carrier"
  className="text-sm font-medium text-stone-700 dark:text-stone-300 "
  >
- Curier (opțional)
+ Curier
  </Label>
- <Input
+ <OptionSelect
  id="ship-carrier"
  value={carrier}
- onChange={(event) => setCarrier(event.target.value)}
- placeholder="ex. FAN Courier"
+ onValueChange={setCarrier}
+ placeholder="Alege curierul…"
+ required
+ wrapperClassName="mt-1 w-full"
+ className="rounded-lg px-3 py-2"
+ options={CARRIER_OPTIONS}
+ />
+ </div>
+ {carrier === OTHER_CARRIER_LABEL ? (
+ <div>
+ <Label
+ htmlFor="ship-carrier-other"
+ className="text-sm font-medium text-stone-700 dark:text-stone-300 "
+ >
+ Nume curier
+ </Label>
+ <Input
+ id="ship-carrier-other"
+ value={carrierOther}
+ onChange={(event) => setCarrierOther(event.target.value)}
+ placeholder="ex. DPD"
+ required
  maxLength={50}
  className="mt-1 h-auto w-full rounded-lg px-3 py-2 text-sm"
  />
  </div>
+ ) : null}
  <div className="flex justify-end gap-2">
  <Button
  type="button"
@@ -545,13 +621,17 @@ export const FulfillmentDetail: React.FC = () => {
  </Button>
  <Button variant="brand"
  type="submit"
- disabled={!canAct}
+ disabled={!canAct || !shipFormValid}
  className="rounded-lg"
  >
  Expediază
  </Button>
  </div>
  </form>
+ <p className="mt-3 text-xs text-muted-foreground">
+ După expediere, clientul primește un email cu AWB-ul și linkul de
+ urmărire.
+ </p>
  </AdminDialog>
  ) : null}
 

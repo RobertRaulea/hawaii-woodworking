@@ -38,7 +38,8 @@ export const FulfillmentStepper: React.FC<FulfillmentStepperProps> = ({
  shippedAt,
  deliveredAt,
 }) => {
- if (state === "cancelled" || state === "blocked") return null;
+ if (state === "cancelled" || state === "returned" || state === "blocked")
+ return null;
 
  const steps = [
  { key: "ready", label: "De pregătit", at: createdAt },

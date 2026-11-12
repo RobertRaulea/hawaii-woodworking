@@ -352,7 +352,7 @@ export const renderStaticPage = (template: string, page: StaticPage): string => 
   if (!html.includes('<div id="root"></div>')) {
     throw new Error('index.html template is missing the #root mount point.');
   }
-  return html.replace('<div id="root"></div>', () => `<div id="root">${page.body}</div>`);
+  return html.replace('<div id="root"></div>', () => `<div id="root"><div data-prerender>${page.body}</div></div>`);
 };
 
 export const writeStaticPages = async (

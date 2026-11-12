@@ -17,6 +17,15 @@ export type OrderWithCustomer = {
   codFee?: number;
   invoiceId?: string;
   invoicePdfUrl?: string;
+  refundStatus?: "manual_required";
+  cancelReason?: string;
+  returnRequestReason?: string;
+  returnReason?: string;
+  returnRestocked?: boolean;
+  deliveredAt?: number;
+  shippedAt?: number;
+  awb?: string;
+  carrier?: string;
   shipping?: { firstName: string; lastName: string; phone?: string; address: Address };
   billing?: { firstName: string; lastName: string; phone?: string; address: Address };
   customer: {

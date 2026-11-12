@@ -48,10 +48,10 @@ Legal pages are hardcoded Romanian. Do not paraphrase or "improve" the wording; 
 | Item | Status | Evidence |
 | --- | --- | --- |
 | Shipping address and RO county/locality validation | exists | `src/pages/Shipping/Shipping.tsx`, `src/constants/romania.constants.ts` |
-| Courier and AWB | manual | `convex/fulfillment.ts` accepts optional manual `awb` and `carrier`; no courier API |
+| Courier and AWB | manual | `convex/fulfillment.ts` requires `awb` and `carrier`; carrier picked from FAN Courier / Sameday / Cargus / Altul (`shared/carriers.utils.ts` builds the tracking link); no courier API |
 | Oblio invoice after payment | exists | `convex/postPayment.ts`; production creates a real Oblio invoice (`idempotencyKey` = order id); TEST simulates it without calling Oblio; failure is logged and needs manual verification; no retry; no storno on refund |
 | Admin and customer order emails (Resend) | exists | `convex/postPayment.ts`, `convex/lib/orderEmails.utils.ts`; TEST sends real emails with `[TEST]` subjects; failures are caught and logged, not retried |
-| Shipped, delivered, refund emails | missing | Not implemented |
+| Shipped, delivered, refund emails | partial | Shipped email exists (`convex/postPayment.ts` `sendShippedNotice`, `convex/lib/orderEmails.utils.ts` `generateShippedEmailHtml`); delivered and refund emails still missing |
 
 ## Not now (do not build without Robert asking)
 

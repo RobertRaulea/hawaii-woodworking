@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { getFunctionName } from "convex/server";
 import { fixture } from "./helpers/convexFixture.mjs";
 import * as orders from "../convex/orders.ts";
 import * as fulfillment from "../convex/fulfillment.ts";
@@ -357,6 +358,103 @@ test("full fulfillment flow: claim, checklist, pack, ship, delivered", async () 
   });
   assert.equal(delivered.status, "delivered");
   assert.ok(delivered.deliveredAt);
+});
+
+const shippedNoticeJobs = (db) =>
+  db
+    .jobs()
+    .filter(
+      (job) => getFunctionName(job.fn) === "postPayment:sendShippedNotice",
+    );
+
+const packedOrder = async (db, orderId, userId = "user_a") => {
+  atelier(db, userId);
+  await db.run(fulfillment.claim, {
+    requestId: `req-claim-${orderId}`,
+    orderId,
+  });
+  await db.run(fulfillment.setChecked, {
+    requestId: `req-check-${orderId}`,
+    orderId,
+    productId: "magnet",
+    checked: true,
+  });
+  await db.run(fulfillment.markPacked, {
+    requestId: `req-pack-${orderId}`,
+    orderId,
+  });
+};
+
+test("ship requires AWB and carrier; valid ship schedules one email, replay none", async () => {
+  const db = fixture();
+  admin(db);
+  seedCustomer(db);
+  seedOrder(db, "o-shipmail");
+  await markPaid(db, "o-shipmail");
+  await packedOrder(db, "o-shipmail");
+
+  // Missing AWB.
+  await assert.rejects(
+    db.run(fulfillment.ship, {
+      requestId: "req-ship-mail-001",
+      orderId: "o-shipmail",
+      carrier: "FAN Courier",
+    }),
+    /Introdu numărul AWB/,
+  );
+  // Blank AWB.
+  await assert.rejects(
+    db.run(fulfillment.ship, {
+      requestId: "req-ship-mail-002",
+      orderId: "o-shipmail",
+      awb: "   ",
+      carrier: "FAN Courier",
+    }),
+    /Introdu numărul AWB/,
+  );
+  // Missing carrier.
+  await assert.rejects(
+    db.run(fulfillment.ship, {
+      requestId: "req-ship-mail-003",
+      orderId: "o-shipmail",
+      awb: "AWB-12345",
+    }),
+    /Alege curierul/,
+  );
+  // Invalid AWB format.
+  await assert.rejects(
+    db.run(fulfillment.ship, {
+      requestId: "req-ship-mail-004",
+      orderId: "o-shipmail",
+      awb: "x!",
+      carrier: "FAN Courier",
+    }),
+    /Număr AWB invalid/,
+  );
+  assert.equal(shippedNoticeJobs(db).length, 0);
+
+  const shipped = await db.run(fulfillment.ship, {
+    requestId: "req-ship-mail-005",
+    orderId: "o-shipmail",
+    awb: "AWB-12345",
+    carrier: "FAN Courier",
+  });
+  assert.equal(shipped.status, "shipped");
+  assert.equal(shipped.awb, "AWB-12345");
+  assert.equal(shipped.carrier, "FAN Courier");
+  const notices = shippedNoticeJobs(db);
+  assert.equal(notices.length, 1);
+  assert.equal(notices[0].args.orderId, "o-shipmail");
+
+  // Replaying the same requestId must not schedule a second email.
+  const replayed = await db.run(fulfillment.ship, {
+    requestId: "req-ship-mail-005",
+    orderId: "o-shipmail",
+    awb: "AWB-12345",
+    carrier: "FAN Courier",
+  });
+  assert.equal(replayed.status, "shipped");
+  assert.equal(shippedNoticeJobs(db).length, 1);
 });
 
 test("ship from preparing is rejected", async () => {

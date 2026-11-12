@@ -633,6 +633,219 @@ it("adminul poate realoca comanda din pagina de detalii", async () => {
   );
 });
 
+const renderPackedDetail = async () => {
+ staff = staffAdmin;
+ detailData = fulfillmentDetail({ state: "packed", assignedToMe: true });
+ setup();
+ render(
+ <MemoryRouter initialEntries={[`/admin/fulfillment/${orderId}`]}>
+ <Routes>
+ <Route
+ path="/admin/fulfillment/:id"
+ element={<FulfillmentDetail />}
+ />
+ </Routes>
+ </MemoryRouter>,
+ );
+ const user = userEvent.setup();
+ await user.click(
+ await screen.findByRole("button", { name: "Expediază" }),
+ );
+ const dialog = await screen.findByRole("dialog");
+ return { user, dialog };
+};
+
+it("dialogul Expediază cere AWB și curier înainte de trimitere", async () => {
+ const { user, dialog } = await renderPackedDetail();
+ const submit = within(dialog).getByRole("button", { name: "Expediază" });
+ assert.ok((submit as HTMLButtonElement).disabled);
+
+ // The courier list contains the three couriers plus "Altul".
+ await user.click(within(dialog).getByLabelText("Curier"));
+ for (const name of ["FAN Courier", "Sameday", "Cargus", "Altul"]) {
+ assert.ok(await screen.findByRole("option", { name }));
+ }
+ await user.click(screen.getByRole("option", { name: "FAN Courier" }));
+
+ // Still blocked while the AWB is empty or malformed.
+ assert.ok((submit as HTMLButtonElement).disabled);
+ const awbInput = within(dialog).getByLabelText("AWB");
+ await user.type(awbInput, "x!");
+ assert.ok((submit as HTMLButtonElement).disabled);
+ await user.clear(awbInput);
+ await user.type(awbInput, "AWB-12345");
+ assert.ok(!(submit as HTMLButtonElement).disabled);
+
+ await user.click(submit);
+ await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
+ assert.equal(
+ getFunctionName(mutation.mock.calls[0].arguments[0] as never),
+ "fulfillment:ship",
+ );
+ const args = mutation.mock.calls[0].arguments[1] as {
+ awb: string;
+ carrier: string;
+ };
+ assert.equal(args.awb, "AWB-12345");
+ assert.equal(args.carrier, "FAN Courier");
+});
+
+it('opțiunea „Altul" cere numele curierului și îl trimite ca carrier', async () => {
+ const { user, dialog } = await renderPackedDetail();
+ assert.equal(within(dialog).queryByLabelText("Nume curier"), null);
+
+ await pickOption(user, within(dialog).getByLabelText("Curier"), "Altul");
+ const nameInput = within(dialog).getByLabelText("Nume curier");
+ await user.type(within(dialog).getByLabelText("AWB"), "AWB-9");
+ const submit = within(dialog).getByRole("button", { name: "Expediază" });
+ assert.ok((submit as HTMLButtonElement).disabled);
+ await user.type(nameInput, "DPD");
+ assert.ok(!(submit as HTMLButtonElement).disabled);
+
+ await user.click(submit);
+ await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
+ const args = mutation.mock.calls[0].arguments[1] as {
+ awb: string;
+ carrier: string;
+ };
+ assert.equal(args.carrier, "DPD");
+});
+
+it("adminul vede Anulează în coadă pe comenzi neexpediate și o trimite cu motiv", async () => {
+ const user = userEvent.setup();
+ staff = staffAdmin;
+ queueData = [
+ queueRow(),
+ queueRow({
+ _id: "order-00000009" as Id<"orders">,
+ shortNumber: "00000009",
+ state: "shipped",
+ }),
+ ];
+ restockData = [];
+ setup();
+ render(
+ <MemoryRouter>
+ <FulfillmentQueue />
+ </MemoryRouter>,
+ );
+ const cancelButtons = await screen.findAllByRole("button", {
+ name: "Anulează",
+ });
+ // Only the ready row is cancellable; shipped is not.
+ assert.equal(cancelButtons.length, 1);
+ await user.click(cancelButtons[0]);
+ const dialog = await screen.findByRole("dialog");
+ const submit = within(dialog).getByRole("button", {
+ name: "Anulează comanda",
+ });
+ assert.ok((submit as HTMLButtonElement).disabled);
+ await user.type(
+ within(dialog).getByLabelText(/Motivul anulării/),
+ "Clientul a renunțat.",
+ );
+ assert.ok(!(submit as HTMLButtonElement).disabled);
+ await user.click(submit);
+ await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
+ assert.equal(
+ getFunctionName(mutation.mock.calls[0].arguments[0] as never),
+ "orders:cancel",
+ );
+ assert.equal(
+ (
+ mutation.mock.calls[0].arguments[1] as {
+ orderId: string;
+ reason: string;
+ }
+ ).orderId,
+ orderId,
+ );
+});
+
+it("atelier nu vede butonul Anulează în coadă", async () => {
+ staff = staffAtelier;
+ queueData = [queueRow()];
+ restockData = [];
+ setup();
+ render(
+ <MemoryRouter>
+ <FulfillmentQueue />
+ </MemoryRouter>,
+ );
+ await screen.findByRole("button", { name: "Preia" });
+ assert.equal(
+ screen.queryByRole("button", { name: "Anulează" }),
+ null,
+ );
+});
+
+it("adminul anulează din pagina de pregătire; atelier și expediată nu au buton", async () => {
+ const user = userEvent.setup();
+ staff = staffAdmin;
+ detailData = fulfillmentDetail();
+ setup();
+ const { unmount } = render(
+ <MemoryRouter initialEntries={[`/admin/fulfillment/${orderId}`]}>
+ <Routes>
+ <Route path="/admin/fulfillment/:id" element={<FulfillmentDetail />} />
+ </Routes>
+ </MemoryRouter>,
+ );
+ const cancelButton = await screen.findByRole("button", {
+ name: "Anulează comanda",
+ });
+ await user.click(cancelButton);
+ const dialog = await screen.findByRole("dialog");
+ const submit = within(dialog).getByRole("button", {
+ name: "Anulează comanda",
+ });
+ assert.ok((submit as HTMLButtonElement).disabled);
+ await user.type(
+ within(dialog).getByLabelText(/Motivul anulării/),
+ "Produsul nu mai este disponibil.",
+ );
+ await user.click(submit);
+ await waitFor(() => assert.equal(mutation.mock.callCount(), 1));
+ assert.equal(
+ getFunctionName(mutation.mock.calls[0].arguments[0] as never),
+ "orders:cancel",
+ );
+ unmount();
+
+ staff = staffAtelier;
+ setup();
+ render(
+ <MemoryRouter initialEntries={[`/admin/fulfillment/${orderId}`]}>
+ <Routes>
+ <Route path="/admin/fulfillment/:id" element={<FulfillmentDetail />} />
+ </Routes>
+ </MemoryRouter>,
+ );
+ await screen.findByText("Lista de verificare");
+ assert.equal(
+ screen.queryByRole("button", { name: "Anulează comanda" }),
+ null,
+ );
+});
+
+it("comanda expediată nu are buton de anulare în pagina de pregătire", async () => {
+ staff = staffAdmin;
+ detailData = fulfillmentDetail({ state: "shipped", assignedToMe: true });
+ setup();
+ render(
+ <MemoryRouter initialEntries={[`/admin/fulfillment/${orderId}`]}>
+ <Routes>
+ <Route path="/admin/fulfillment/:id" element={<FulfillmentDetail />} />
+ </Routes>
+ </MemoryRouter>,
+ );
+ await screen.findByRole("button", { name: "Marchează livrată" });
+ assert.equal(
+ screen.queryByRole("button", { name: "Anulează comanda" }),
+ null,
+ );
+});
+
 it("pagina de detalii conține foaia de ambalare pentru print", async () => {
   staff = staffAtelier;
   detailData = fulfillmentDetail();

@@ -111,6 +111,33 @@ test('paid card checkpoints survive reload without a cash amount', () => {
   assert.equal(readCheckpoint('absent').pending, null);
 });
 
+test('paid split checkpoints keep the cash part and reject missing or invalid parts', () => {
+  const splitArgs = { ...args, paymentMethod: 'split' };
+  storage.set(
+    'split',
+    JSON.stringify({ args: splitArgs, phase: 'paid', cashCents: 3000 }),
+  );
+  const result = readCheckpoint('split');
+  assert.equal(result.error, '');
+  assert.equal(result.pending.cashCents, 3000);
+  for (const value of [
+    JSON.stringify({ args: splitArgs, phase: 'paid' }),
+    JSON.stringify({ args: splitArgs, phase: 'paid', cashCents: -5 }),
+    JSON.stringify({ args: splitArgs, phase: 'paid', cashCents: 1.5 }),
+    JSON.stringify({ args: splitArgs, phase: 'paid', cashCents: '3000' }),
+  ]) {
+    storage.set('split-broken', value);
+    const broken = readCheckpoint('split-broken');
+    assert.equal(broken.pending, null);
+    assert.ok(broken.error.length > 0);
+  }
+  storage.set(
+    'split-prepared',
+    JSON.stringify({ args: splitArgs, phase: 'prepared' }),
+  );
+  assert.equal(readCheckpoint('split-prepared').pending.phase, 'prepared');
+});
+
 test('corrupt or incomplete recovery data blocks payment instead of discarding it silently', () => {
   for (const value of [
     '{not-json',
@@ -183,6 +210,7 @@ test('the order displays quantities, unit prices, totals, and named cart control
   assert.ok(html.includes('Elimina Magnet Sibiu'));
   assert.ok(html.includes('Scade cantitatea pentru Magnet Sibiu'));
   assert.ok(html.includes('Creste cantitatea pentru Magnet Sibiu'));
+  assert.ok(html.includes('Plata mixta CASH + CARD'));
 });
 
 test('offline orders disable payment without disabling cart cleanup', () => {
@@ -215,6 +243,18 @@ test('offline orders disable payment without disabling cart cleanup', () => {
       .find((tag) => tag.includes('Goleste cosul'))
       .includes('disabled=""'),
   );
+});
+
+test('split confirmation collects an exact cash part and the rest on the terminal', () => {
+  const html = renderToStaticMarkup(
+    createElement(PaymentDialog, { payment: payment('prepared', 'split') }),
+  );
+  assert.ok(html.includes('Plata mixta (cash + card)'));
+  assert.ok(html.includes('terminalul bancar separat'));
+  assert.ok(html.includes('Cash primit (lei)'));
+  assert.ok(html.includes('Card (lei)'));
+  assert.ok(html.includes('Cash primit + terminal aprobat'));
+  assert.ok(!html.includes('Rest de oferit'));
 });
 
 test('card confirmation explicitly requires approval on a separate terminal', () => {

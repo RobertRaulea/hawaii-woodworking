@@ -15,6 +15,7 @@ export interface PaymentCheckpoint {
  args: PrepareArgs;
  phase: 'prepared' | 'paid';
  receivedCents?: number;
+ cashCents?: number;
 }
 
 export interface CompletedSale {

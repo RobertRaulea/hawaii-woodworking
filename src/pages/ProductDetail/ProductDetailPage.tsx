@@ -37,6 +37,7 @@ import {
   subscribeAnalytics,
   trackAnalytics,
 } from '../../utils/analytics.utils';
+import { flyToCart } from '../../utils/flyToCart.utils';
 import { buildProductSeo } from '../../../shared/seo/seo.utils';
 
 export const ProductDetailPage: React.FC = () => {
@@ -176,19 +177,23 @@ export const ProductDetailPage: React.FC = () => {
 
   const clampQuantity = (value: number) => Math.min(Math.max(1, value), maxQuantity);
 
-  const handleAddToCart = () => {
-    const image = product.imageUrls?.[0] ?? null;
-    addItem(
+  const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget;
+    const image = product.imageUrls?.[0] || 'https://placehold.co/100x100?text=No+Image';
+    const added = addItem(
       {
         id: product._id,
         name: product.name,
         price: product.price,
-        image: image || 'https://placehold.co/100x100?text=No+Image',
+        image,
       },
       currentStock,
       isTrackingStock,
       quantity
     );
+    if (added) {
+      flyToCart(button, image);
+    }
   };
 
   const handleShare = async () => {
