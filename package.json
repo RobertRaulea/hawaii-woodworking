@@ -46,7 +46,7 @@
     "cmdk": "1.1.1",
     "convex": "^1.48.0",
     "embla-carousel-react": "8.6.0",
-    "i18next": "^25.10.10",
+    "i18next": "^27.2.7",
     "i18next-browser-languagedetector": "^8.2.3",
     "lucide-react": "^0.344.0",
     "posthog-js": "1.441.0",
